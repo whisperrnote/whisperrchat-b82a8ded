@@ -1,0 +1,291 @@
+{
+    "specVersion": "mvp-1.0.0",
+    "profile": "mvp-machine-first@1",
+    "metadata": {
+      "name": "tenchat-backend",
+      "description": "TenChat Backend: Modular E2EE messaging + blockchain notarization + payment microservices. Emphasis on horizontal scalability, strict authZ, privacy-preserving metadata, append-only audit, and deterministic regeneration."
+    },
+    "domainModel": "./models/domain.tenchat.v1.dsl",
+    "api": {
+      "contract": {
+        "openapi": "./api/openapi.tenchat.v1.yaml"
+      },
+      "semantics": [
+        {
+          "selector": "POST /v1/auth/register",
+          "idempotency": "none",
+          "preconditions": ["username_available", "password_policy_ok"],
+          "postconditions": ["user_created", "primary_keys_generated", "initial_keys_stubbed"],
+          "errors": ["409_USERNAME_TAKEN", "422_PASSWORD_WEAK", "500_INTERNAL"]
+        },
+        {
+          "selector": "POST /v1/auth/login",
+          "idempotency": "none",
+          "preconditions": ["user_exists", "password_valid"],
+          "postconditions": ["session_token_issued", "refresh_token_issued"],
+          "errors": ["401_INVALID_CREDENTIALS", "423_LOCKED", "500_INTERNAL"]
+        },
+        {
+          "selector": "POST /v1/keys/bootstrap",
+          "idempotency": "idempotent",
+          "preconditions": ["session_valid", "identity_key_not_set"],
+          "postconditions": ["identity_key_registered", "prekeys_stored"],
+          "errors": ["409_ALREADY_INITIALIZED", "401_UNAUTHORIZED"]
+        },
+        {
+          "selector": "GET /v1/users/{id}/prekeys",
+          "idempotency": "safe",
+          "preconditions": ["session_valid", "target_exists"],
+          "postconditions": ["prekeys_retrieved"],
+          "errors": ["404_NOT_FOUND", "401_UNAUTHORIZED"]
+        },
+        {
+          "selector": "POST /v1/conversations",
+          "idempotency": "idempotent",
+          "preconditions": ["session_valid", "participants_valid"],
+          "postconditions": ["conversation_created||existing_returned"],
+          "errors": ["400_BAD_REQUEST", "401_UNAUTHORIZED", "409_DUPLICATE"]
+        },
+        {
+          "selector": "GET /v1/conversations",
+          "pagination": "cursor",
+          "idempotency": "safe",
+          "preconditions": ["session_valid"],
+          "postconditions": ["conversation_list_returned"],
+          "errors": ["401_UNAUTHORIZED"]
+        },
+        {
+          "selector": "GET /v1/conversations/{id}/messages",
+          "pagination": "cursor",
+          "idempotency": "safe",
+          "preconditions": ["session_valid", "user_in_conversation"],
+          "postconditions": ["messages_returned"],
+          "errors": ["401_UNAUTHORIZED", "403_FORBIDDEN", "404_NOT_FOUND"]
+        },
+        {
+          "selector": "POST /v1/conversations/{id}/messages",
+          "idempotency": "none",
+          "preconditions": ["session_valid", "user_in_conversation", "payload_encrypted"],
+          "postconditions": ["message_persisted", "fanout_scheduled", "index_updated"],
+          "errors": ["400_INVALID_PAYLOAD", "401_UNAUTHORIZED", "403_FORBIDDEN", "413_TOO_LARGE"]
+        },
+        {
+          "selector": "POST /v1/messages/{id}/ack",
+          "idempotency": "idempotent",
+          "preconditions": ["session_valid", "message_exists", "user_in_conversation"],
+          "postconditions": ["ack_recorded"],
+          "errors": ["401_UNAUTHORIZED", "404_NOT_FOUND"]
+        },
+        {
+          "selector": "DELETE /v1/messages/{id}",
+          "idempotency": "idempotent",
+          "preconditions": ["session_valid", "author_or_moderator"],
+          "postconditions": ["message_tombstoned"],
+          "errors": ["401_UNAUTHORIZED", "403_FORBIDDEN", "404_NOT_FOUND"]
+        },
+        {
+          "selector": "POST /v1/payments",
+          "idempotency": "idempotent",
+          "preconditions": ["session_valid", "kyc_verified", "balance_sufficient", "signature_valid"],
+          "postconditions": ["payment_recorded", "ledger_updated", "event_emitted"],
+          "errors": ["402_INSUFFICIENT_FUNDS", "400_SIGNATURE_INVALID", "401_UNAUTHORIZED", "409_DUPLICATE"]
+        },
+        {
+          "selector": "GET /v1/payments",
+          "pagination": "cursor",
+          "idempotency": "safe",
+          "preconditions": ["session_valid"],
+          "postconditions": ["payment_events_returned"],
+          "errors": ["401_UNAUTHORIZED"]
+        },
+        {
+          "selector": "POST /v1/notarizations",
+          "idempotency": "idempotent",
+          "preconditions": ["session_valid", "hash_valid"],
+          "postconditions": ["hash_enqueued_anchor"],
+          "errors": ["400_INVALID_HASH", "401_UNAUTHORIZED"]
+        },
+        {
+          "selector": "GET /v1/notarizations",
+          "pagination": "cursor",
+          "idempotency": "safe",
+          "preconditions": ["session_valid"],
+          "postconditions": ["notarizations_returned"],
+          "errors": ["401_UNAUTHORIZED"]
+        },
+        {
+          "selector": "GET /v1/audit/logs",
+          "pagination": "cursor",
+          "idempotency": "safe",
+          "preconditions": ["session_valid", "role_auditor_or_admin"],
+          "postconditions": ["audit_page_returned"],
+          "errors": ["401_UNAUTHORIZED", "403_FORBIDDEN"]
+        }
+      ]
+    },
+    "events": {
+      "asyncapi": "./events/asyncapi.tenchat.v1.yaml",
+      "topics": [
+        "conversations.index",
+        "conversations.{id}.messages",
+        "contacts.updated",
+        "profile.updated",
+        "payments.stream",
+        "notarizations.stream",
+        "ledger.state",
+        "moderation.actions"
+      ]
+    },
+    "authModel": {
+      "actors": ["user", "system", "bot", "service", "admin", "auditor", "moderator"],
+      "roles": ["guest", "user", "premium", "bot", "moderator", "admin", "auditor", "system"],
+      "policies": [
+        {
+          "resource": "conversation",
+          "action": "create",
+          "roles": ["user", "premium", "bot"],
+          "effect": "allow",
+          "condition": "participant_count<=50"
+        },
+        {
+          "resource": "conversation",
+          "action": "create",
+          "roles": ["premium"],
+          "effect": "allow",
+          "condition": "participant_count<=500"
+        },
+        {
+          "resource": "conversation",
+          "action": "read",
+          "roles": ["user", "premium", "moderator", "admin", "system"],
+          "effect": "allow",
+          "condition": "is_participant=true"
+        },
+        {
+          "resource": "conversation",
+          "action": "delete",
+          "roles": ["admin"],
+          "effect": "allow"
+        },
+        {
+          "resource": "message",
+          "action": "send",
+          "roles": ["user", "premium", "bot"],
+          "effect": "allow",
+          "condition": "conversation_membership=true && rate_limit_ok=true"
+        },
+        {
+          "resource": "message",
+          "action": "moderate",
+          "roles": ["moderator", "admin"],
+          "effect": "allow"
+        },
+        {
+          "resource": "message",
+          "action": "delete",
+          "roles": ["user", "premium"],
+          "effect": "allow",
+          "condition": "author=true && message_age<2h"
+        },
+        {
+          "resource": "keys",
+          "action": "register",
+          "roles": ["user", "premium"],
+          "effect": "allow",
+          "condition": "identity_key_absent=true"
+        },
+        {
+          "resource": "keys",
+          "action": "rotate",
+          "roles": ["user", "premium"],
+          "effect": "allow",
+          "condition": "mfa_verified=true"
+        },
+        {
+          "resource": "payment",
+          "action": "initiate",
+          "roles": ["user", "premium"],
+          "effect": "allow",
+          "condition": "kyc_verified=true && balance>=amount"
+        },
+        {
+          "resource": "payment",
+          "action": "refund",
+          "roles": ["admin"],
+          "effect": "allow"
+        },
+        {
+          "resource": "notarization",
+          "action": "create",
+          "roles": ["user", "premium"],
+          "effect": "allow",
+          "condition": "hash_format_valid=true"
+        },
+        {
+          "resource": "auditLog",
+          "action": "read",
+          "roles": ["auditor", "admin"],
+          "effect": "allow",
+          "condition": "signed_access_grant=true"
+        },
+        {
+          "resource": "featureFlag",
+          "action": "update",
+          "roles": ["admin"],
+          "effect": "allow"
+        },
+        {
+          "resource": "bot",
+          "action": "register",
+          "roles": ["user", "premium"],
+          "effect": "allow",
+          "condition": "bot_quota_remaining=true"
+        }
+      ]
+    },
+    "targets": [
+      {
+        "provider": "custom",
+        "version": "2025-09-01",
+        "mapping": {
+          "schemaRef": "./infrastructure/db/schema.prisma",
+          "policiesRef": "./infrastructure/auth/policies.rbac.json",
+          "functionsRef": "./infrastructure/runtime/functions.map.json",
+          "storageRef": "./infrastructure/storage/buckets.config.json",
+          "routesRef": "./api/routes.map.json"
+        }
+      },
+      {
+        "provider": "supabase",
+        "version": "1.150.3",
+        "mapping": {
+          "schemaRef": "./cloud/supabase/schema.sql",
+          "policiesRef": "./cloud/supabase/policies.sql",
+          "functionsRef": "./cloud/supabase/functions",
+          "storageRef": "./cloud/supabase/storage.json",
+          "routesRef": "./cloud/supabase/edge-functions.map.json"
+        }
+      }
+    ],
+    "regenerate": {
+      "generator": {
+        "name": "tenchat-backend-scaffold",
+        "version": "0.4.0",
+        "template": "backend/modular-service-v1",
+        "randomSeed": 1729000101
+      },
+      "environment": {
+        "lockfiles": ["pnpm-lock.yaml", "Cargo.lock", "go.sum"],
+        "containerDigest": "sha256:8b2c36c2cc4dd5c5ad7c6a1d2b44e0a7e0e9a2f8747f8c33d2e8e5135f5a221d"
+      },
+      "artifactFingerprint": "backend@tenchat:mvp-1.0.0:sha256-a4b1cc953ef0d9b2"
+    },
+    "x-rationale": {
+      "encryption": "Server never stores plaintext messages; only ciphertext + minimal routing metadata (conversation_id, sender_id, size, padding).",
+      "scaling": "Messages service partitioned by conversation_id hash; fanout via event streaming; search via background async indexing.",
+      "blockchain": "Periodic anchoring of message batch Merkle roots; micropayments ledger with off-chain channel settlement; identity attestation anchored.",
+      "backwardsCompatibility": "Versioned OpenAPI + GraphQL schema; additive changes only; deprecated endpoints gated by Accept-Version header with sunset metadata.",
+      "observability": "Structured logs (OTEL), trace propagation across services, cardinality guards on labels.",
+      "privacy": "Metadata minimization, delayed writing of some correlation fields, differential privacy on aggregate analytics."
+    }
+  }
