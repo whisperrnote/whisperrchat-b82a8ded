@@ -1,7 +1,7 @@
 // @generated whisperrchat-tool: crypto-tests@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Cryptographic service tests with property-based testing
 
-import { cryptoService } from '../services/crypto.service';
+import { cryptoService } from '../services';
 
 /**
  * Mock test framework (in real implementation, use Jest/Vitest)
