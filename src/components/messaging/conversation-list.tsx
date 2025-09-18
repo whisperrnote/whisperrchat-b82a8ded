@@ -1,13 +1,9 @@
 // @generated whisperrchat-tool: conversation-list hash: initial DO NOT EDIT DIRECTLY
 // Conversation list component
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Lock, Users } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { ScrollArea } from '../ui/scroll-area';
-import { Badge } from '../ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Box, Typography, TextField, Card, CardContent, Avatar, Chip, List, ListItem, ListItemAvatar, ListItemText, IconButton } from '@mui/material';
 import type { Conversation, User } from '../../types';
 import { messagingService } from '../../services';
 
@@ -111,42 +107,65 @@ export function ConversationList({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-4">
-          <h1>Messages</h1>
-          <Button onClick={onNewConversation} size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            New Chat
-          </Button>
-        </div>
+      <Box sx={{ p: 2, borderBottom: '1px solid rgba(139, 92, 246, 0.2)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6" sx={{ color: 'white' }}>Messages</Typography>
+          <IconButton 
+            onClick={onNewConversation} 
+            size="small"
+            sx={{ 
+              bgcolor: '#8b5cf6', 
+              color: 'white',
+              '&:hover': { bgcolor: '#7c3aed' }
+            }}
+          >
+            <Plus style={{ fontSize: 16 }} />
+          </IconButton>
+        </Box>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Search conversations..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: <Search style={{ color: 'rgba(255,255,255,0.5)', marginRight: 8, fontSize: 16 }} />
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              color: 'white',
+              '& fieldset': { borderColor: 'rgba(139, 92, 246, 0.5)' },
+              '&:hover fieldset': { borderColor: '#8b5cf6' },
+              '& input::placeholder': { color: 'rgba(255,255,255,0.5)' }
+            }
+          }}
+        />
+      </Box>
 
       {/* Conversations */}
-      <ScrollArea className="flex-1">
+      <Box sx={{ flex: 1, overflowY: 'auto' }}>
         {isLoading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-current"></div>
-          </div>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px' }}>
+            <Box sx={{ 
+              animation: 'spin 1s linear infinite',
+              width: 32,
+              height: 32,
+              border: '2px solid transparent',
+              borderTop: '2px solid #8b5cf6',
+              borderRadius: '50%'
+            }} />
+          </Box>
         ) : filteredConversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-32 text-gray-500">
-            <Users className="w-8 h-8 mb-2" />
-            <p>No conversations yet</p>
-            <p className="text-sm">Start a new conversation to get started</p>
-          </div>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', textAlign: 'center' }}>
+            <Users style={{ color: 'rgba(255,255,255,0.5)', fontSize: 32, marginBottom: 8 }} />
+            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.7)' }}>No conversations yet</Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>Start a new conversation to get started</Typography>
+          </Box>
         ) : (
-          <div className="divide-y">
+          <List sx={{ p: 0 }}>
             {filteredConversations.map((conversation) => (
               <ConversationItem
                 key={conversation.id}
@@ -159,10 +178,10 @@ export function ConversationList({
                 getInitials={getInitials}
               />
             ))}
-          </div>
+          </List>
         )}
-      </ScrollArea>
-    </div>
+      </Box>
+    </Box>
   );
 }
 
@@ -191,53 +210,79 @@ function ConversationItem({
   const lastMessageTime = conversation.lastMessage?.timestamp || conversation.updatedAt;
   
   return (
-    <div
-      className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-        isSelected ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500' : ''
-      }`}
+    <ListItem
       onClick={onClick}
+      sx={{
+        cursor: 'pointer',
+        bgcolor: isSelected ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+        borderRight: isSelected ? '3px solid #8b5cf6' : 'none',
+        '&:hover': {
+          bgcolor: 'rgba(139, 92, 246, 0.1)'
+        },
+        transition: 'all 0.2s'
+      }}
     >
-      <div className="flex items-center space-x-3">
-        <Avatar>
-          <AvatarImage src={conversation.metadata.avatar} />
-          <AvatarFallback>
-            {getInitials(participantName)}
-          </AvatarFallback>
+      <ListItemAvatar>
+        <Avatar 
+          src={conversation.metadata.avatar}
+          sx={{ bgcolor: '#8b5cf6' }}
+        >
+          {getInitials(participantName)}
         </Avatar>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <h3 className="truncate">{participantName}</h3>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-gray-500">
+      </ListItemAvatar>
+      
+      <ListItemText
+        primary={
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="subtitle1" sx={{ color: 'white', fontWeight: 500 }}>
+              {participantName}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)' }}>
                 {formatLastMessageTime(lastMessageTime)}
-              </span>
-              <Lock className="w-3 h-3 text-green-500" />
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500 truncate">
+              </Typography>
+              <Lock style={{ color: '#10b981', fontSize: 12 }} />
+            </Box>
+          </Box>
+        }
+        secondary={
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5 }}>
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
               {conversation.lastMessage ? 'New message' : 'No messages yet'}
-            </p>
+            </Typography>
             
-            <div className="flex items-center space-x-1">
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
               {conversation.type === 'group' && (
-                <Badge variant="outline" className="text-xs">
-                  <Users className="w-3 h-3 mr-1" />
-                  {conversation.participants.length}
-                </Badge>
+                <Chip 
+                  icon={<Users style={{ fontSize: 12 }} />}
+                  label={conversation.participants.length}
+                  size="small"
+                  variant="outlined"
+                  sx={{ 
+                    height: 20, 
+                    fontSize: '0.7rem',
+                    borderColor: 'rgba(139, 92, 246, 0.5)', 
+                    color: 'white' 
+                  }}
+                />
               )}
               
               {conversation.metadata.settings.blockchainAnchoringEnabled && (
-                <Badge variant="secondary" className="text-xs">
-                  Anchored
-                </Badge>
+                <Chip 
+                  label="Anchored"
+                  size="small"
+                  sx={{ 
+                    height: 20, 
+                    fontSize: '0.7rem',
+                    bgcolor: 'rgba(139, 92, 246, 0.3)', 
+                    color: 'white' 
+                  }}
+                />
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Box>
+          </Box>
+        }
+      />
+    </ListItem>
   );
 }
