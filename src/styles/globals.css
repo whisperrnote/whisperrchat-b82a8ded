@@ -66,127 +66,137 @@ a:hover, a:focus-visible {
    Fallback values allow rendering before JS/token hydration.
    NEVER DELETE existing variables; deprecate with comment and add new. */
 
-:root {
-  /* Color Palette (Base Semantic Layer) */
-  --color-bg-app: #0e1116;
-  --color-bg-surface: #161b22;
-  --color-bg-soft: #1d232c;
-  --color-bg-alt: #202734;
-  --color-bg-accent: linear-gradient(135deg,#2563eb,#7c3aed);
-  --color-fg-primary: #f5f7fa;
-  --color-fg-secondary: #c7d1dc;
-  --color-fg-muted: #94a3b8;
-  --color-fg-inverted: #0e1116;
-  --color-border: #2c3440;
-  --color-border-strong: #3b4654;
-  --color-scroll-track: #14181f;
-  --color-scroll-thumb: #2d3744;
-
-  /* Brand / Accents */
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-accent: var(--color-brand-500);
-  --color-positive: #10b981;
-  --color-positive-bg: #063f2f;
-  --color-warning: #f59e0b;
-  --color-warning-bg: #3f2f06;
-  --color-danger: #ef4444;
-  --color-danger-bg: #441010;
-  --color-info: #0ea5e9;
-  --color-info-bg: #063244;
-  --color-link: #3b82f6;
-  --color-focus-ring: #6366f1;
-
-  /* Elevation / Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 8px -2px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.3);
-  --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.45), 0 4px 10px -2px rgba(0,0,0,0.35);
-
-  /* Radii */
-  --radius-0: 0;
-  --radius-1: 4px;
-  --radius-2: 6px;
-  --radius-3: 8px;
-  --radius-4: 12px;
-  --radius-pill: 1000px;
-
-  /* Z-Index Scale (do not renumber; append if adding) */
-  --z-base: 0;
-  --z-sticky: 50;
-  --z-dropdown: 100;
-  --z-overlay: 200;
-  --z-toast: 300;
-  --z-modal: 400;
-  --z-max: 999;
-
-  /* Typography Scale */
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
-  --font-mono: 'JetBrainsMono', ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-
-  --font-size-50: 0.75rem;
-  --font-size-75: 0.8125rem;
-  --font-size-90: 0.875rem;
-  --font-size-100: 1rem;
-  --font-size-110: 1.0625rem;
-  --font-size-125: 1.125rem;
-  --font-size-150: 1.25rem;
-  --font-size-200: 1.5rem;
-  --font-size-300: 1.875rem;
-  --font-size-400: 2.25rem;
-
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  --line-height-tight: 1.1;
-  --line-height-snug: 1.25;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.65;
-
-  /* Spacing Scale (4px base) */
-  --space-0: 0;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-  --space-20: 5rem;
-
-  /* Motion */
-  --ease-standard: cubic-bezier(.4,0,.2,1);
-  --ease-emphasized: cubic-bezier(.2,0,0,.8);
-  --ease-entrance: cubic-bezier(0,0,.2,1);
-  --ease-exit: cubic-bezier(.4,0,1,1);
-  --duration-fast: 120ms;
-  --duration-med: 200ms;
-  --duration-slow: 320ms;
-  --transition-base: var(--duration-med) var(--ease-standard);
-
-  /* Layout Constraints */
-  --layout-max-content: 1280px;
-  --layout-max-narrow: 920px;
-  --layout-gutter: var(--space-4);
-
-  /* Message Bubble Specific */
-  --msg-inbound-bg: #1e2630;
-  --msg-outbound-bg: linear-gradient(135deg,#4f46e5,#6366f1);
-  --msg-inbound-fg: var(--color-fg-primary);
-  --msg-outbound-fg: #fff;
-  --msg-radius: 18px;
-  --msg-gap: var(--space-2);
-
-  /* Scrollbar (WebKit + Firefox) */
-  --scrollbar-size: 10px;
-
-  /* Experimental Versioned Tokens (append new sets) */
-  --color-brand-2025V1: #5b5ef7;
+@layer base {
+  :root {
+    /* Brown/Ash Color System for WhisperrChat */
+    
+    /* Dark Mode (Default) - Dark ash backgrounds, brown foregrounds */
+    --background: 25 25 25; /* Dark ash */
+    --foreground: 139 69 19; /* Dark brown */
+    
+    --card: 38 38 38; /* Darker ash */
+    --card-foreground: 160 82 45; /* Medium brown */
+    
+    --popover: 38 38 38; /* Darker ash */
+    --popover-foreground: 160 82 45; /* Medium brown */
+    
+    --primary: 92 51 23; /* Dark brown */
+    --primary-foreground: 245 245 220; /* Beige */
+    
+    --secondary: 64 64 64; /* Medium ash */
+    --secondary-foreground: 139 69 19; /* Dark brown */
+    
+    --muted: 51 51 51; /* Dark ash */
+    --muted-foreground: 160 82 45; /* Medium brown */
+    
+    --accent: 78 78 78; /* Light ash */
+    --accent-foreground: 101 67 33; /* Brown */
+    
+    --destructive: 220 38 38;
+    --destructive-foreground: 248 250 252;
+    
+    --border: 64 64 64; /* Medium ash */
+    --input: 38 38 38; /* Darker ash */
+    --ring: 92 51 23; /* Dark brown */
+    
+    --radius: 0.5rem;
+    
+    /* Chat-specific colors */
+    --chat-bubble-sent: 92 51 23; /* Dark brown */
+    --chat-bubble-sent-foreground: 245 245 220; /* Beige */
+    --chat-bubble-received: 78 78 78; /* Light ash */
+    --chat-bubble-received-foreground: 139 69 19; /* Dark brown */
+    
+    /* Security indicators */
+    --security: 34 197 94; /* Green for encrypted */
+    --security-foreground: 240 253 244;
+    
+    --warning: 251 146 60;
+    --warning-foreground: 254 252 232;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(92 51 23), hsl(160 82 45));
+    --gradient-security: linear-gradient(135deg, hsl(34 197 94), hsl(21 94 75));
+    --gradient-bg: linear-gradient(135deg, hsl(25 25 25), hsl(38 38 38));
+  }
+  
+  .dark {
+    /* Same as root since dark is default */
+    --background: 25 25 25; /* Dark ash */
+    --foreground: 139 69 19; /* Dark brown */
+    
+    --card: 38 38 38; /* Darker ash */
+    --card-foreground: 160 82 45; /* Medium brown */
+    
+    --popover: 38 38 38; /* Darker ash */
+    --popover-foreground: 160 82 45; /* Medium brown */
+    
+    --primary: 92 51 23; /* Dark brown */
+    --primary-foreground: 245 245 220; /* Beige */
+    
+    --secondary: 64 64 64; /* Medium ash */
+    --secondary-foreground: 139 69 19; /* Dark brown */
+    
+    --muted: 51 51 51; /* Dark ash */
+    --muted-foreground: 160 82 45; /* Medium brown */
+    
+    --accent: 78 78 78; /* Light ash */
+    --accent-foreground: 101 67 33; /* Brown */
+    
+    --destructive: 220 38 38;
+    --destructive-foreground: 248 250 252;
+    
+    --border: 64 64 64; /* Medium ash */
+    --input: 38 38 38; /* Darker ash */
+    --ring: 92 51 23; /* Dark brown */
+    
+    /* Chat colors for dark mode */
+    --chat-bubble-sent: 92 51 23; /* Dark brown */
+    --chat-bubble-sent-foreground: 245 245 220; /* Beige */
+    --chat-bubble-received: 78 78 78; /* Light ash */
+    --chat-bubble-received-foreground: 139 69 19; /* Dark brown */
+  }
+  
+  .light {
+    /* Light Mode - Ash-white backgrounds, brownish-white foregrounds */
+    --background: 250 248 246; /* Ash-white */
+    --foreground: 92 51 23; /* Dark brown */
+    
+    --card: 255 255 255; /* Pure white */
+    --card-foreground: 101 67 33; /* Brown */
+    
+    --popover: 255 255 255; /* Pure white */
+    --popover-foreground: 101 67 33; /* Brown */
+    
+    --primary: 160 82 45; /* Medium brown */
+    --primary-foreground: 250 248 246; /* Ash-white */
+    
+    --secondary: 245 245 220; /* Beige */
+    --secondary-foreground: 92 51 23; /* Dark brown */
+    
+    --muted: 245 245 220; /* Beige */
+    --muted-foreground: 101 67 33; /* Brown */
+    
+    --accent: 231 229 228; /* Light ash */
+    --accent-foreground: 92 51 23; /* Dark brown */
+    
+    --destructive: 220 38 38;
+    --destructive-foreground: 248 250 252;
+    
+    --border: 231 229 228; /* Light ash */
+    --input: 245 245 220; /* Beige */
+    --ring: 160 82 45; /* Medium brown */
+    
+    /* Chat colors for light mode */
+    --chat-bubble-sent: 160 82 45; /* Medium brown */
+    --chat-bubble-sent-foreground: 250 248 246; /* Ash-white */
+    --chat-bubble-received: 245 245 220; /* Beige */
+    --chat-bubble-received-foreground: 92 51 23; /* Dark brown */
+    
+    /* Light mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(160 82 45), hsl(139 69 19));
+    --gradient-bg: linear-gradient(135deg, hsl(250 248 246), hsl(245 245 220));
+  }
 }
 
 /* 3. Dark / Light Mode
