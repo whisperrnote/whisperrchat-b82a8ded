@@ -79,18 +79,18 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={colorfulTheme}>
+    <ThemeProvider theme={purpleTheme}>
       <CssBaseline />
-      <Box 
-        sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        }}
-      >
-        <MainLayout currentUser={currentUser || GUEST_USER} onLogout={handleLogout} />
-        <Toaster position="top-right" />
-      </Box>
-    </ThemeProvider>
+        <Box 
+          sx={{
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+          }}
+        >
+          <MainLayout currentUser={currentUser || GUEST_USER} onLogout={handleLogout} />
+          <Toaster position="top-right" />
+        </Box>
+      </ThemeProvider>
   );
 }
 
