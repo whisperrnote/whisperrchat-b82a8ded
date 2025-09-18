@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed; using in-memory placeholder store
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -24,143 +24,46 @@ export const useRealtimeChats = () => {
   // Fetch initial chats
   useEffect(() => {
     if (!user) return;
-
-    const fetchChats = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('chat_members')
-          .select(`
-            chat_id,
-            chats!inner(
-              id,
-              name,
-              type,
-              created_at,
-              updated_at,
-              avatar_url,
-              created_by
-            )
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        
-        const chatData = data?.map(item => ({
-          id: item.chats.id,
-          name: item.chats.name,
-          type: item.chats.type,
-          created_at: item.chats.created_at,
-          updated_at: item.chats.updated_at,
-          avatar_url: item.chats.avatar_url,
-          created_by: item.chats.created_by
-        })) || [];
-
-        setChats(chatData);
-      } catch (error) {
-        console.error('Error fetching chats:', error);
-        toast.error('Failed to load chats');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchChats();
+    // Demo: load chats from localStorage
+    const raw = localStorage.getItem('demo_chats');
+    if (raw) {
+      setChats(JSON.parse(raw));
+    } else {
+      const seed: Chat[] = [];
+      localStorage.setItem('demo_chats', JSON.stringify(seed));
+      setChats(seed);
+    }
+    setLoading(false);
   }, [user]);
 
   // Set up realtime subscription for chat updates
   useEffect(() => {
+    // Placeholder realtime: polling localStorage for changes
     if (!user) return;
-
-    const channel = supabase
-      .channel('user_chats')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_members',
-          filter: `user_id=eq.${user.id}`
-        },
-        async (payload) => {
-          // Fetch the new chat details
-          const { data } = await supabase
-            .from('chats')
-            .select('*')
-            .eq('id', payload.new.chat_id)
-            .single();
-          
-          if (data) {
-            setChats(prev => [data, ...prev]);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'chats'
-        },
-        (payload) => {
-          const updatedChat = payload.new as Chat;
-          setChats(prev => 
-            prev.map(chat => 
-              chat.id === updatedChat.id ? updatedChat : chat
-            )
-          );
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const interval = setInterval(() => {
+      const raw = localStorage.getItem('demo_chats');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setChats(parsed);
+      }
+    }, 2000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const createChat = async (name?: string, type: 'direct' | 'group' | 'channel' = 'direct', participantIds: string[] = []) => {
     if (!user) return null;
-
     try {
-      // Create chat
-      const { data: chat, error: chatError } = await supabase
-        .from('chats')
-        .insert({
-          name,
-          type,
-          created_by: user.id
-        })
-        .select()
-        .single();
-
-      if (chatError) throw chatError;
-
-      // Add current user as member
-      const { error: memberError } = await supabase
-        .from('chat_members')
-        .insert({
-          chat_id: chat.id,
-          user_id: user.id,
-          role: 'admin'
-        });
-
-      if (memberError) throw memberError;
-
-      // Add other participants
-      if (participantIds.length > 0) {
-        const memberInserts = participantIds.map(userId => ({
-          chat_id: chat.id,
-          user_id: userId,
-          role: 'member' as const
-        }));
-
-        const { error: participantsError } = await supabase
-          .from('chat_members')
-          .insert(memberInserts);
-
-        if (participantsError) throw participantsError;
-      }
-
+      const chat: Chat = {
+        id: crypto.randomUUID(),
+        name,
+        type,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: user.id
+      };
+      setChats(prev => [chat, ...prev]);
+      const stored = JSON.stringify([chat, ...chats]);
+      localStorage.setItem('demo_chats', stored);
       return chat;
     } catch (error) {
       console.error('Error creating chat:', error);
