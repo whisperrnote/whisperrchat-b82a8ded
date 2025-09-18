@@ -1,0 +1,125 @@
+{
+  "name": "whisperrchat-frontend",
+  "version": "1.0.0",
+  "description": "WhisperrChat E2EE messaging platform frontend specification",
+  "lastUpdated": "2025-09-18",
+  "architecture": {
+    "type": "modular-spa",
+    "framework": "react",
+    "encryption": "client-side-e2ee",
+    "patterns": ["service-layer", "contract-based", "plugin-architecture"]
+  },
+  "modules": {
+    "authentication": {
+      "description": "User authentication and identity management",
+      "components": ["AuthForm", "AuthService"],
+      "contracts": ["AuthContract"],
+      "encryption": "local-key-generation"
+    },
+    "messaging": {
+      "description": "End-to-end encrypted messaging",
+      "components": ["ChatInterface", "ConversationList", "MessagingService"],
+      "contracts": ["MessagingContract"],
+      "encryption": "signal-protocol",
+      "features": ["double-ratchet", "forward-secrecy", "post-compromise-security"]
+    },
+    "cryptography": {
+      "description": "Cryptographic operations and key management",
+      "components": ["CryptoService", "KeyManagementService"],
+      "algorithms": {
+        "identity": "X25519/Ed25519",
+        "session": "X3DH",
+        "ratchet": "Double-Ratchet",
+        "encryption": "AES-256-GCM",
+        "hashing": "SHA-256",
+        "kdf": "HKDF"
+      }
+    },
+    "blockchain": {
+      "description": "Blockchain anchoring and notarization",
+      "components": ["NotarizationService", "ChainClient"],
+      "contracts": ["BlockchainContract"],
+      "features": ["merkle-trees", "circuit-breaker", "provider-abstraction"]
+    },
+    "plugins": {
+      "description": "Extensible plugin framework",
+      "components": ["PluginService", "PluginSandbox", "PluginPolicy"],
+      "features": ["sandboxing", "permission-system", "hook-system"]
+    }
+  },
+  "security": {
+    "encryption": {
+      "at_rest": "client-side-only",
+      "in_transit": "e2ee",
+      "key_management": "local-generation-and-storage"
+    },
+    "privacy": {
+      "metadata_minimization": true,
+      "no_plaintext_server_storage": true,
+      "optional_blockchain_anchoring": true
+    },
+    "cryptographic_primitives": {
+      "identity_keys": "X25519/Ed25519",
+      "session_establishment": "X3DH",
+      "message_encryption": "Double-Ratchet + AES-256-GCM",
+      "password_hashing": "Argon2id (simulated)",
+      "random_generation": "crypto.getRandomValues"
+    }
+  },
+  "versioning": {
+    "api_contracts": "semver",
+    "database_migrations": "forward-only",
+    "plugin_api": "backward-compatible",
+    "cryptographic_protocols": "additive-evolution"
+  },
+  "storage": {
+    "type": "browser-localStorage",
+    "encryption": "client-side",
+    "data_types": [
+      "user-identity",
+      "session-states",
+      "encrypted-messages",
+      "conversation-metadata",
+      "plugin-data"
+    ]
+  },
+  "apis": {
+    "internal": {
+      "auth": "AuthService",
+      "messaging": "MessagingService",
+      "crypto": "CryptoService",
+      "keys": "KeyManagementService",
+      "blockchain": "NotarizationService",
+      "plugins": "PluginService"
+    },
+    "external": {
+      "backend": "REST + WebSocket",
+      "blockchain": "Provider-abstracted",
+      "plugins": "Sandboxed API"
+    }
+  },
+  "performance": {
+    "targets": {
+      "bundle_size": "< 280KB gzipped",
+      "cold_start": "< 1800ms",
+      "message_encryption": "< 50ms",
+      "key_generation": "< 500ms"
+    }
+  },
+  "compatibility": {
+    "browsers": ["Chrome 90+", "Firefox 88+", "Safari 14+", "Edge 90+"],
+    "features_required": ["WebCrypto API", "localStorage", "TextEncoder/Decoder"]
+  },
+  "testing": {
+    "unit": "90% coverage critical paths",
+    "integration": "contract validation",
+    "e2e": "core user flows",
+    "crypto": "property-based testing"
+  },
+  "deployment": {
+    "type": "static-spa",
+    "cdn": true,
+    "pwa": "future",
+    "offline": "partial-support"
+  }
+}
