@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: auth-form@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated whisperrchat-tool: auth-form hash: initial DO NOT EDIT DIRECTLY
 // Authentication form component
 
 import React, { useState } from 'react';

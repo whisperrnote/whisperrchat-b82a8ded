@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: main-layout@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated whisperrchat-tool: main-layout hash: initial DO NOT EDIT DIRECTLY
 // Main application layout
 
 import React, { useState } from 'react';
