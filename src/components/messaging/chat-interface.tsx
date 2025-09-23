@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Lock, Shield, Anchor, X } from 'lucide-react';
+import { Send, Lock, Shield, Anchor, X, Gift } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardHeader, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Textarea } from '../ui/textarea';
 import type { DecryptedMessage, EncryptedMessage, Conversation, User } from '../../types';
-import { messagingService } from '../../services';
+import { messagingService, giftingService } from '../../services';
+import { GiftDialog } from '../gifting/gift-dialog';
 
 interface ChatInterfaceProps {
   conversation: Conversation;
@@ -18,6 +19,7 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
   const [messages, setMessages] = useState<DecryptedMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showGiftDialog, setShowGiftDialog] = useState(false);
   const [encryptedMessages, setEncryptedMessages] = useState<EncryptedMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -88,8 +90,9 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
     }
   };
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  const sendMessage = async (content?: string, type: 'text' | 'gift' = 'text') => {
+    const messageContent = content || inputMessage.trim();
+    if (!messageContent) return;
 
     const recipientId = conversation.participants.find(p => p !== currentUser.id) || '';
     
@@ -97,13 +100,15 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `msg-${Date.now()}-${Math.random()}`,
       senderId: currentUser.id,
       recipientId,
-      content: inputMessage.trim(),
+      content: messageContent,
       timestamp: new Date(),
-      type: 'text'
+      type
     };
 
     try {
-      setInputMessage('');
+      if (type === 'text') {
+        setInputMessage('');
+      }
       setMessages(prev => [...prev, message]);
       
       await messagingService.sendMessage(message);
@@ -111,7 +116,21 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
       console.error('Failed to send message:', error);
       // Remove message from UI on failure
       setMessages(prev => prev.filter(m => m.id !== message.id));
-      setInputMessage(message.content);
+      if (type === 'text') {
+        setInputMessage(message.content);
+      }
+    }
+  };
+
+  const handleSendGift = async (amount: number) => {
+    const recipientId = conversation.participants.find(p => p !== currentUser.id) || '';
+    try {
+      await giftingService.sendGift(currentUser, recipientId, amount);
+      const giftMessage = JSON.stringify({ amount, recipientName: getOtherParticipant(), senderName: currentUser.displayName });
+      sendMessage(giftMessage, 'gift');
+    } catch (error) {
+      console.error('Failed to send gift:', error);
+      // Optionally, show an error to the user
     }
   };
 
@@ -203,16 +222,33 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
               />
             </div>
             <Button 
-              onClick={sendMessage} 
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowGiftDialog(true)}
+              className="shrink-0"
+              aria-label="Send a gift"
+            >
+              <Gift className="h-5 w-5" />
+            </Button>
+            <Button
+              onClick={() => sendMessage()}
               disabled={!inputMessage.trim()}
               size="icon"
               className="shrink-0"
+              aria-label="Send message"
             >
               <Send className="h-4 w-4" />
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      <GiftDialog
+        open={showGiftDialog}
+        onOpenChange={setShowGiftDialog}
+        onSendGift={handleSendGift}
+        recipientName={getOtherParticipant()}
+      />
     </div>
   );
 }
@@ -224,16 +260,37 @@ interface MessageBubbleProps {
 }
 
 function MessageBubble({ message, isOwn, timestamp }: MessageBubbleProps) {
+  if (message.type === 'gift') {
+    try {
+      const giftData = JSON.parse(message.content);
+      const { amount, senderName, recipientName } = giftData;
+
+      return (
+        <div className="flex justify-center my-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-accent/50 rounded-full px-4 py-1">
+            <Gift className="h-4 w-4 text-primary" />
+            <span>
+              <strong>{senderName}</strong> sent a <strong>${amount}</strong> gift to <strong>{recipientName}</strong>!
+            </span>
+          </div>
+        </div>
+      );
+    } catch (error) {
+      console.error('Failed to parse gift message content:', error);
+      return null; // Don't render malformed gift messages
+    }
+  }
+
+  const bubbleClasses = isOwn
+    ? 'bg-chat-bubble-sent text-chat-bubble-sent-foreground border-primary/50'
+    : 'bg-chat-bubble-received text-chat-bubble-received-foreground border-accent/50';
+
   return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-      <Card className={`max-w-[70%] ${
-        isOwn 
-          ? 'bg-chat-bubble-sent text-chat-bubble-sent-foreground' 
-          : 'bg-chat-bubble-received text-chat-bubble-received-foreground'
-      }`}>
+      <Card className={`max-w-[70%] border ${bubbleClasses}`}>
         <CardContent className="p-3">
           <p className="break-words">{message.content}</p>
-          <p className={`text-xs mt-1 opacity-75`}>
+          <p className={`text-xs mt-1 ${isOwn ? 'text-right' : 'text-left'} opacity-75`}>
             {timestamp}
           </p>
         </CardContent>
