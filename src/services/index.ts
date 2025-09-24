@@ -11,7 +11,7 @@ export type {
 } from '../types';
 
 // Create service instances that are always defined and functional
-console.log('Initializing WhisperrChat services...');
+console.log('Initializing TenChat services...');
 
 // Auth Service - always functional
 export const authService = {
@@ -180,7 +180,7 @@ export const pluginService = {
   getAvailableBots: () => []
 };
 
-console.log('✓ WhisperrChat services initialized (stub mode)');
+console.log('✓ TenChat services initialized (stub mode)');
 
 // Try to initialize real services asynchronously without blocking
 setTimeout(async () => {

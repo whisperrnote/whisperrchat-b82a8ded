@@ -1,13 +1,13 @@
-# WhisperrChat Project Guidelines
+# TenChat Project Guidelines
 System & Contributor Handbook for Humans, Automated Tools, and AI Agents
 
 Version: 1.0.0 (Living Document)  
 Last Updated: 2025-09-18  
-Applies To: all repositories under the WhisperrChat ecosystem (frontend, backend, infra, crypto, bots, docs)
+Applies To: all repositories under the TenChat ecosystem (frontend, backend, infra, crypto, bots, docs)
 
 
 ## 0. Purpose
-WhisperrChat is an open-source, end-to-end encrypted (E2EE) messaging platform with optional native blockchain anchoring (notarization, micro‑payments, identity attestations). This document encodes architectural constraints and behavioral rules to ensure:
+TenChat is an open-source, end-to-end encrypted (E2EE) messaging platform with optional native blockchain anchoring (notarization, micro‑payments, identity attestations). This document encodes architectural constraints and behavioral rules to ensure:
 * Flexibility (pluggable modules, graceful degradation)
 * Modularity (clear boundaries, minimal coupling)
 * Backwards compatibility (schema + protocol stability, additive evolution)

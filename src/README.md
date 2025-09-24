@@ -1,8 +1,8 @@
-# WhisperrChat - Privacy-First E2EE Messaging Platform
+# TenChat - Privacy-First E2EE Messaging Platform
 
 > **⚠️ Important**: This is a development prototype. Not intended for production use with sensitive data.
 
-WhisperrChat is an extensible, privacy-first end-to-end encrypted messaging platform built with modular service boundaries, forward-compatible versioning, and optional blockchain anchoring capabilities.
+TenChat is an extensible, privacy-first end-to-end encrypted messaging platform built with modular service boundaries, forward-compatible versioning, and optional blockchain anchoring capabilities.
 
 ## 🔐 Core Security Features
 
@@ -249,4 +249,4 @@ For questions or issues:
 
 ---
 
-**Remember**: WhisperrChat prioritizes privacy and security by design. All encryption happens on your device, and no one else can read your messages.
+**Remember**: TenChat prioritizes privacy and security by design. All encryption happens on your device, and no one else can read your messages.

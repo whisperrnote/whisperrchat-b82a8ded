@@ -10,6 +10,7 @@ import type {
   Identity 
 } from '../types';
 import { CryptoService } from './crypto.service';
+import { ChainClient } from './blockchain.service';
 
 export class AuthService implements IAuthService {
   private currentUser: User | null = null;
@@ -31,21 +32,21 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async login(credentials: LoginCredentials): Promise<AuthResult> {
+  async loginWithWallet(): Promise<AuthResult> {
     try {
-      // TODO(ai): Replace with actual API call
-      // Mock implementation for demo
-      const mockUsers = this.getMockUsers();
-      const user = mockUsers.find(u => u.username === credentials.username);
+      const chainClient = new ChainClient(this.cryptoService);
+      const address = await chainClient.connectWallet();
 
-      if (!user) {
-        return { success: false, error: 'User not found' };
-      }
-
-      // TODO(ai): Implement proper password verification with Argon2id
-      // For now, any password works in demo mode
+      const identity = await this.cryptoService.generateIdentity();
       
-      // Generate session token
+      const user: User = {
+        id: address,
+        displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
+        identity,
+        createdAt: new Date(),
+        lastSeen: new Date()
+      };
+
       const token = await this.generateSessionToken(user.id);
       
       this.currentUser = user;
@@ -69,47 +70,6 @@ export class AuthService implements IAuthService {
     this.currentUser = null;
     this.token = null;
     this.clearAuthState();
-  }
-
-  async register(userInfo: RegisterInfo): Promise<AuthResult> {
-    try {
-      // Generate cryptographic identity
-      const identity = await this.cryptoService.generateIdentity();
-      
-      // Create user object
-      const user: User = {
-        id: typeof crypto !== 'undefined' && crypto.randomUUID ? 
-          crypto.randomUUID() : 
-          `user-${Date.now()}-${Math.random()}`,
-        username: userInfo.username,
-        displayName: userInfo.displayName,
-        identity,
-        createdAt: new Date(),
-        lastSeen: new Date()
-      };
-
-      // TODO(ai): Replace with actual API call to register user
-      // For now, store in localStorage for demo
-      this.storeUser(user);
-
-      // Generate session token
-      const token = await this.generateSessionToken(user.id);
-      
-      this.currentUser = user;
-      this.token = token;
-      this.saveAuthState();
-
-      return {
-        success: true,
-        user,
-        token
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Registration failed'
-      };
-    }
   }
 
   async refreshToken(): Promise<string> {
@@ -215,26 +175,6 @@ export class AuthService implements IAuthService {
     localStorage.removeItem(this.storageKey);
   }
 
-  /**
-   * Store user for demo purposes
-   */
-  private storeUser(user: User): void {
-    const users = this.getMockUsers();
-    users.push(user);
-    localStorage.setItem('whisperr_users', JSON.stringify(users));
-  }
-
-  /**
-   * Get mock users for demo
-   */
-  private getMockUsers(): User[] {
-    try {
-      const stored = localStorage.getItem('whisperr_users');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
 
   /**
    * Get current authentication token
