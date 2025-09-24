@@ -1,6 +1,8 @@
 // @generated whisperrchat-tool: blockchain-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Blockchain anchoring service with provider abstraction
 
+import { createWalletClient, custom, http } from 'viem'
+import { mainnet } from 'viem/chains'
 import type { 
   INotarizationService, 
   IChainClient, 
@@ -160,6 +162,8 @@ export class ChainClient implements IChainClient {
   private circuitBreaker = new CircuitBreaker();
   private gasCache: Map<string, { price: string; timestamp: number }> = new Map();
   private readonly gasCacheTimeout = 30000; // 30 seconds
+  private walletClient: any | null = null;
+  private connectedAddress: string | null = null;
 
   constructor(cryptoService?: CryptoService) {
     try {
@@ -214,6 +218,30 @@ export class ChainClient implements IChainClient {
 
   private failoverToNextProvider(): void {
     this.currentProviderIndex = (this.currentProviderIndex + 1) % this.providers.length;
+  }
+
+  async connectWallet(): Promise<string> {
+    if (typeof window.ethereum === 'undefined') {
+      throw new Error('MetaMask is not installed.');
+    }
+
+    this.walletClient = createWalletClient({
+      chain: mainnet,
+      transport: custom(window.ethereum)
+    });
+
+    const [address] = await this.walletClient.requestAddresses();
+    this.connectedAddress = address;
+    return address;
+  }
+
+  async disconnectWallet(): Promise<void> {
+    this.walletClient = null;
+    this.connectedAddress = null;
+  }
+
+  getConnectedAddress(): string | null {
+    return this.connectedAddress;
   }
 }
 

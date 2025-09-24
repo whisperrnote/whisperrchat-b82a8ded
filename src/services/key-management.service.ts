@@ -121,7 +121,7 @@ export class KeyManagementService implements IKeyManagementService {
     }
 
     // Derive root key using HKDF
-    const rootKey = await this.cryptoService.hkdf(sharedSecret, '', 'WhisperrChat-X3DH');
+    const rootKey = await this.cryptoService.hkdf(sharedSecret, '', 'TenChat-X3DH');
     
     // Initialize Double Ratchet session
     return await this.cryptoService.initializeSession(rootKey);
@@ -163,7 +163,7 @@ export class KeyManagementService implements IKeyManagementService {
 
     // Derive encryption key from passphrase using Argon2id (simulated)
     const salt = this.cryptoService.generateRandomBytes(16);
-    const derivedKey = await this.cryptoService.hkdf(passphrase, salt, 'WhisperrChat-Backup');
+    const derivedKey = await this.cryptoService.hkdf(passphrase, salt, 'TenChat-Backup');
     
     // Encrypt identity
     const { ciphertext, nonce } = await this.cryptoService.encryptMessage(
@@ -191,7 +191,7 @@ export class KeyManagementService implements IKeyManagementService {
       }
 
       // Derive decryption key
-      const derivedKey = await this.cryptoService.hkdf(passphrase, backup.salt, 'WhisperrChat-Backup');
+      const derivedKey = await this.cryptoService.hkdf(passphrase, backup.salt, 'TenChat-Backup');
       
       // Decrypt identity
       const decryptedData = await this.cryptoService.decryptMessage(
