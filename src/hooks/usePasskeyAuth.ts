@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed; will integrate Appwrite or server later
 import { toast } from 'sonner';
 
 export const usePasskeyAuth = () => {
@@ -37,37 +37,25 @@ export const usePasskeyAuth = () => {
       
       // Create user profile with generated UUID for id
       const userId = crypto.randomUUID();
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: userId,
-          anonymous_id: anonymousId,
-          display_name: displayName || 'Anonymous User',
-          allow_contact_discovery: false,
-          visibility_mode: 'friends'
-        })
-        .select()
-        .single();
-
-      if (profileError) throw profileError;
-
-      const { error: authError } = await supabase
-        .from('user_auth_methods')
-        .insert({
-          user_id: profile.id,
-          method: 'passkey',
-          method_data: {
-            credentialId: registrationResponse.id,
-            publicKey: registrationResponse.response.publicKey,
-            counter: 0,
-            email: email
-          },
-          verified: true,
-          is_primary: true
-        });
-
-      if (authError) throw authError;
-
+      const profile = {
+        id: userId,
+        anonymous_id: anonymousId,
+        display_name: displayName || 'Anonymous User'
+      };
+      const storedAuth = {
+        user_id: profile.id,
+        method: 'passkey',
+        method_data: {
+          credentialId: registrationResponse.id,
+          publicKey: registrationResponse.response.publicKey,
+          counter: 0,
+          email: email
+        },
+        verified: true,
+        is_primary: true
+      };
+      localStorage.setItem('passkey_profile', JSON.stringify(profile));
+      localStorage.setItem('passkey_auth', JSON.stringify(storedAuth));
       toast.success('Passkey registered successfully!');
       return { success: true, userId: profile.id };
     } catch (error: any) {
@@ -93,33 +81,18 @@ export const usePasskeyAuth = () => {
       const authenticationResponse = await startAuthentication(authenticationOptions);
       
       // Find user by credential ID
-      const { data: authMethod, error: authError } = await supabase
-        .from('user_auth_methods')
-        .select('user_id, method_data')
-        .eq('method', 'passkey')
-        .contains('method_data', { credentialId: authenticationResponse.id })
-        .single();
-
-      if (authError || !authMethod) {
+      const storedAuthRaw = localStorage.getItem('passkey_auth');
+      if (!storedAuthRaw) throw new Error('No passkey registered');
+      const authMethod = JSON.parse(storedAuthRaw);
+      if (authMethod.method_data.credentialId !== authenticationResponse.id) {
         throw new Error('Passkey not found');
       }
-
-      // Create a session for this user
-      // Note: This is a simplified approach. In production, you'd want to verify the signature
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', authMethod.user_id)
-        .single();
-
-      if (profile) {
-        // Store authentication state in localStorage for demo purposes
-        localStorage.setItem('passkey_user_id', authMethod.user_id);
-        toast.success('Successfully authenticated with passkey!');
-        return { success: true, userId: authMethod.user_id };
-      }
-
-      throw new Error('User profile not found');
+      const profileRaw = localStorage.getItem('passkey_profile');
+      if (!profileRaw) throw new Error('User profile not found');
+      const profile = JSON.parse(profileRaw);
+      localStorage.setItem('passkey_user_id', authMethod.user_id);
+      toast.success('Successfully authenticated with passkey!');
+      return { success: true, userId: authMethod.user_id };
     } catch (error: any) {
       console.error('Passkey authentication error:', error);
       toast.error(error.message || 'Failed to authenticate with passkey');

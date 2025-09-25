@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed; stubbed local auth pending Appwrite
 import { toast } from 'sonner';
 
 export const useEmailAuth = () => {
@@ -8,26 +8,11 @@ export const useEmailAuth = () => {
   const signUp = async (email: string, password: string, displayName?: string) => {
     setLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            display_name: displayName || 'Anonymous User'
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.user && !data.session) {
-        toast.success('Check your email for the confirmation link!');
-      }
-
-      return { data, error: null };
+      // Demo: store minimal user record locally
+      const user = { id: crypto.randomUUID(), email, display_name: displayName || 'Anonymous User' };
+      localStorage.setItem('demo_user', JSON.stringify(user));
+      toast.success('Account created (local demo)');
+      return { data: { user }, error: null };
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast.error(error.message || 'Failed to sign up');
@@ -40,14 +25,15 @@ export const useEmailAuth = () => {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      return { data, error: null };
+      // Demo: accept any credentials if an account exists or create one
+      let stored = localStorage.getItem('demo_user');
+      if (!stored) {
+        stored = JSON.stringify({ id: crypto.randomUUID(), email, display_name: email.split('@')[0] });
+        localStorage.setItem('demo_user', stored);
+      }
+      const user = JSON.parse(stored);
+      toast.success('Signed in (local demo)');
+      return { data: { user }, error: null };
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast.error(error.message || 'Failed to sign in');
