@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,13 +16,23 @@ import {
   Video,
   Settings,
   LogOut,
-  User
+  User,
+  Key
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEncryption } from "@/hooks/useEncryption";
+import EncryptionSetup from "@/components/EncryptionSetup";
+import ChatMessage from "@/components/ChatMessage";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
   const { user, signOut } = useAuth();
+  const { isInitialized, sendEncryptedMessage, deviceKey, loading } = useEncryption();
+  
+  // Show encryption setup if not initialized
+  if (!isInitialized) {
+    return <EncryptionSetup onSetupComplete={() => window.location.reload()} />;
+  }
 
   const conversations = [
     {
@@ -57,34 +67,50 @@ const Chat = () => {
 
   const messages = [
     {
-      id: 1,
-      text: "Hey! How's the new encryption protocol working?",
-      sender: "Alice Cooper",
-      time: "10:30 AM",
-      sent: false
+      id: "1",
+      encryptedContent: "Hey! How's the new encryption protocol working?",
+      senderId: "alice-id",
+      senderName: "Alice Cooper",
+      senderAvatar: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150",
+      timestamp: new Date(Date.now() - 2 * 60 * 1000),
+      sent: false,
+      keyFingerprint: "abc123def456"
     },
     {
-      id: 2,
-      text: "It's working perfectly! The end-to-end encryption is seamless.",
-      sender: "You",
-      time: "10:32 AM",
-      sent: true
+      id: "2", 
+      encryptedContent: "It's working perfectly! The end-to-end encryption is seamless.",
+      senderId: user?.id || "you",
+      senderName: "You",
+      timestamp: new Date(Date.now() - 1 * 60 * 1000),
+      sent: true,
+      keyFingerprint: deviceKey?.fingerprint
     },
     {
-      id: 3,
-      text: "That's great to hear. The blockchain integration really makes a difference in security.",
-      sender: "Alice Cooper",
-      time: "10:33 AM",
-      sent: false
-    },
-    {
-      id: 4,
-      text: "Absolutely! No more worrying about message interception.",
-      sender: "You",
-      time: "10:35 AM",
-      sent: true
+      id: "3",
+      encryptedContent: "That's great to hear. The blockchain integration really makes a difference in security.",
+      senderId: "alice-id",
+      senderName: "Alice Cooper", 
+      senderAvatar: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150",
+      timestamp: new Date(Date.now() - 30 * 1000),
+      sent: false,
+      keyFingerprint: "abc123def456"
     }
   ];
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+    
+    // For demo, we'll simulate sending to Alice
+    const success = await sendEncryptedMessage(
+      message,
+      "chat-1", 
+      ["alice-id"]
+    );
+    
+    if (success) {
+      setMessage("");
+    }
+  };
 
   return (
     <div className="flex h-screen bg-background">
@@ -108,6 +134,10 @@ const Chat = () => {
                 <DropdownMenuItem>
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Key className="w-4 h-4 mr-2" />
+                  Key: {deviceKey?.fingerprint}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={signOut}>
                   <LogOut className="w-4 h-4 mr-2" />
@@ -215,27 +245,17 @@ const Chat = () => {
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4 max-w-4xl mx-auto">
             {messages.map((msg) => (
-              <div
+              <ChatMessage
                 key={msg.id}
-                className={`flex ${msg.sent ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                    msg.sent
-                      ? 'bg-chat-bubble-sent text-chat-bubble-sent-foreground'
-                      : 'bg-chat-bubble-received text-chat-bubble-received-foreground'
-                  }`}
-                >
-                  <p className="text-sm">{msg.text}</p>
-                  <p className={`text-xs mt-1 ${
-                    msg.sent 
-                      ? 'text-chat-bubble-sent-foreground/70' 
-                      : 'text-chat-bubble-received-foreground/70'
-                  }`}>
-                    {msg.time}
-                  </p>
-                </div>
-              </div>
+                id={msg.id}
+                encryptedContent={msg.encryptedContent}
+                senderId={msg.senderId}
+                senderName={msg.senderName}
+                senderAvatar={msg.senderAvatar}
+                timestamp={msg.timestamp}
+                sent={msg.sent}
+                keyFingerprint={msg.keyFingerprint}
+              />
             ))}
           </div>
         </ScrollArea>
@@ -252,8 +272,7 @@ const Chat = () => {
                   className="pr-12"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      // Handle send message
-                      setMessage("");
+                      handleSendMessage();
                     }
                   }}
                 />
@@ -264,7 +283,8 @@ const Chat = () => {
               <Button 
                 size="icon" 
                 className="bg-gradient-primary hover:opacity-90 text-white"
-                onClick={() => setMessage("")}
+                onClick={handleSendMessage}
+                disabled={loading || !message.trim()}
               >
                 <Send className="w-4 h-4" />
               </Button>
