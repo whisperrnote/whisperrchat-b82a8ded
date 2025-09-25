@@ -1,0 +1,255 @@
+{
+    "specVersion": "mvp-1.0.0",
+    "profile": "mvp-machine-first@1",
+    "metadata": {
+      "name": "tenchat-frontend",
+      "description": "TenChat Frontend: Cross-platform secure E2EE messaging + native blockchain features (identity, receipts, micropayments, notarization). Designed for deterministic regeneration, high modularity, theming, offline-first, and backwards-compatible evolution."
+    },
+    "application": {
+      "type": "hybrid",
+      "frameworkHint": "expo-react-native-next-universal",
+      "languages": ["typescript", "javascript", "json", "css-in-js"]
+    },
+    "contracts": {
+      "openapi": "./contracts/openapi.tenchat.v1.yaml",
+      "graphql": "./contracts/schema.tenchat.v1.graphql",
+      "asyncapi": "./contracts/asyncapi.tenchat.v1.yaml"
+    },
+    "blueprints": {
+      "ui": "./blueprints/ui.tenchat.v1.json",
+      "flows": "./blueprints/flows.statecharts.tenchat.v1.json",
+      "stateModel": {
+        "stores": {
+          "session": {
+            "shape": "authSession",
+              "persistence": "secure-storage",
+              "hydration": "onAppLaunch",
+              "sourceOfTruth": "local-first",
+              "invalidates": ["contactList", "inboxIndex"]
+          },
+          "inboxIndex": {
+            "shape": "conversationSummary[]",
+            "persistence": "sqlite",
+            "query": "GET /conversations?cursor",
+              "subscriptionTopic": "conversations.index",
+            "cachePolicy": "stale-while-revalidate(5s)"
+          },
+          "conversation": {
+            "shape": "message[]",
+            "persistence": "sqlite",
+            "query": "GET /conversations/{id}/messages?cursor",
+            "subscriptionTopic": "conversations.{id}.messages",
+            "encryption": "double-ratchet(client-side)",
+            "optimisticKeys": ["sendMessage"]
+          },
+          "drafts": {
+            "shape": "record<conversationId, pendingMessageDraft>",
+            "persistence": "memory+secure-storage",
+            "eviction": "lru(200)"
+          },
+          "contacts": {
+            "shape": "contact[]",
+            "query": "GET /contacts",
+            "persistence": "sqlite",
+            "subscriptionTopic": "contacts.updated"
+          },
+          "profile": {
+            "shape": "userProfile",
+            "query": "GET /me",
+            "subscriptionTopic": "profile.updated",
+            "persistence": "secure-storage"
+          },
+          "keys": {
+            "shape": "cryptoKeyMaterial",
+            "persistence": "secure-enclave|keystore|keychain",
+            "rotation": "on-demand + scheduled(30d)",
+            "backup": "user-optin-encrypted-passphrase"
+          },
+          "payments": {
+            "shape": "paymentEvent[]",
+            "query": "GET /payments?cursor",
+            "subscriptionTopic": "payments.stream",
+            "persistence": "sqlite",
+            "offchainCacheTTL": "60s"
+          },
+          "notarizations": {
+            "shape": "messageNotarization[]",
+            "query": "GET /notarizations?cursor",
+            "subscriptionTopic": "notarizations.stream"
+          },
+          "featureFlags": {
+            "shape": "flag[]",
+            "query": "GET /feature-flags",
+            "persistence": "memory",
+            "refresh": "interval(10m)|onAppForeground"
+          },
+          "mediaQueue": {
+            "shape": "uploadTask[]",
+            "persistence": "sqlite",
+            "sideEffects": ["POST /media", "encryption(chunked)"]
+          },
+          "searchIndex": {
+            "shape": "localInvertedIndex",
+            "persistence": "sqlite",
+            "population": "background-worker(messages, contacts)"
+          }
+        },
+        "bindings": {
+          "sendMessage": {
+            "mutation": "POST /conversations/{id}/messages",
+            "optimistic": true,
+            "rollbackOn": ["4xx", "5xx", "encryption_error"],
+            "encrypt": "session-double-ratchet"
+          },
+          "ackMessage": {
+            "mutation": "POST /messages/{id}/ack",
+            "idempotent": true
+          },
+          "initiatePayment": {
+            "mutation": "POST /payments",
+            "preEncrypt": false,
+            "sign": "ed25519-user-spend-key"
+          }
+        }
+      },
+      "validationRules": [
+        {
+          "selector": "form#login",
+          "rules": ["username:required|min:3|max:32|regex:^[a-zA-Z0-9_]+$", "password:required|min:10|max:256"]
+        },
+        {
+          "selector": "form#register",
+          "rules": [
+            "username:required|min:3|max:32|regex:^[a-zA-Z0-9_]+$",
+            "displayName:optional|max:64",
+            "password:required|min:12|max:256|entropy:>=60bits",
+            "recoveryEmail:required|email"
+          ]
+        },
+        {
+          "selector": "form#newMessage",
+          "rules": ["content:required|maxBytes:65536", "attachments:maxCount:10", "attachments[*].size:maxBytes:26214400"]
+        },
+        {
+          "selector": "form#payment",
+          "rules": ["amount:required|numeric|min:0.00000001|max:100000", "asset:required|in:TEN,USDC,TEST", "memo:max:140"]
+        }
+      ],
+      "authModel": {
+        "roles": ["guest", "user", "premium", "moderator", "admin", "system", "bot", "auditor"],
+        "policies": [
+          {
+            "resource": "conversation",
+            "action": "read",
+            "roles": ["user", "premium", "moderator", "admin", "system"],
+            "effect": "allow",
+            "condition": "participant(user, conversation.id)=true"
+          },
+          {
+            "resource": "conversation",
+            "action": "write",
+            "roles": ["user", "premium", "bot"],
+            "effect": "allow",
+            "condition": "participant(user, conversation.id)=true"
+          },
+          {
+            "resource": "message",
+            "action": "delete",
+            "roles": ["user", "premium"],
+            "effect": "allow",
+            "condition": "author(user,message.id)=true && message.age < 2h"
+          },
+          {
+            "resource": "message",
+            "action": "moderate",
+            "roles": ["moderator", "admin"],
+              "effect": "allow",
+            "condition": "true"
+          },
+          {
+            "resource": "profile",
+            "action": "update",
+            "roles": ["user", "premium"],
+            "effect": "allow",
+            "condition": "subject(user)=profile.owner"
+          },
+          {
+            "resource": "payment",
+            "action": "initiate",
+            "roles": ["user", "premium"],
+            "effect": "allow",
+            "condition": "kyc_status(user)=verified"
+          },
+          {
+            "resource": "featureFlags",
+            "action": "read",
+            "roles": ["guest", "user", "premium", "bot"],
+            "effect": "allow"
+          },
+          {
+            "resource": "adminPanel",
+            "action": "access",
+            "roles": ["admin"],
+            "effect": "allow"
+          },
+          {
+            "resource": "auditLog",
+            "action": "read",
+            "roles": ["auditor", "admin"],
+            "effect": "allow",
+            "condition": "signedAccessGrant(user)=true"
+          },
+          {
+            "resource": "encryptionKeyBackup",
+            "action": "restore",
+            "roles": ["user", "premium"],
+            "effect": "allow",
+            "condition": "user.mfa=true"
+          }
+        ]
+      }
+    },
+    "assets": {
+      "tokens": "./design/tokens/tenchat.tokens.v1.json",
+      "fonts": [
+        { "name": "Inter", "uri": "https://cdn.example.org/fonts/inter/variable.woff2", "integrity": "sha384-abc123" },
+        { "name": "JetBrainsMono", "uri": "https://cdn.example.org/fonts/jetbrains-mono/regular.woff2" }
+      ],
+      "icons": [
+        { "name": "logo", "uri": "./assets/icons/logo.svg" },
+        { "name": "lock", "uri": "./assets/icons/lock.svg" },
+        { "name": "send", "uri": "./assets/icons/send.svg" },
+        { "name": "crypto", "uri": "./assets/icons/crypto.svg" }
+      ],
+      "animations": [
+        { "name": "messageSend", "format": "lottie", "uri": "./assets/animations/message-send.json" },
+        { "name": "secureHandshake", "format": "lottie", "uri": "./assets/animations/secure-handshake.json" }
+      ]
+    },
+    "targets": {
+      "web": {
+        "routing": "file-system",
+        "ssr": true,
+        "framework": "nextjs14"
+      }
+    },
+    "regenerate": {
+      "generator": {
+        "name": "tenchat-scaffolder",
+        "version": "0.3.2",
+        "template": "frontend/hybrid-v1",
+        "randomSeed": 1729000001
+      },
+      "environment": {
+        "lockfiles": ["pnpm-lock.yaml", "package-lock.json"],
+        "containerDigest": "sha256:4f73b2c1d9c9e6e2c1bb1fa832d0f9c2670a4c1bf3a1110f2c0e3b7f2b09aa11"
+      },
+      "artifactFingerprint": "frontend@tenchat:mvp-1.0.0:sha256-d1f7c5b3852e2c9e"
+    },
+    "x-rationale": {
+      "encryption": "All message payloads encrypted client-side using Double Ratchet over X3DH bootstrap; metadata minimized and padded.",
+      "blockchain": "Light client integration for notarization (hash anchoring), microtransaction tipping, identity attestations.",
+      "performance": "SQLite + normalized stores + background incremental sync for large histories.",
+      "compatibility": "State model versioned; migrations executed on cold start with fallback snapshot rollback."
+    }
+  }
