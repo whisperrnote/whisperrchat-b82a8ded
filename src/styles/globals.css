@@ -812,5 +812,199 @@ html[data-integrity="degraded"] body::after {
   opacity: 0.85;
 }
 
-/* 28. End-of-file Marker (do not remove; used by regeneration scripts) */
+/* 28. Crypto Theme Enhancements */
+.crypto-gradient-bg {
+  background: linear-gradient(135deg, 
+    hsl(0 0% 0%) 0%, 
+    hsl(240 5% 6%) 25%, 
+    hsl(260 10% 8%) 50%, 
+    hsl(270 15% 5%) 75%, 
+    hsl(0 0% 0%) 100%
+  );
+}
+
+.crypto-card-bg {
+  background: linear-gradient(135deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(39, 39, 42, 0.6) 25%,
+    rgba(139, 92, 246, 0.1) 50%,
+    rgba(24, 24, 27, 0.8) 75%,
+    rgba(0, 0, 0, 0.9) 100%
+  );
+}
+
+.crypto-border-glow {
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+.crypto-text-glow {
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+}
+
+.crypto-button-primary {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.crypto-button-primary:hover {
+  background: linear-gradient(135deg, #7c3aed, #9333ea);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.crypto-pulse {
+  animation: crypto-pulse 2s infinite;
+}
+
+@keyframes crypto-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+.crypto-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.crypto-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.2) 50%,
+    transparent 100%
+  );
+  animation: crypto-shimmer-slide 2s infinite;
+}
+
+@keyframes crypto-shimmer-slide {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Portfolio/Balance Display */
+.portfolio-balance {
+  background: linear-gradient(135deg, 
+    rgba(34, 197, 94, 0.1) 0%, 
+    rgba(16, 185, 129, 0.05) 100%
+  );
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.portfolio-balance.negative {
+  background: linear-gradient(135deg, 
+    rgba(239, 68, 68, 0.1) 0%, 
+    rgba(220, 38, 38, 0.05) 100%
+  );
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Crypto Gift Animations */
+.crypto-gift-float {
+  animation: crypto-gift-float 3s ease-in-out infinite;
+}
+
+@keyframes crypto-gift-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Security Indicators */
+.security-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.security-indicator--e2ee {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05));
+  color: rgb(34, 197, 94);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.security-indicator--blockchain {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05));
+  color: rgb(139, 92, 246);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* Wallet Connection States */
+.wallet-status--connected {
+  color: rgb(34, 197, 94);
+  text-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+}
+
+.wallet-status--disconnected {
+  color: rgb(156, 163, 175);
+}
+
+/* Transaction Status Pills */
+.tx-status--pending {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05));
+  color: rgb(251, 191, 36);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.tx-status--confirmed {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05));
+  color: rgb(34, 197, 94);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.tx-status--failed {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));
+  color: rgb(239, 68, 68);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Scrollbar Styling for Crypto Theme */
+.crypto-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+.crypto-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.crypto-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.crypto-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+}
+
+.crypto-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* 29. End-of-file Marker (do not remove; used by regeneration scripts) */
 /* @tenchat-globals-end */

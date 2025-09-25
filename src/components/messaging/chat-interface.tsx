@@ -1,10 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Lock, Shield, Anchor, X, Gift } from 'lucide-react';
+import { 
+  Send, 
+  Lock, 
+  Shield, 
+  Anchor, 
+  X, 
+  Gift, 
+  Coins, 
+  Zap, 
+  Eye,
+  EyeOff,
+  Copy,
+  ExternalLink,
+  TrendingUp,
+  DollarSign,
+  Clock,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardHeader, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Textarea } from '../ui/textarea';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Separator } from '../ui/separator';
 import type { DecryptedMessage, EncryptedMessage, Conversation, User } from '../../types';
 import { messagingService, giftingService } from '../../services';
 import { GiftDialog } from '../gifting/gift-dialog';
@@ -21,7 +41,19 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
   const [isLoading, setIsLoading] = useState(false);
   const [showGiftDialog, setShowGiftDialog] = useState(false);
   const [encryptedMessages, setEncryptedMessages] = useState<EncryptedMessage[]>([]);
+  const [showCryptoPanel, setShowCryptoPanel] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const mockTransactionData = {
+    pendingGifts: 2,
+    totalSent: 125.5,
+    totalReceived: 89.2,
+    recentActivity: [
+      { type: 'gift_sent', amount: 25, time: '5m ago', status: 'confirmed' },
+      { type: 'gift_received', amount: 15, time: '1h ago', status: 'confirmed' },
+      { type: 'gift_pending', amount: 10, time: '2h ago', status: 'pending' }
+    ]
+  };
 
   useEffect(() => {
     loadMessages();
@@ -130,7 +162,6 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
       sendMessage(giftMessage, 'gift');
     } catch (error) {
       console.error('Failed to send gift:', error);
-      // Optionally, show an error to the user
     }
   };
 
@@ -157,50 +188,115 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
     return otherParticipantId || 'Unknown';
   };
 
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <Card className="border-b border-border rounded-none bg-card">
-        <CardHeader className="flex flex-row items-center justify-between py-3">
-          <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold text-foreground">
-              {conversation.metadata.name || getOtherParticipant()}
-            </h3>
-            <div className="flex gap-2">
-              <Badge variant="secondary" className="gap-1">
-                <Lock className="h-3 w-3" />
-                E2EE
-              </Badge>
-              
-              {conversation.metadata.settings.blockchainAnchoringEnabled && (
-                <Badge variant="outline" className="gap-1">
-                  <Anchor className="h-3 w-3" />
-                  Anchored
+    <div className="flex flex-col h-full bg-gradient-to-br from-gray-950 via-black to-gray-950">
+      {/* Enhanced Header with Crypto Features */}
+      <Card className="border-b border-violet-900/30 rounded-none bg-gradient-to-r from-gray-900/80 to-black/80 backdrop-blur-sm">
+        <CardHeader className="flex flex-row items-center justify-between py-4 px-6">
+          <div className="flex items-center gap-4">
+            <Avatar className="w-12 h-12 border-2 border-violet-500">
+              <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-600 text-white font-bold">
+                {getInitials(getOtherParticipant())}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-1">
+                {conversation.metadata.name || getOtherParticipant()}
+              </h3>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="bg-green-900/30 text-green-400 border-green-700/30 text-xs">
+                  <Lock className="w-3 h-3 mr-1" />
+                  E2EE Active
                 </Badge>
-              )}
+                <Badge variant="secondary" className="bg-violet-900/30 text-violet-400 border-violet-700/30 text-xs">
+                  <Anchor className="w-3 h-3 mr-1" />
+                  Blockchain Secured
+                </Badge>
+              </div>
             </div>
           </div>
           
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-violet-300 hover:text-white hover:bg-violet-800/50"
+              onClick={() => setShowCryptoPanel(!showCryptoPanel)}
+            >
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Portfolio
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-violet-300 hover:text-white hover:bg-violet-800/50"
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
+
+        {/* Crypto Activity Panel */}
+        {showCryptoPanel && (
+          <div className="border-t border-violet-900/30 p-4 bg-gray-900/50">
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">${mockTransactionData.totalReceived}</div>
+                <div className="text-xs text-gray-400">Received</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-400">${mockTransactionData.totalSent}</div>
+                <div className="text-xs text-gray-400">Sent</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-400">{mockTransactionData.pendingGifts}</div>
+                <div className="text-xs text-gray-400">Pending</div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {mockTransactionData.recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-gray-800/50 rounded">
+                  <div className="flex items-center gap-2">
+                    {activity.type === 'gift_sent' && <Gift className="w-4 h-4 text-pink-400" />}
+                    {activity.type === 'gift_received' && <Coins className="w-4 h-4 text-green-400" />}
+                    {activity.type === 'gift_pending' && <Clock className="w-4 h-4 text-yellow-400" />}
+                    <span className="text-sm text-white">${activity.amount}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">{activity.time}</span>
+                    {activity.status === 'confirmed' && <CheckCircle className="w-3 h-3 text-green-400" />}
+                    {activity.status === 'pending' && <AlertCircle className="w-3 h-3 text-yellow-400" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
 
-      {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto bg-background">
+      {/* Messages Area with Dark Theme */}
+      <div className="flex-1 p-6 overflow-y-auto bg-black/20">
         {isLoading ? (
           <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-violet-500"></div>
+              <span className="text-gray-400 text-sm">Decrypting messages...</span>
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6">
             {messages.map((message) => (
               <MessageBubble
                 key={message.id}
                 message={message}
                 isOwn={message.senderId === currentUser.id}
                 timestamp={formatTime(message.timestamp)}
+                currentUser={currentUser}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -208,8 +304,8 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
         )}
       </div>
 
-      {/* Input */}
-      <Card className="border-t border-border rounded-none bg-card">
+      {/* Enhanced Input Area */}
+      <Card className="border-t border-violet-900/30 rounded-none bg-gradient-to-r from-gray-900/90 to-black/90 backdrop-blur-sm">
         <CardContent className="p-4">
           <div className="flex items-end gap-3">
             <div className="flex-1">
@@ -217,28 +313,48 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder="Type a message..."
-                className="min-h-[40px] max-h-32 resize-none"
+                placeholder="Send an encrypted message..."
+                className="min-h-[50px] max-h-32 resize-none bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-violet-500"
               />
             </div>
-            <Button 
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowGiftDialog(true)}
-              className="shrink-0"
-              aria-label="Send a gift"
-            >
-              <Gift className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => sendMessage()}
-              disabled={!inputMessage.trim()}
-              size="icon"
-              className="shrink-0"
-              aria-label="Send message"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowGiftDialog(true)}
+                className="shrink-0 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white border-0 h-12 w-12"
+                aria-label="Send a crypto gift"
+              >
+                <Gift className="h-5 w-5" />
+              </Button>
+              
+              <Button
+                onClick={() => sendMessage()}
+                disabled={!inputMessage.trim()}
+                className="shrink-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0 h-12 w-12"
+                aria-label="Send encrypted message"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700/50">
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <Shield className="w-3 h-3 text-green-400" />
+              <span>End-to-end encrypted</span>
+              <Separator orientation="vertical" className="h-3 bg-gray-600" />
+              <Anchor className="w-3 h-3 text-violet-400" />
+              <span>Blockchain anchored</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-violet-300 hover:text-white text-xs h-6 px-2">
+                <Zap className="w-3 h-3 mr-1" />
+                Quick Send $10
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -257,44 +373,68 @@ interface MessageBubbleProps {
   message: DecryptedMessage;
   isOwn: boolean;
   timestamp: string;
+  currentUser: User;
 }
 
-function MessageBubble({ message, isOwn, timestamp }: MessageBubbleProps) {
+function MessageBubble({ message, isOwn, timestamp, currentUser }: MessageBubbleProps) {
   if (message.type === 'gift') {
     try {
       const giftData = JSON.parse(message.content);
       const { amount, senderName, recipientName } = giftData;
 
       return (
-        <div className="flex justify-center my-2 animate-bubble-in">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-accent/50 rounded-full px-4 py-1">
-            <Gift className="h-4 w-4 text-primary" />
-            <span>
-              <strong>{senderName}</strong> sent a <strong>${amount}</strong> gift to <strong>{recipientName}</strong>!
-            </span>
+        <div className="flex justify-center my-4">
+          <div className="flex items-center gap-3 bg-gradient-to-r from-pink-900/40 to-rose-900/40 border border-pink-700/30 rounded-2xl px-6 py-4 max-w-md backdrop-blur-sm">
+            <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+              <Gift className="h-6 w-6 text-white" />
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-white mb-1">${amount} Gift</div>
+              <div className="text-sm text-pink-200">
+                from <span className="font-semibold">{senderName}</span>
+              </div>
+              <div className="text-xs text-pink-300 mt-1">
+                🎉 Crypto gift sent via blockchain
+              </div>
+            </div>
           </div>
         </div>
       );
     } catch (error) {
       console.error('Failed to parse gift message content:', error);
-      return null; // Don't render malformed gift messages
+      return null;
     }
   }
 
   const bubbleClasses = isOwn
-    ? 'bg-chat-bubble-sent text-chat-bubble-sent-foreground border-primary/50'
-    : 'bg-chat-bubble-received text-chat-bubble-received-foreground border-accent/50';
+    ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white border border-violet-500/30'
+    : 'bg-gray-800/60 text-white border border-gray-600/30 backdrop-blur-sm';
 
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-bubble-in`}>
-      <Card className={`max-w-[70%] border ${bubbleClasses}`}>
-        <CardContent className="p-3">
-          <p className="break-words">{message.content}</p>
-          <p className={`text-xs mt-1 ${isOwn ? 'text-right' : 'text-left'} opacity-75`}>
-            {timestamp}
-          </p>
-        </CardContent>
-      </Card>
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-200`}>
+      <div className="flex items-end gap-3 max-w-[70%]">
+        {!isOwn && (
+          <Avatar className="w-8 h-8 border border-gray-600">
+            <AvatarFallback className="bg-gradient-to-br from-gray-600 to-gray-700 text-white text-xs">
+              {message.senderId.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        )}
+        
+        <Card className={`${bubbleClasses} shadow-lg`}>
+          <CardContent className="p-4">
+            <p className="break-words text-sm leading-relaxed">{message.content}</p>
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
+              <p className={`text-xs ${isOwn ? 'text-violet-100' : 'text-gray-300'}`}>
+                {timestamp}
+              </p>
+              <div className="flex items-center gap-1">
+                <Lock className={`w-3 h-3 ${isOwn ? 'text-violet-200' : 'text-green-400'}`} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
