@@ -15,7 +15,7 @@ Goals: Minimal viable encrypted chat shell, unified state, removal of legacy rou
 
 Tasks:
 - [x] 1.1 Purge Supabase integration (client/types + dependency) (ref: cleanup)
-- [ ] 1.2 Introduce `AppPlatform` root (replaces router) mounting providers + Chat experience
+- [x] 1.2 Introduce `AppPlatform` root (replaces router) mounting providers + Chat experience
 - [ ] 1.3 Create `ChatApp` state orchestrator (auth gate + encryption gate + chat shell)
 - [ ] 1.4 Remove obsolete routed pages (`Landing`, `Auth`, `Index`, `NotFound`, legacy `Chat`)
 - [ ] 1.5 Remove `ProtectedRoute` and update imports
