@@ -1,13 +1,9 @@
 // @generated whisperrchat-tool: chat-interface hash: initial DO NOT EDIT DIRECTLY
 // Main chat interface component
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, Lock, Shield, Anchor } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { ScrollArea } from '../ui/scroll-area';
-import { Badge } from '../ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Paper, Box, Typography, IconButton, TextField, Chip, Tooltip } from '@mui/material';
 import type { DecryptedMessage, EncryptedMessage, Conversation, User } from '../../types';
 import { messagingService } from '../../services';
 
@@ -142,57 +138,59 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center space-x-3">
-          <h2>{conversation.metadata.name || getOtherParticipant()}</h2>
-          <div className="flex items-center space-x-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Badge variant="secondary" className="flex items-center space-x-1">
-                    <Lock className="w-3 h-3" />
-                    <span>E2EE</span>
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>End-to-end encrypted</p>
-                </TooltipContent>
+      <Paper sx={{ p: 2, borderBottom: '1px solid rgba(139, 92, 246, 0.2)', bgcolor: 'rgba(139, 92, 246, 0.05)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h6" sx={{ color: 'white' }}>
+              {conversation.metadata.name || getOtherParticipant()}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Tooltip title="End-to-end encrypted">
+                <Chip 
+                  icon={<Lock style={{ fontSize: 14 }} />} 
+                  label="E2EE" 
+                  size="small" 
+                  sx={{ bgcolor: 'rgba(139, 92, 246, 0.3)', color: 'white' }}
+                />
               </Tooltip>
-            </TooltipProvider>
-            
-            {conversation.metadata.settings.blockchainAnchoringEnabled && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="flex items-center space-x-1">
-                      <Anchor className="w-3 h-3" />
-                      <span>Anchored</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Messages are anchored to blockchain</p>
-                  </TooltipContent>
+              
+              {conversation.metadata.settings.blockchainAnchoringEnabled && (
+                <Tooltip title="Messages are anchored to blockchain">
+                  <Chip 
+                    icon={<Anchor style={{ fontSize: 14 }} />} 
+                    label="Anchored" 
+                    size="small" 
+                    variant="outlined"
+                    sx={{ borderColor: '#8b5cf6', color: 'white' }}
+                  />
                 </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
-        </div>
-        
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          ✕
-        </Button>
-      </div>
+              )}
+            </Box>
+          </Box>
+          
+          <IconButton onClick={onClose} sx={{ color: 'white' }}>
+            ✕
+          </IconButton>
+        </Box>
+      </Paper>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <Box sx={{ flex: 1, p: 2, overflowY: 'auto' }}>
         {isLoading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-current"></div>
-          </div>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px' }}>
+            <Box sx={{ 
+              animation: 'spin 1s linear infinite',
+              width: 32,
+              height: 32,
+              border: '2px solid transparent',
+              borderTop: '2px solid #8b5cf6',
+              borderRadius: '50%'
+            }} />
+          </Box>
         ) : (
-          <div className="space-y-4">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {messages.map((message) => (
               <MessageBubble
                 key={message.id}
@@ -202,44 +200,51 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
               />
             ))}
             <div ref={messagesEndRef} />
-          </div>
+          </Box>
         )}
-      </ScrollArea>
+      </Box>
 
       {/* Input */}
-      <div className="p-4 border-t">
-        <div className="flex items-center space-x-2">
-          <div className="flex-1 relative">
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              className="pr-12"
-            />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Shield className="w-4 h-4 text-green-500" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Message will be encrypted before sending</p>
-                  </TooltipContent>
+      <Paper sx={{ p: 2, borderTop: '1px solid rgba(139, 92, 246, 0.2)', bgcolor: 'rgba(139, 92, 246, 0.05)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TextField
+            fullWidth
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="Type a message..."
+            variant="outlined"
+            size="small"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                color: 'white',
+                '& fieldset': { borderColor: 'rgba(139, 92, 246, 0.5)' },
+                '&:hover fieldset': { borderColor: '#8b5cf6' },
+                '& input::placeholder': { color: 'rgba(255,255,255,0.5)' }
+              }
+            }}
+            InputProps={{
+              endAdornment: (
+                <Tooltip title="Message will be encrypted before sending">
+                  <Shield style={{ color: '#10b981', fontSize: 16 }} />
                 </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-          <Button 
+              )
+            }}
+          />
+          <IconButton 
             onClick={sendMessage} 
             disabled={!inputMessage.trim()}
-            size="sm"
+            sx={{ 
+              bgcolor: inputMessage.trim() ? '#8b5cf6' : 'rgba(139, 92, 246, 0.3)',
+              color: 'white',
+              '&:hover': { bgcolor: '#7c3aed' }
+            }}
           >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
+            <Send style={{ fontSize: 16 }} />
+          </IconButton>
+        </Box>
+      </Paper>
+    </Box>
   );
 }
 
@@ -251,19 +256,28 @@ interface MessageBubbleProps {
 
 function MessageBubble({ message, isOwn, timestamp }: MessageBubbleProps) {
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-        isOwn 
-          ? 'bg-blue-600 text-white' 
-          : 'bg-gray-100 dark:bg-gray-700'
-      }`}>
-        <p className="break-words">{message.content}</p>
-        <p className={`text-xs mt-1 ${
-          isOwn ? 'text-blue-100' : 'text-gray-500'
-        }`}>
+    <Box sx={{ display: 'flex', justifyContent: isOwn ? 'flex-end' : 'flex-start' }}>
+      <Paper sx={{
+        maxWidth: { xs: '75%', md: '60%' },
+        p: 1.5,
+        bgcolor: isOwn ? '#8b5cf6' : 'rgba(139, 92, 246, 0.1)',
+        color: 'white',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>
+          {message.content}
+        </Typography>
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: isOwn ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.6)', 
+            display: 'block',
+            mt: 0.5 
+          }}
+        >
           {timestamp}
-        </p>
-      </div>
-    </div>
+        </Typography>
+      </Paper>
+    </Box>
   );
 }

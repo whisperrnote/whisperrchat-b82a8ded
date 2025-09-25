@@ -1,16 +1,11 @@
 // @generated whisperrchat-tool: main-layout hash: initial DO NOT EDIT DIRECTLY
 // Main application layout
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Settings, Shield, LogOut, Plus, Search } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
 import { ConversationList } from '../messaging/conversation-list';
 import { ChatInterface } from '../messaging/chat-interface';
+import { Paper, Box, Typography, IconButton, Avatar as MuiAvatar, Button as MuiButton, Dialog, DialogTitle, DialogContent, TextField } from '@mui/material';
 import type { User, Conversation } from '../../types';
 import { messagingService } from '../../services';
 
@@ -66,63 +61,52 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
   };
 
   return (
-    <div className="h-screen flex">
+    <Box sx={{ display: 'flex', height: '100vh' }}>
       {/* Sidebar */}
-      <div className="w-80 bg-white dark:bg-gray-900 border-r flex flex-col">
+      <Paper 
+        sx={{ 
+          width: 320, 
+          display: 'flex', 
+          flexDirection: 'column',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          backdropFilter: 'blur(10px)'
+        }}
+      >
         {/* User header */}
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Avatar>
-                <AvatarImage src="" />
-                <AvatarFallback>
-                  {getInitials(currentUser.displayName)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h2>{currentUser.displayName}</h2>
-                <p className="text-sm text-gray-500">@{currentUser.username}</p>
-              </div>
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <Shield className="w-4 h-4 mr-2" />
-                  Security Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Preferences
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+        <Box sx={{ p: 2, borderBottom: '1px solid rgba(139, 92, 246, 0.2)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <MuiAvatar sx={{ bgcolor: '#8b5cf6' }}>
+                {getInitials(currentUser.displayName)}
+              </MuiAvatar>
+              <Box>
+                <Typography variant="h6" sx={{ color: 'white' }}>
+                  {currentUser.displayName}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                  @{currentUser.username}
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton sx={{ color: '#8b5cf6' }}>
+              <Settings />
+            </IconButton>
+          </Box>
+        </Box>
 
         {/* Conversation list */}
-        <div className="flex-1">
+        <Box sx={{ flex: 1 }}>
           <ConversationList
             currentUser={currentUser}
             onSelectConversation={handleSelectConversation}
             onNewConversation={handleNewConversation}
             selectedConversationId={selectedConversation?.id}
           />
-        </div>
-      </div>
+        </Box>
+      </Paper>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {selectedConversation ? (
           <ChatInterface
             conversation={selectedConversation}
@@ -130,64 +114,99 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
             onClose={() => setSelectedConversation(null)}
           />
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h2 className="text-xl mb-2">Welcome to WhisperrChat</h2>
-              <p className="text-gray-500 mb-4">
+          <Box 
+            sx={{ 
+              flex: 1, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              textAlign: 'center'
+            }}
+          >
+            <Box>
+              <Box 
+                sx={{ 
+                  width: 64, 
+                  height: 64, 
+                  bgcolor: 'rgba(139, 92, 246, 0.2)', 
+                  borderRadius: '50%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  mx: 'auto', 
+                  mb: 2 
+                }}
+              >
+                <Shield style={{ color: '#8b5cf6', fontSize: 32 }} />
+              </Box>
+              <Typography variant="h5" sx={{ mb: 1, color: 'white' }}>
+                Welcome to WhisperrChat
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.7)', mb: 3 }}>
                 Your messages are end-to-end encrypted and secured by design
-              </p>
-              <Button onClick={handleNewConversation}>
-                <Plus className="w-4 h-4 mr-2" />
+              </Typography>
+              <MuiButton 
+                variant="contained" 
+                onClick={handleNewConversation}
+                sx={{ 
+                  bgcolor: '#8b5cf6', 
+                  '&:hover': { bgcolor: '#7c3aed' },
+                  textTransform: 'none'
+                }}
+              >
+                <Plus style={{ marginRight: 8, fontSize: 16 }} />
                 Start a Conversation
-              </Button>
-            </div>
-          </div>
+              </MuiButton>
+            </Box>
+          </Box>
         )}
-      </div>
+      </Box>
 
       {/* New conversation dialog */}
       <Dialog 
         open={showNewConversationDialog} 
-        onOpenChange={setShowNewConversationDialog}
+        onClose={() => setShowNewConversationDialog(false)}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Start New Conversation</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="recipient">Recipient Username</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  id="recipient"
-                  placeholder="Enter username..."
-                  value={newConversationRecipient}
-                  onChange={(e) => setNewConversationRecipient(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button 
-                variant="outline" 
+        <DialogContent sx={{ bgcolor: 'rgba(139, 92, 246, 0.1)', backdropFilter: 'blur(10px)' }}>
+          <DialogTitle sx={{ color: 'white' }}>Start New Conversation</DialogTitle>
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Recipient Username"
+              placeholder="Enter username..."
+              value={newConversationRecipient}
+              onChange={(e) => setNewConversationRecipient(e.target.value)}
+              sx={{
+                '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' },
+                '& .MuiOutlinedInput-root': {
+                  color: 'white',
+                  '& fieldset': { borderColor: 'rgba(139, 92, 246, 0.5)' },
+                  '&:hover fieldset': { borderColor: '#8b5cf6' },
+                }
+              }}
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}>
+              <MuiButton 
                 onClick={() => setShowNewConversationDialog(false)}
+                sx={{ color: 'rgba(255,255,255,0.7)' }}
               >
                 Cancel
-              </Button>
-              <Button 
+              </MuiButton>
+              <MuiButton 
+                variant="contained"
                 onClick={createNewConversation}
                 disabled={!newConversationRecipient.trim()}
+                sx={{ 
+                  bgcolor: '#8b5cf6', 
+                  '&:hover': { bgcolor: '#7c3aed' }
+                }}
               >
                 Start Chat
-              </Button>
-            </div>
-          </div>
+              </MuiButton>
+            </Box>
+          </Box>
         </DialogContent>
       </Dialog>
-    </div>
+    </Box>
   );
 }
