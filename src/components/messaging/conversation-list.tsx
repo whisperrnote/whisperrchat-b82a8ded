@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Lock, Users, X } from 'lucide-react';
+import { Plus, Search, Lock, Users, X, Zap, Gift, Coins } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Card } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import type { Conversation, User } from '../../types';
@@ -132,16 +132,19 @@ export function ConversationList({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-transparent">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">Messages</h3>
+      <div className="p-4 border-b border-violet-900/30">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-white">Chats</h3>
           <Button 
             onClick={handleNewConversationClick}
             variant={showNewConversationForm ? 'ghost' : 'default'}
             size="sm"
-            className="h-8 w-8"
+            className={showNewConversationForm 
+              ? "h-8 w-8 text-violet-300 hover:text-white hover:bg-violet-800/50" 
+              : "h-8 w-8 bg-violet-600 hover:bg-violet-700 text-white border-violet-500"
+            }
             aria-label={showNewConversationForm ? "Cancel new conversation" : "New conversation"}
           >
             {showNewConversationForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -151,26 +154,28 @@ export function ConversationList({
         {showNewConversationForm ? (
           <div className="space-y-2">
             <Input
-              placeholder="Enter recipient username..."
+              placeholder="Enter wallet address or ENS..."
               value={newConversationRecipient}
               onChange={(e) => setNewConversationRecipient(e.target.value)}
+              className="bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-violet-500"
             />
             <Button
               onClick={createNewConversation}
               disabled={!newConversationRecipient.trim()}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0"
             >
-              Start Chat
+              <Zap className="w-4 w-4 mr-2" />
+              Start Encrypted Chat
             </Button>
           </div>
         ) : (
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search conversations..."
+              placeholder="Search chats..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-violet-500"
             />
           </div>
         )}
@@ -180,13 +185,17 @@ export function ConversationList({
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
           </div>
         ) : filteredConversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-center">
-            <Users className="h-8 w-8 text-muted-foreground mb-2" />
-            <h4 className="text-foreground font-medium">No conversations yet</h4>
-            <p className="text-sm text-muted-foreground">Start a new conversation to get started</p>
+          <div className="flex flex-col items-center justify-center h-48 text-center px-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-2xl flex items-center justify-center border border-violet-500/30 mb-4">
+              <Users className="h-8 w-8 text-violet-400" />
+            </div>
+            <h4 className="text-white font-medium mb-2">No conversations yet</h4>
+            <p className="text-sm text-gray-400 leading-relaxed">
+              Start your first encrypted conversation with crypto-powered messaging
+            </p>
           </div>
         ) : (
           <div className="space-y-0">
@@ -236,48 +245,62 @@ function ConversationItem({
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-3 p-4 cursor-pointer border-b border-border transition-colors hover:bg-accent/50 ${
-        isSelected ? 'bg-accent border-r-2 border-r-primary' : ''
+      className={`relative flex items-center gap-3 p-4 cursor-pointer border-b border-gray-800/50 transition-all duration-200 hover:bg-violet-900/20 ${
+        isSelected ? 'bg-gradient-to-r from-violet-900/40 to-purple-900/20 border-r-2 border-r-violet-500' : ''
       }`}
     >
-      <Avatar className="h-10 w-10">
-        <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-          {getInitials(participantName)}
-        </AvatarFallback>
-      </Avatar>
+      <div className="relative">
+        <Avatar className="h-12 w-12 border-2 border-gray-700">
+          <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-600 text-white font-semibold">
+            {getInitials(participantName)}
+          </AvatarFallback>
+        </Avatar>
+        {/* Online status indicator */}
+        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-black"></div>
+      </div>
       
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <h4 className="font-medium text-foreground truncate">
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="font-medium text-white truncate text-sm">
             {participantName}
           </h4>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1 text-xs text-gray-400">
             <span>{formatLastMessageTime(lastMessageTime)}</span>
-            <Lock className="h-3 w-3 text-security" />
           </div>
         </div>
         
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-sm text-muted-foreground truncate">
-            {conversation.lastMessage ? 'New message' : 'No messages yet'}
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-400 truncate mr-2">
+            {conversation.lastMessage ? 'New encrypted message' : 'Start chatting securely'}
           </p>
           
-          <div className="flex gap-1">
-            {conversation.type === 'group' && (
-              <Badge variant="outline" className="h-5 text-xs">
-                <Users className="h-3 w-3 mr-1" />
-                {conversation.participants.length}
-              </Badge>
-            )}
-            
+          <div className="flex items-center gap-1">
+            {/* Security badge */}
+            <div className="flex items-center gap-1 bg-green-900/30 px-1.5 py-0.5 rounded text-xs border border-green-700/30">
+              <Lock className="h-2.5 w-2.5 text-green-400" />
+            </div>
+
+            {/* Crypto features badges */}
             {conversation.metadata.settings.blockchainAnchoringEnabled && (
-              <Badge variant="secondary" className="h-5 text-xs">
-                Anchored
-              </Badge>
+              <div className="flex items-center gap-1 bg-violet-900/30 px-1.5 py-0.5 rounded text-xs border border-violet-700/30">
+                <Coins className="h-2.5 w-2.5 text-violet-400" />
+              </div>
+            )}
+
+            {conversation.type === 'group' && (
+              <div className="flex items-center gap-1 bg-blue-900/30 px-1.5 py-0.5 rounded text-xs border border-blue-700/30">
+                <Users className="h-2.5 w-2.5 text-blue-400" />
+                <span className="text-blue-300">{conversation.participants.length}</span>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* New message indicator */}
+      {conversation.lastMessage && (
+        <div className="absolute top-2 right-2 w-2 h-2 bg-violet-500 rounded-full"></div>
+      )}
     </div>
   );
 }

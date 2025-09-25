@@ -1,5 +1,25 @@
 import React, { useState } from 'react';
-import { Settings, Shield, LogOut, Plus, Search } from 'lucide-react';
+import { 
+  Settings, 
+  Shield, 
+  LogOut, 
+  Plus, 
+  Search,
+  Wallet,
+  DollarSign,
+  Zap,
+  TrendingUp,
+  Lock,
+  Coins,
+  Send,
+  Gift,
+  BarChart3,
+  Anchor,
+  Key,
+  Eye,
+  EyeOff,
+  Copy
+} from 'lucide-react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -7,17 +27,13 @@ import {
   ContextMenuTrigger,
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from '../ui/resizable';
 import { ConversationList } from '../messaging/conversation-list';
 import { ChatInterface } from '../messaging/chat-interface';
 import { Button } from '../ui/button';
-import { Card } from '../ui/card';
-import { Input } from '../ui/input';
+import { Card, CardContent, CardHeader } from '../ui/card';
+import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Separator } from '../ui/separator';
 import type { User, Conversation } from '../../types';
 import { messagingService } from '../../services';
 
@@ -28,6 +44,8 @@ interface MainLayoutProps {
 
 export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [showWalletDetails, setShowWalletDetails] = useState(false);
+  const [showBalance, setShowBalance] = useState(true);
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
@@ -42,98 +60,257 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
       .slice(0, 2);
   };
 
+  const mockWalletData = {
+    balance: 1247.89,
+    address: '0x742d35Cc6634C0532925a3b8D4C2468bB3Ff16B2',
+    recentTransactions: [
+      { type: 'received', amount: 50, from: 'alice.eth', time: '2m ago' },
+      { type: 'sent', amount: 25, to: 'bob.eth', time: '1h ago' },
+      { type: 'gift', amount: 10, to: 'charlie.eth', time: '3h ago' }
+    ]
+  };
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <ResizablePanelGroup direction="horizontal" className="h-screen bg-background">
-          <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-            <Card className="h-full flex flex-col bg-card border-r border-border rounded-none">
-              {currentUser ? (
-                <>
-                  {/* User header */}
-                  <div className="p-4 border-b border-border">
+        <div className="h-screen bg-black text-white flex">
+          {/* Left Sidebar - Crypto Dashboard + Conversations */}
+          <div className="w-80 bg-gradient-to-b from-black via-gray-900 to-black border-r border-violet-900/20 flex flex-col">
+            {currentUser ? (
+              <>
+                {/* Crypto Status Header */}
+                <Card className="bg-gradient-to-r from-violet-900/40 to-purple-900/40 border-violet-700/30 m-4 mb-2">
+                  <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {getInitials(currentUser.displayName)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h2 className="text-lg font-semibold text-foreground">
+                        <div className="relative">
+                          <Avatar className="w-10 h-10 border-2 border-violet-400">
+                            <AvatarFallback className="bg-violet-600 text-white font-bold">
+                              {getInitials(currentUser.displayName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-black flex items-center justify-center">
+                            <Wallet className="w-2 h-2 text-white" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-white font-semibold truncate">
                             {currentUser.displayName}
                           </h2>
-                          <p className="text-sm text-muted-foreground">
-                        {currentUser.id}
-                          </p>
+                          <div className="flex items-center gap-1 text-violet-300 text-xs">
+                            <Shield className="w-3 h-3" />
+                            <span>Encrypted</span>
+                          </div>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon">
-                        <Settings className="h-5 w-5" />
+                      <Button variant="ghost" size="icon" className="text-violet-300 hover:text-white hover:bg-violet-800/50">
+                        <Settings className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-
-                  {/* Conversation list */}
-                  <div className="flex-1 overflow-hidden">
-                    <ConversationList
-                      currentUser={currentUser}
-                      onSelectConversation={handleSelectConversation}
-                      selectedConversationId={selectedConversation?.id}
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="p-4 border-b border-border">
-                  <Button className="w-full" onClick={onLogin}>Connect Wallet</Button>
-                </div>
-              )}
-            </Card>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={75}>
-            <div className="flex-1 flex flex-col h-full">
-              {currentUser && selectedConversation ? (
-                <ChatInterface
-                  conversation={selectedConversation}
-                  currentUser={currentUser}
-                  onClose={() => setSelectedConversation(null)}
-                />
-              ) : (
-                <div className="flex-1 flex items-center justify-center bg-background p-8">
-                  <div className="text-center space-y-6 max-w-md">
-                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Shield className="w-12 h-12 text-primary" />
+                    
+                    {/* Wallet Balance */}
+                    <div className="space-y-2 pt-2 border-t border-violet-700/30">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-4 h-4 text-yellow-400" />
+                          <span className="text-sm text-gray-300">Portfolio</span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-6 px-2 text-violet-300 hover:text-white"
+                          onClick={() => setShowBalance(!showBalance)}
+                        >
+                          {showBalance ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        </Button>
+                      </div>
+                      <div className="text-2xl font-bold text-white">
+                        {showBalance ? `$${mockWalletData.balance.toLocaleString()}` : '••••••'}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <TrendingUp className="w-3 h-3 text-green-400" />
+                        <span className="text-green-400">+12.5%</span>
+                        <span className="text-gray-400">24h</span>
+                      </div>
                     </div>
-                    <h1 className="text-4xl font-bold tracking-tight text-foreground">
-                      Welcome to TenChat
-                    </h1>
-                    <p className="text-lg text-muted-foreground">
-                      A secure, private, and decentralized messaging application.
-                      Your conversations are end-to-end encrypted, ensuring that only you and your recipient can read them.
-                    </p>
-                    {currentUser ? (
-                      <p className="text-muted-foreground pt-4">
-                        To get started, click the <Plus className="inline-block h-4 w-4 mx-1" /> icon in the sidebar to begin a new conversation.
-                      </p>
-                    ) : (
-                      <p className="text-muted-foreground pt-4">
-                        Please connect your wallet to start chatting.
-                      </p>
-                    )}
+                  </CardHeader>
+                </Card>
+
+                {/* Quick Actions */}
+                <div className="px-4 pb-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white border-violet-500">
+                      <Send className="w-3 h-3 mr-1" />
+                      Send
+                    </Button>
+                    <Button size="sm" className="bg-pink-600 hover:bg-pink-700 text-white border-pink-500">
+                      <Gift className="w-3 h-3 mr-1" />
+                      Gift
+                    </Button>
+                    <Button size="sm" className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600">
+                      <BarChart3 className="w-3 h-3 mr-1" />
+                      Stats
+                    </Button>
                   </div>
                 </div>
-              )}
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+
+                {/* Security Status */}
+                <div className="px-4 pb-4">
+                  <Card className="bg-gray-900/50 border-gray-700/50">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-300">Security</span>
+                        <Badge variant="secondary" className="bg-green-900/30 text-green-400 border-green-700/30">
+                          <Lock className="w-3 h-3 mr-1" />
+                          E2EE
+                        </Badge>
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Keys Active</span>
+                          <span className="text-green-400">✓</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Blockchain Anchor</span>
+                          <span className="text-violet-400">✓</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Separator className="mx-4 bg-violet-900/30" />
+
+                {/* Conversation list */}
+                <div className="flex-1 overflow-hidden mt-2">
+                  <ConversationList
+                    currentUser={currentUser}
+                    onSelectConversation={handleSelectConversation}
+                    selectedConversationId={selectedConversation?.id}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+                <div className="relative mb-8">
+                  <div className="w-24 h-24 bg-gradient-to-br from-violet-600 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                    <Wallet className="w-12 h-12 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-black" />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-3">Connect Your Wallet</h2>
+                <p className="text-gray-400 mb-6 text-sm leading-relaxed">
+                  Experience secure, encrypted messaging with built-in crypto features. 
+                  Send messages, gifts, and more on the blockchain.
+                </p>
+                <Button 
+                  className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0 h-12 text-base font-semibold"
+                  onClick={onLogin}
+                >
+                  <Wallet className="w-5 h-5 mr-2" />
+                  Connect Wallet
+                </Button>
+                <div className="mt-4 text-xs text-gray-500 flex items-center gap-2">
+                  <Shield className="w-3 h-3" />
+                  <span>End-to-end encrypted • Blockchain secured</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-950 via-black to-gray-950">
+            {currentUser && selectedConversation ? (
+              <ChatInterface
+                conversation={selectedConversation}
+                currentUser={currentUser}
+                onClose={() => setSelectedConversation(null)}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center space-y-6 max-w-lg">
+                  <div className="relative mx-auto w-32 h-32">
+                    <div className="w-32 h-32 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-3xl flex items-center justify-center border border-violet-500/30">
+                      <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center">
+                        <Shield className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center border-2 border-black">
+                      <Gift className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="absolute -bottom-2 -left-2 w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center border-2 border-black">
+                      <Coins className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-violet-200 to-purple-200 bg-clip-text text-transparent">
+                    TenChat
+                  </h1>
+                  
+                  <p className="text-xl text-gray-300 leading-relaxed">
+                    The future of secure messaging meets crypto.
+                    <span className="block text-violet-300 mt-2">Send messages, gifts, and value—all encrypted.</span>
+                  </p>
+                  
+                  {currentUser ? (
+                    <div className="space-y-4 pt-4">
+                      <p className="text-gray-400">
+                        Select a conversation or start a new one to begin chatting
+                      </p>
+                      <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Shield className="w-4 h-4 text-green-400" />
+                          <span>E2E Encrypted</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Anchor className="w-4 h-4 text-violet-400" />
+                          <span>Blockchain Secured</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Gift className="w-4 h-4 text-pink-400" />
+                          <span>Crypto Gifts</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 pt-4">
+                      <p className="text-gray-400">
+                        Connect your wallet to access encrypted messaging with crypto features
+                      </p>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Lock className="w-4 h-4 text-violet-400" />
+                          <span>End-to-end encryption</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Coins className="w-4 h-4 text-yellow-400" />
+                          <span>Crypto payments</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Gift className="w-4 h-4 text-pink-400" />
+                          <span>Digital gifts</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Anchor className="w-4 h-4 text-blue-400" />
+                          <span>Blockchain verified</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem onClick={() => window.location.reload()}>
+      <ContextMenuContent className="bg-gray-900 border-gray-700 text-white">
+        <ContextMenuItem className="hover:bg-gray-800" onClick={() => window.location.reload()}>
           Reload
         </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem disabled>
+        <ContextMenuSeparator className="bg-gray-700" />
+        <ContextMenuItem disabled className="text-gray-500">
           TenChat v0.1.0
         </ContextMenuItem>
       </ContextMenuContent>
