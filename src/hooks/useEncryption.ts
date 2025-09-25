@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-// Supabase removed; temporary in-memory key registry
+// Temporary local key registry (Supabase removed; pending Appwrite integration)
 import { toast } from 'sonner';
 import {
   generateKeyPair,
