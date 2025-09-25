@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Shield, Lock, MessageCircle, Zap, Users, Globe } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/whisperrchat-hero.jpg";
 
 const Landing = () => {
@@ -20,7 +21,9 @@ const Landing = () => {
             <a href="#security" className="text-muted-foreground hover:text-foreground transition-colors">Security</a>
             <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">About</a>
           </nav>
-          <Button variant="outline">Get Started</Button>
+          <Button variant="outline" asChild>
+            <Link to="/auth">Get Started</Link>
+          </Button>
         </div>
       </header>
 
@@ -41,8 +44,8 @@ const Landing = () => {
                 Experience the future of private communication. Whisperrchat combines the power of blockchain technology with military-grade encryption for truly secure messaging.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-white">
-                  Start Chatting
+                <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-white" asChild>
+                  <Link to="/auth">Start Chatting</Link>
                 </Button>
                 <Button size="lg" variant="outline">
                   View Demo
@@ -146,8 +149,8 @@ const Landing = () => {
           <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
             Join thousands of users who trust Whisperrchat for their most important conversations.
           </p>
-          <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
-            Get Started Now
+          <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90" asChild>
+            <Link to="/auth">Get Started Now</Link>
           </Button>
         </div>
       </section>
