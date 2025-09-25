@@ -36,6 +36,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
 import type { User, Conversation } from '../../types';
 import { messagingService } from '../../services';
+import { WalletConnectionModal } from '../wallet/wallet-connection-modal';
 
 interface MainLayoutProps {
   currentUser: User | null;
@@ -46,6 +47,7 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
+  const [showWalletModal, setShowWalletModal] = useState(false);
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
@@ -73,9 +75,9 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <div className="h-screen bg-black text-white flex">
+        <div className="h-screen bg-black text-white flex flex-col md:flex-row">
           {/* Left Sidebar - Crypto Dashboard + Conversations */}
-          <div className="w-80 bg-gradient-to-b from-black via-gray-900 to-black border-r border-violet-900/20 flex flex-col">
+          <div className={`${currentUser && selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-80 bg-gradient-to-b from-black via-gray-900 to-black border-r border-violet-900/20 flex-col`}>
             {currentUser ? (
               <>
                 {/* Crypto Status Header */}
@@ -207,7 +209,7 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
                 </p>
                 <Button 
                   className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0 h-12 text-base font-semibold"
-                  onClick={onLogin}
+                  onClick={() => setShowWalletModal(true)}
                 >
                   <Wallet className="w-5 h-5 mr-2" />
                   Connect Wallet
@@ -221,7 +223,7 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
           </div>
 
           {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-950 via-black to-gray-950">
+          <div className={`${currentUser && !selectedConversation ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-gradient-to-br from-gray-950 via-black to-gray-950`}>
             {currentUser && selectedConversation ? (
               <ChatInterface
                 conversation={selectedConversation}
@@ -229,27 +231,27 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
                 onClose={() => setSelectedConversation(null)}
               />
             ) : (
-              <div className="flex-1 flex items-center justify-center p-8">
-                <div className="text-center space-y-6 max-w-lg">
-                  <div className="relative mx-auto w-32 h-32">
-                    <div className="w-32 h-32 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-3xl flex items-center justify-center border border-violet-500/30">
-                      <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center">
-                        <Shield className="w-8 h-8 text-white" />
+              <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
+                <div className="text-center space-y-6 max-w-lg px-2">
+                  <div className="relative mx-auto w-24 h-24 sm:w-32 sm:h-32">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-3xl flex items-center justify-center border border-violet-500/30">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center">
+                        <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                       </div>
                     </div>
-                    <div className="absolute -top-2 -right-2 w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center border-2 border-black">
-                      <Gift className="w-5 h-5 text-white" />
+                    <div className="absolute -top-2 -right-2 w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center border-2 border-black">
+                      <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div className="absolute -bottom-2 -left-2 w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center border-2 border-black">
-                      <Coins className="w-5 h-5 text-white" />
+                    <div className="absolute -bottom-2 -left-2 w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center border-2 border-black">
+                      <Coins className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                   </div>
                   
-                  <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-violet-200 to-purple-200 bg-clip-text text-transparent">
+                  <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-white via-violet-200 to-purple-200 bg-clip-text text-transparent">
                     TenChat
                   </h1>
                   
-                  <p className="text-xl text-gray-300 leading-relaxed">
+                  <p className="text-lg sm:text-xl text-gray-300 leading-relaxed">
                     The future of secure messaging meets crypto.
                     <span className="block text-violet-300 mt-2">Send messages, gifts, and value—all encrypted.</span>
                   </p>
@@ -314,6 +316,21 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
           TenChat v0.1.0
         </ContextMenuItem>
       </ContextMenuContent>
+
+      {/* Wallet Connection Modal */}
+      {!currentUser && (
+        <WalletConnectionModal
+          open={showWalletModal}
+          onOpenChange={setShowWalletModal}
+          onConnect={async () => {
+            try {
+              await onLogin();
+            } finally {
+              setShowWalletModal(false);
+            }
+          }}
+        />
+      )}
     </ContextMenu>
   );
 }
