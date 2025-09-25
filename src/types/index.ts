@@ -1,5 +1,5 @@
 // @generated whisperrchat-tool: core-types@1.0.0 hash: initial DO NOT EDIT DIRECTLY
-// Core type definitions for WhisperrChat platform
+// Core type definitions for TenChat platform
 
 export interface ApiVersion {
   major: number;
@@ -25,7 +25,6 @@ export interface Identity {
 
 export interface User {
   id: string;
-  username: string;
   displayName: string;
   identity: Identity;
   createdAt: Date;
@@ -161,9 +160,8 @@ export interface BotDefinition {
 
 // Service Provider Interfaces
 export interface IAuthService {
-  login(credentials: LoginCredentials): Promise<AuthResult>;
+  loginWithWallet(): Promise<AuthResult>;
   logout(): Promise<void>;
-  register(userInfo: RegisterInfo): Promise<AuthResult>;
   refreshToken(): Promise<string>;
   getCurrentUser(): Promise<User | null>;
 }

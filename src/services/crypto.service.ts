@@ -325,7 +325,7 @@ export class CryptoService {
    * Initialize Double Ratchet session
    */
   async initializeSession(sharedSecret: string): Promise<SessionState> {
-    const rootKey = await this.hkdf(sharedSecret, '', 'WhisperrChat-RootKey');
+    const rootKey = await this.hkdf(sharedSecret, '', 'TenChat-RootKey');
     const sendingChain = await this.initializeChain();
     
     return {
@@ -363,8 +363,8 @@ export class CryptoService {
    * Advance chain and derive message key
    */
   async advanceChain(chainState: ChainState): Promise<{ messageKey: string; newChainState: ChainState }> {
-    const messageKey = await this.hkdf(chainState.chainKey, '', 'WhisperrChat-MessageKey');
-    const newChainKey = await this.hkdf(chainState.chainKey, '', 'WhisperrChat-ChainKey');
+    const messageKey = await this.hkdf(chainState.chainKey, '', 'TenChat-MessageKey');
+    const newChainKey = await this.hkdf(chainState.chainKey, '', 'TenChat-ChainKey');
     
     return {
       messageKey,
