@@ -61,7 +61,26 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				chat: {
+					'bubble-sent': 'hsl(var(--chat-bubble-sent))',
+					'bubble-sent-foreground': 'hsl(var(--chat-bubble-sent-foreground))',
+					'bubble-received': 'hsl(var(--chat-bubble-received))',
+					'bubble-received-foreground': 'hsl(var(--chat-bubble-received-foreground))'
+				},
+				security: {
+					DEFAULT: 'hsl(var(--security))',
+					foreground: 'hsl(var(--security-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-security': 'var(--gradient-security)',
+				'gradient-bg': 'var(--gradient-bg)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
