@@ -1,7 +1,7 @@
 {
-  "name": "whisperrchat-frontend",
+  "name": "tenchat-frontend",
   "version": "1.0.0",
-  "description": "WhisperrChat E2EE messaging platform frontend specification",
+  "description": "TenChat E2EE messaging platform frontend specification",
   "lastUpdated": "2025-09-18",
   "architecture": {
     "type": "modular-spa",

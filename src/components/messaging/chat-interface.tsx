@@ -266,7 +266,7 @@ function MessageBubble({ message, isOwn, timestamp }: MessageBubbleProps) {
       const { amount, senderName, recipientName } = giftData;
 
       return (
-        <div className="flex justify-center my-2">
+        <div className="flex justify-center my-2 animate-bubble-in">
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-accent/50 rounded-full px-4 py-1">
             <Gift className="h-4 w-4 text-primary" />
             <span>
@@ -286,7 +286,7 @@ function MessageBubble({ message, isOwn, timestamp }: MessageBubbleProps) {
     : 'bg-chat-bubble-received text-chat-bubble-received-foreground border-accent/50';
 
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-bubble-in`}>
       <Card className={`max-w-[70%] border ${bubbleClasses}`}>
         <CardContent className="p-3">
           <p className="break-words">{message.content}</p>

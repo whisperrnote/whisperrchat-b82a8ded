@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   TenChat (a.k.a. WhisperrChat) Global Styles
+   TenChat Global Styles
    Purpose: Deterministic, token-driven, theme-extensible global layer.
    Flexibility: All sizing/color/typography driven by CSS custom properties.
    Modularity: Component primitives opt-in via utility classes (no leakage).
@@ -68,134 +68,134 @@ a:hover, a:focus-visible {
 
 @layer base {
   :root {
-    /* Brown/Ash Color System for WhisperrChat */
+    /* Violet Color System for TenChat */
     
-    /* Dark Mode (Default) - Dark ash backgrounds, brown foregrounds */
-    --background: 25 25 25; /* Dark ash */
-    --foreground: 139 69 19; /* Dark brown */
+    /* Dark Mode (Default) */
+    --background: 240 10% 3.9%;
+    --foreground: 240 5% 64.9%;
     
-    --card: 38 38 38; /* Darker ash */
-    --card-foreground: 160 82 45; /* Medium brown */
+    --card: 240 10% 3.9%;
+    --card-foreground: 240 5% 95.9%;
     
-    --popover: 38 38 38; /* Darker ash */
-    --popover-foreground: 160 82 45; /* Medium brown */
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 240 5% 95.9%;
     
-    --primary: 92 51 23; /* Dark brown */
-    --primary-foreground: 245 245 220; /* Beige */
+    --primary: 240 5.9% 90%;
+    --primary-foreground: 240 5.9% 10%;
     
-    --secondary: 64 64 64; /* Medium ash */
-    --secondary-foreground: 139 69 19; /* Dark brown */
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 240 5.9% 98%;
     
-    --muted: 51 51 51; /* Dark ash */
-    --muted-foreground: 160 82 45; /* Medium brown */
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
     
-    --accent: 78 78 78; /* Light ash */
-    --accent-foreground: 101 67 33; /* Brown */
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 240 5.9% 98%;
     
-    --destructive: 220 38 38;
-    --destructive-foreground: 248 250 252;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
     
-    --border: 64 64 64; /* Medium ash */
-    --input: 38 38 38; /* Darker ash */
-    --ring: 92 51 23; /* Dark brown */
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
     
     --radius: 0.5rem;
     
     /* Chat-specific colors */
-    --chat-bubble-sent: 92 51 23; /* Dark brown */
-    --chat-bubble-sent-foreground: 245 245 220; /* Beige */
-    --chat-bubble-received: 78 78 78; /* Light ash */
-    --chat-bubble-received-foreground: 139 69 19; /* Dark brown */
+    --chat-bubble-sent: 240 5.9% 90%;
+    --chat-bubble-sent-foreground: 240 5.9% 10%;
+    --chat-bubble-received: 240 3.7% 15.9%;
+    --chat-bubble-received-foreground: 240 5.9% 98%;
     
     /* Security indicators */
-    --security: 34 197 94; /* Green for encrypted */
-    --security-foreground: 240 253 244;
+    --security: 142.1 76.2% 36.3%;
+    --security-foreground: 142.1 76.2% 96.3%;
     
-    --warning: 251 146 60;
-    --warning-foreground: 254 252 232;
+    --warning: 47.9 95.8% 53.1%;
+    --warning-foreground: 47.9 95.8% 93.1%;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(92 51 23), hsl(160 82 45));
-    --gradient-security: linear-gradient(135deg, hsl(34 197 94), hsl(21 94 75));
-    --gradient-bg: linear-gradient(135deg, hsl(25 25 25), hsl(38 38 38));
+    --gradient-primary: linear-gradient(135deg, hsl(240 5.9% 90%), hsl(240 4.9% 83.9%));
+    --gradient-security: linear-gradient(135deg, hsl(142.1 76.2% 36.3%), hsl(142.1 76.2% 56.3%));
+    --gradient-bg: linear-gradient(135deg, hsl(240 10% 3.9%), hsl(240 3.7% 15.9%));
   }
   
   .dark {
     /* Same as root since dark is default */
-    --background: 25 25 25; /* Dark ash */
-    --foreground: 139 69 19; /* Dark brown */
+    --background: 240 10% 3.9%;
+    --foreground: 240 5% 64.9%;
     
-    --card: 38 38 38; /* Darker ash */
-    --card-foreground: 160 82 45; /* Medium brown */
+    --card: 240 10% 3.9%;
+    --card-foreground: 240 5% 95.9%;
     
-    --popover: 38 38 38; /* Darker ash */
-    --popover-foreground: 160 82 45; /* Medium brown */
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 240 5% 95.9%;
     
-    --primary: 92 51 23; /* Dark brown */
-    --primary-foreground: 245 245 220; /* Beige */
+    --primary: 240 5.9% 90%;
+    --primary-foreground: 240 5.9% 10%;
     
-    --secondary: 64 64 64; /* Medium ash */
-    --secondary-foreground: 139 69 19; /* Dark brown */
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 240 5.9% 98%;
     
-    --muted: 51 51 51; /* Dark ash */
-    --muted-foreground: 160 82 45; /* Medium brown */
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
     
-    --accent: 78 78 78; /* Light ash */
-    --accent-foreground: 101 67 33; /* Brown */
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 240 5.9% 98%;
     
-    --destructive: 220 38 38;
-    --destructive-foreground: 248 250 252;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
     
-    --border: 64 64 64; /* Medium ash */
-    --input: 38 38 38; /* Darker ash */
-    --ring: 92 51 23; /* Dark brown */
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
     
     /* Chat colors for dark mode */
-    --chat-bubble-sent: 92 51 23; /* Dark brown */
-    --chat-bubble-sent-foreground: 245 245 220; /* Beige */
-    --chat-bubble-received: 78 78 78; /* Light ash */
-    --chat-bubble-received-foreground: 139 69 19; /* Dark brown */
+    --chat-bubble-sent: 240 5.9% 90%;
+    --chat-bubble-sent-foreground: 240 5.9% 10%;
+    --chat-bubble-received: 240 3.7% 15.9%;
+    --chat-bubble-received-foreground: 240 5.9% 98%;
   }
   
   .light {
-    /* Light Mode - Ash-white backgrounds, brownish-white foregrounds */
-    --background: 250 248 246; /* Ash-white */
-    --foreground: 92 51 23; /* Dark brown */
+    /* Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
     
-    --card: 255 255 255; /* Pure white */
-    --card-foreground: 101 67 33; /* Brown */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
     
-    --popover: 255 255 255; /* Pure white */
-    --popover-foreground: 101 67 33; /* Brown */
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
     
-    --primary: 160 82 45; /* Medium brown */
-    --primary-foreground: 250 248 246; /* Ash-white */
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 240 5.9% 98%;
     
-    --secondary: 245 245 220; /* Beige */
-    --secondary-foreground: 92 51 23; /* Dark brown */
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
     
-    --muted: 245 245 220; /* Beige */
-    --muted-foreground: 101 67 33; /* Brown */
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
     
-    --accent: 231 229 228; /* Light ash */
-    --accent-foreground: 92 51 23; /* Dark brown */
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     
-    --destructive: 220 38 38;
-    --destructive-foreground: 248 250 252;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
     
-    --border: 231 229 228; /* Light ash */
-    --input: 245 245 220; /* Beige */
-    --ring: 160 82 45; /* Medium brown */
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
     
     /* Chat colors for light mode */
-    --chat-bubble-sent: 160 82 45; /* Medium brown */
-    --chat-bubble-sent-foreground: 250 248 246; /* Ash-white */
-    --chat-bubble-received: 245 245 220; /* Beige */
-    --chat-bubble-received-foreground: 92 51 23; /* Dark brown */
+    --chat-bubble-sent: 240 5.9% 10%;
+    --chat-bubble-sent-foreground: 240 5.9% 98%;
+    --chat-bubble-received: 240 4.8% 95.9%;
+    --chat-bubble-received-foreground: 240 5.9% 10%;
     
     /* Light mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(160 82 45), hsl(139 69 19));
-    --gradient-bg: linear-gradient(135deg, hsl(250 248 246), hsl(245 245 220));
+    --gradient-primary: linear-gradient(135deg, hsl(240 5.9% 10%), hsl(240 5.9% 30%));
+    --gradient-bg: linear-gradient(135deg, hsl(0 0% 100%), hsl(240 4.8% 95.9%));
   }
 }
 

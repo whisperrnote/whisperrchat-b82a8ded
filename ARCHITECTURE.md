@@ -1,10 +1,10 @@
 ---
-title: WhisperrChat / TenChat - Architecture Overview (Language & Stack Agnostic)
+title: TenChat - Architecture Overview (Language & Stack Agnostic)
 version: 0.1.0
 status: draft
 classification: public
 lastUpdated: 2025-09-18
-canonicalProductName: WhisperrChat
+canonicalProductName: TenChat
 internalCodeName: TenChat
 summary:
   purpose: "Open, extensible, end-to-end encrypted real-time messaging & collaboration platform with optional native blockchain anchoring + micropayments."
@@ -22,7 +22,7 @@ machineReadable:
 
 # 1. Purpose-and-Scope
 
-WhisperrChat (a.k.a. TenChat) is an open-source, end-to-end encrypted, extensible messaging and interaction system supporting:  
+TenChat is an open-source, end-to-end encrypted, extensible messaging and interaction system supporting:
 - Secure 1:1 and group messaging (text, media, structured payloads)  
 - Optional micropayments / value transfer and notarization (blockchain abstraction)  
 - Plugin / bot ecosystem with policy-governed capabilities  

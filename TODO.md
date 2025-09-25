@@ -1,4 +1,4 @@
-# WhisperrChat – Architecture-Aligned Implementation Roadmap (Reset)
+# TenChat – Architecture-Aligned Implementation Roadmap (Reset)
 
 Version: 0.2 (Architecture sync reset)
 Updated: 2025-09-18
