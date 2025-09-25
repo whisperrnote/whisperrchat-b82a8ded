@@ -15,11 +15,10 @@ import type { User, Conversation } from '../../types';
 import { messagingService } from '../../services';
 
 interface MainLayoutProps {
-  currentUser: User;
-  onLogout: () => void;
+  currentUser: User | null;
 }
 
-export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
+export function MainLayout({ currentUser }: MainLayoutProps) {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 
   const handleSelectConversation = (conversation: Conversation) => {
@@ -39,44 +38,52 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
     <ResizablePanelGroup direction="horizontal" className="h-screen bg-background">
       <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
         <Card className="h-full flex flex-col bg-card border-r border-border rounded-none">
-          {/* User header */}
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(currentUser.displayName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    {currentUser.displayName}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    @{currentUser.username}
-                  </p>
+          {currentUser ? (
+            <>
+              {/* User header */}
+              <div className="p-4 border-b border-border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(currentUser.displayName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className="text-lg font-semibold text-foreground">
+                        {currentUser.displayName}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        @{currentUser.username}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon">
+                    <Settings className="h-5 w-5" />
+                  </Button>
                 </div>
               </div>
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
 
-          {/* Conversation list */}
-          <div className="flex-1 overflow-hidden">
-            <ConversationList
-              currentUser={currentUser}
-              onSelectConversation={handleSelectConversation}
-              selectedConversationId={selectedConversation?.id}
-            />
-          </div>
+              {/* Conversation list */}
+              <div className="flex-1 overflow-hidden">
+                <ConversationList
+                  currentUser={currentUser}
+                  onSelectConversation={handleSelectConversation}
+                  selectedConversationId={selectedConversation?.id}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="p-4 border-b border-border">
+              <Button className="w-full">Connect Wallet</Button>
+            </div>
+          )}
         </Card>
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={75}>
         <div className="flex-1 flex flex-col h-full">
-          {selectedConversation ? (
+          {currentUser && selectedConversation ? (
             <ChatInterface
               conversation={selectedConversation}
               currentUser={currentUser}
@@ -95,9 +102,15 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
                   A secure, private, and decentralized messaging application.
                   Your conversations are end-to-end encrypted, ensuring that only you and your recipient can read them.
                 </p>
-                <p className="text-muted-foreground pt-4">
-                  To get started, click the <Plus className="inline-block h-4 w-4 mx-1" /> icon in the sidebar to begin a new conversation.
-                </p>
+                {currentUser ? (
+                  <p className="text-muted-foreground pt-4">
+                    To get started, click the <Plus className="inline-block h-4 w-4 mx-1" /> icon in the sidebar to begin a new conversation.
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground pt-4">
+                    Please connect your wallet to start chatting.
+                  </p>
+                )}
               </div>
             </div>
           )}
