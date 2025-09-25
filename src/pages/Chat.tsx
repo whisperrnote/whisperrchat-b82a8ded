@@ -21,22 +21,37 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEncryption } from "@/hooks/useEncryption";
+import { useRealtimeMessages } from "@/hooks/useRealtimeMessages";
+import { useRealtimeChats } from "@/hooks/useRealtimeChats";
 import EncryptionSetup from "@/components/EncryptionSetup";
 import ChatMessage from "@/components/ChatMessage";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
+  const [currentChatId, setCurrentChatId] = useState("demo-chat-1");
   const { user, signOut } = useAuth();
   const { isInitialized, sendEncryptedMessage, deviceKey, loading } = useEncryption();
+  const { chats, loading: chatsLoading } = useRealtimeChats();
+  const { messages, loading: messagesLoading, sendMessage: sendRealtimeMessage } = useRealtimeMessages(currentChatId);
   
   // Show encryption setup if not initialized
   if (!isInitialized) {
     return <EncryptionSetup onSetupComplete={() => window.location.reload()} />;
   }
 
-  const conversations = [
+  // Demo conversations - replace with real data from useRealtimeChats
+  const conversations = chats.length > 0 ? chats.map(chat => ({
+    id: chat.id,
+    name: chat.name || "Unnamed Chat",
+    lastMessage: "End-to-end encrypted chat",
+    time: "now",
+    avatar: chat.avatar_url || "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150",
+    online: true,
+    encrypted: true,
+    isGroup: chat.type === 'group'
+  })) : [
     {
-      id: 1,
+      id: "demo-chat-1",
       name: "Alice Cooper",
       lastMessage: "The files are encrypted and ready...",
       time: "2m",
@@ -45,7 +60,7 @@ const Chat = () => {
       encrypted: true
     },
     {
-      id: 2,
+      id: "demo-chat-2",
       name: "Security Team",
       lastMessage: "New protocol implemented successfully",
       time: "15m",
@@ -53,62 +68,37 @@ const Chat = () => {
       online: false,
       encrypted: true,
       isGroup: true
-    },
-    {
-      id: 3,
-      name: "Bob Johnson",
-      lastMessage: "Thanks for the secure connection",
-      time: "1h",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-      online: true,
-      encrypted: true
     }
   ];
 
-  const messages = [
-    {
-      id: "1",
-      encryptedContent: "Hey! How's the new encryption protocol working?",
-      senderId: "alice-id",
-      senderName: "Alice Cooper",
-      senderAvatar: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150",
-      timestamp: new Date(Date.now() - 2 * 60 * 1000),
-      sent: false,
-      keyFingerprint: "abc123def456"
-    },
-    {
-      id: "2", 
-      encryptedContent: "It's working perfectly! The end-to-end encryption is seamless.",
-      senderId: user?.id || "you",
-      senderName: "You",
-      timestamp: new Date(Date.now() - 1 * 60 * 1000),
-      sent: true,
-      keyFingerprint: deviceKey?.fingerprint
-    },
-    {
-      id: "3",
-      encryptedContent: "That's great to hear. The blockchain integration really makes a difference in security.",
-      senderId: "alice-id",
-      senderName: "Alice Cooper", 
-      senderAvatar: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150",
-      timestamp: new Date(Date.now() - 30 * 1000),
-      sent: false,
-      keyFingerprint: "abc123def456"
-    }
-  ];
+  // Transform real-time messages for display
+  const displayMessages = messages.map(msg => ({
+    id: msg.id,
+    encryptedContent: msg.encrypted_content,
+    senderId: msg.sender_id,
+    senderName: msg.sender_id === user?.id ? "You" : "Alice Cooper",
+    senderAvatar: msg.sender_id === user?.id ? undefined : "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150",
+    timestamp: new Date(msg.created_at),
+    sent: msg.sender_id === user?.id,
+    keyFingerprint: msg.sender_key_fingerprint || deviceKey?.fingerprint
+  }));
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
     
-    // For demo, we'll simulate sending to Alice
-    const success = await sendEncryptedMessage(
-      message,
-      "chat-1", 
-      ["alice-id"]
-    );
-    
-    if (success) {
-      setMessage("");
+    try {
+      // First encrypt the message using our encryption system
+      const success = await sendEncryptedMessage(
+        message,
+        currentChatId, 
+        [currentChatId] // For now, use chatId as recipient
+      );
+      
+      if (success) {
+        setMessage("");
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
   };
 
@@ -244,19 +234,25 @@ const Chat = () => {
         {/* Messages */}
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4 max-w-4xl mx-auto">
-            {messages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                id={msg.id}
-                encryptedContent={msg.encryptedContent}
-                senderId={msg.senderId}
-                senderName={msg.senderName}
-                senderAvatar={msg.senderAvatar}
-                timestamp={msg.timestamp}
-                sent={msg.sent}
-                keyFingerprint={msg.keyFingerprint}
-              />
-            ))}
+            {messagesLoading ? (
+              <div className="text-center text-muted-foreground">Loading messages...</div>
+            ) : displayMessages.length === 0 ? (
+              <div className="text-center text-muted-foreground">No messages yet. Start the conversation!</div>
+            ) : (
+              displayMessages.map((msg) => (
+                <ChatMessage
+                  key={msg.id}
+                  id={msg.id}
+                  encryptedContent={msg.encryptedContent}
+                  senderId={msg.senderId}
+                  senderName={msg.senderName}
+                  senderAvatar={msg.senderAvatar}
+                  timestamp={msg.timestamp}
+                  sent={msg.sent}
+                  keyFingerprint={msg.keyFingerprint}
+                />
+              ))
+            )}
           </div>
         </ScrollArea>
 
