@@ -12,7 +12,7 @@ import { Label } from '../ui/label';
 import { ConversationList } from '../messaging/conversation-list';
 import { ChatInterface } from '../messaging/chat-interface';
 import type { User, Conversation } from '../../types';
-import { authService, messagingService } from '../../services';
+import { messagingService } from '../../services';
 
 interface MainLayoutProps {
   currentUser: User;
@@ -24,8 +24,7 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
   const [showNewConversationDialog, setShowNewConversationDialog] = useState(false);
   const [newConversationRecipient, setNewConversationRecipient] = useState('');
 
-  const handleLogout = async () => {
-    await authService.logout();
+  const handleLogout = () => {
     onLogout();
   };
 
