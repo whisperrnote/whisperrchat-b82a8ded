@@ -8,24 +8,24 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Whisperrchat Secure Theme - Light Mode */
-    --background: 240 10% 98%;
-    --foreground: 240 15% 8%;
+    /* Whisperrchat Ash & Brown Theme - Light Mode */
+    --background: 30 8% 95%; /* Ash-white */
+    --foreground: 25 15% 25%; /* Light brown */
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 15% 8%;
+    --card: 30 5% 98%; /* Very light ash */
+    --card-foreground: 25 15% 25%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 15% 8%;
+    --popover: 30 5% 98%;
+    --popover-foreground: 25 15% 25%;
 
-    --primary: 261 83% 58%;
+    --primary: 261 83% 58%; /* Keep purple for accents */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 15% 8%;
+    --secondary: 30 6% 92%; /* Ash secondary */
+    --secondary-foreground: 25 15% 25%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 8% 46%;
+    --muted: 30 6% 92%;
+    --muted-foreground: 25 8% 45%; /* Muted brown */
 
     --accent: 261 83% 58%;
     --accent-foreground: 0 0% 100%;
@@ -33,8 +33,8 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
+    --border: 30 8% 88%; /* Ash borders */
+    --input: 30 8% 88%;
     --ring: 261 83% 58%;
 
     --radius: 0.75rem;
@@ -42,16 +42,16 @@ All colors MUST be HSL.
     /* Chat specific colors */
     --chat-bubble-sent: 261 83% 58%;
     --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 240 6% 94%;
-    --chat-bubble-received-foreground: 240 15% 8%;
+    --chat-bubble-received: 30 6% 92%;
+    --chat-bubble-received-foreground: 25 15% 25%;
     
-    --sidebar-background: 240 8% 97%;
-    --sidebar-foreground: 240 15% 8%;
+    --sidebar-background: 30 6% 96%; /* Light ash sidebar */
+    --sidebar-foreground: 25 15% 25%;
     --sidebar-primary: 261 83% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 6% 94%;
-    --sidebar-accent-foreground: 240 15% 8%;
-    --sidebar-border: 240 6% 90%;
+    --sidebar-accent: 30 8% 88%;
+    --sidebar-accent-foreground: 25 15% 25%;
+    --sidebar-border: 30 8% 88%;
     --sidebar-ring: 261 83% 58%;
 
     /* Security/Encryption theme */
@@ -63,28 +63,28 @@ All colors MUST be HSL.
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(261 83% 58%), hsl(280 100% 70%));
     --gradient-security: linear-gradient(135deg, hsl(170 100% 35%), hsl(180 100% 25%));
-    --gradient-bg: linear-gradient(180deg, hsl(240 10% 98%), hsl(240 8% 96%));
+    --gradient-bg: linear-gradient(180deg, hsl(30 8% 95%), hsl(30 6% 92%));
   }
 
   .dark {
-    /* Whisperrchat Secure Theme - Dark Mode */
-    --background: 240 15% 8%;
-    --foreground: 240 10% 98%;
+    /* Whisperrchat Ash & Brown Theme - Dark Mode */
+    --background: 30 5% 8%; /* Very dark ash */
+    --foreground: 25 12% 85%; /* Light brown for dark mode */
 
-    --card: 240 12% 10%;
-    --card-foreground: 240 10% 98%;
+    --card: 30 8% 10%; /* Dark ash cards */
+    --card-foreground: 25 12% 85%;
 
-    --popover: 240 12% 10%;
-    --popover-foreground: 240 10% 98%;
+    --popover: 30 8% 10%;
+    --popover-foreground: 25 12% 85%;
 
-    --primary: 261 83% 58%;
+    --primary: 261 83% 58%; /* Keep purple for accents */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 8% 15%;
-    --secondary-foreground: 240 10% 98%;
+    --secondary: 30 6% 15%; /* Dark ash secondary */
+    --secondary-foreground: 25 12% 85%;
 
-    --muted: 240 8% 15%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 30 6% 15%;
+    --muted-foreground: 25 8% 65%; /* Muted brown for dark */
 
     --accent: 261 83% 58%;
     --accent-foreground: 0 0% 100%;
@@ -92,23 +92,23 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 8% 18%;
-    --input: 240 8% 18%;
+    --border: 30 8% 18%; /* Dark ash borders */
+    --input: 30 8% 18%;
     --ring: 261 83% 58%;
 
     /* Chat specific colors - Dark */
     --chat-bubble-sent: 261 83% 58%;
     --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 240 8% 15%;
-    --chat-bubble-received-foreground: 240 10% 98%;
+    --chat-bubble-received: 30 6% 15%;
+    --chat-bubble-received-foreground: 25 12% 85%;
 
-    --sidebar-background: 240 12% 6%;
-    --sidebar-foreground: 240 10% 98%;
+    --sidebar-background: 30 8% 6%; /* Very dark ash sidebar */
+    --sidebar-foreground: 25 12% 85%;
     --sidebar-primary: 261 83% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 8% 12%;
-    --sidebar-accent-foreground: 240 10% 98%;
-    --sidebar-border: 240 8% 18%;
+    --sidebar-accent: 30 6% 12%;
+    --sidebar-accent-foreground: 25 12% 85%;
+    --sidebar-border: 30 8% 18%;
     --sidebar-ring: 261 83% 58%;
 
     /* Security/Encryption theme - Dark */
@@ -120,7 +120,7 @@ All colors MUST be HSL.
     /* Gradients - Dark */
     --gradient-primary: linear-gradient(135deg, hsl(261 83% 58%), hsl(280 100% 70%));
     --gradient-security: linear-gradient(135deg, hsl(170 100% 45%), hsl(180 100% 35%));
-    --gradient-bg: linear-gradient(180deg, hsl(240 15% 8%), hsl(240 12% 6%));
+    --gradient-bg: linear-gradient(180deg, hsl(30 5% 8%), hsl(30 8% 6%));
   }
 }
 
