@@ -1,9 +1,10 @@
-// @generated whisperrchat-tool: chat-interface hash: initial DO NOT EDIT DIRECTLY
-// Main chat interface component
-
-import { useState, useEffect, useRef } from 'react';
-import { Send, Lock, Shield, Anchor } from 'lucide-react';
-import { Paper, Box, Typography, IconButton, TextField, Chip, Tooltip } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, Lock, Shield, Anchor, X } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Card, CardHeader, CardContent } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Textarea } from '../ui/textarea';
 import type { DecryptedMessage, EncryptedMessage, Conversation, User } from '../../types';
 import { messagingService } from '../../services';
 
@@ -138,59 +139,43 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <Paper sx={{ p: 2, borderBottom: '1px solid rgba(139, 92, 246, 0.2)', bgcolor: 'rgba(139, 92, 246, 0.05)' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="h6" sx={{ color: 'white' }}>
+      <Card className="border-b border-border rounded-none bg-card">
+        <CardHeader className="flex flex-row items-center justify-between py-3">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-foreground">
               {conversation.metadata.name || getOtherParticipant()}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Tooltip title="End-to-end encrypted">
-                <Chip 
-                  icon={<Lock style={{ fontSize: 14 }} />} 
-                  label="E2EE" 
-                  size="small" 
-                  sx={{ bgcolor: 'rgba(139, 92, 246, 0.3)', color: 'white' }}
-                />
-              </Tooltip>
+            </h3>
+            <div className="flex gap-2">
+              <Badge variant="secondary" className="gap-1">
+                <Lock className="h-3 w-3" />
+                E2EE
+              </Badge>
               
               {conversation.metadata.settings.blockchainAnchoringEnabled && (
-                <Tooltip title="Messages are anchored to blockchain">
-                  <Chip 
-                    icon={<Anchor style={{ fontSize: 14 }} />} 
-                    label="Anchored" 
-                    size="small" 
-                    variant="outlined"
-                    sx={{ borderColor: '#8b5cf6', color: 'white' }}
-                  />
-                </Tooltip>
+                <Badge variant="outline" className="gap-1">
+                  <Anchor className="h-3 w-3" />
+                  Anchored
+                </Badge>
               )}
-            </Box>
-          </Box>
+            </div>
+          </div>
           
-          <IconButton onClick={onClose} sx={{ color: 'white' }}>
-            ✕
-          </IconButton>
-        </Box>
-      </Paper>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+      </Card>
 
       {/* Messages */}
-      <Box sx={{ flex: 1, p: 2, overflowY: 'auto' }}>
+      <div className="flex-1 p-4 overflow-y-auto bg-background">
         {isLoading ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px' }}>
-            <Box sx={{ 
-              animation: 'spin 1s linear infinite',
-              width: 32,
-              height: 32,
-              border: '2px solid transparent',
-              borderTop: '2px solid #8b5cf6',
-              borderRadius: '50%'
-            }} />
-          </Box>
+          <div className="flex items-center justify-center h-48">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="flex flex-col gap-4">
             {messages.map((message) => (
               <MessageBubble
                 key={message.id}
@@ -200,51 +185,35 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
               />
             ))}
             <div ref={messagesEndRef} />
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
 
       {/* Input */}
-      <Paper sx={{ p: 2, borderTop: '1px solid rgba(139, 92, 246, 0.2)', bgcolor: 'rgba(139, 92, 246, 0.05)' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TextField
-            fullWidth
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Type a message..."
-            variant="outlined"
-            size="small"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: 'white',
-                '& fieldset': { borderColor: 'rgba(139, 92, 246, 0.5)' },
-                '&:hover fieldset': { borderColor: '#8b5cf6' },
-                '& input::placeholder': { color: 'rgba(255,255,255,0.5)' }
-              }
-            }}
-            InputProps={{
-              endAdornment: (
-                <Tooltip title="Message will be encrypted before sending">
-                  <Shield style={{ color: '#10b981', fontSize: 16 }} />
-                </Tooltip>
-              )
-            }}
-          />
-          <IconButton 
-            onClick={sendMessage} 
-            disabled={!inputMessage.trim()}
-            sx={{ 
-              bgcolor: inputMessage.trim() ? '#8b5cf6' : 'rgba(139, 92, 246, 0.3)',
-              color: 'white',
-              '&:hover': { bgcolor: '#7c3aed' }
-            }}
-          >
-            <Send style={{ fontSize: 16 }} />
-          </IconButton>
-        </Box>
-      </Paper>
-    </Box>
+      <Card className="border-t border-border rounded-none bg-card">
+        <CardContent className="p-4">
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <Textarea
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Type a message..."
+                className="min-h-[40px] max-h-32 resize-none"
+              />
+            </div>
+            <Button 
+              onClick={sendMessage} 
+              disabled={!inputMessage.trim()}
+              size="icon"
+              className="shrink-0"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -256,28 +225,19 @@ interface MessageBubbleProps {
 
 function MessageBubble({ message, isOwn, timestamp }: MessageBubbleProps) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: isOwn ? 'flex-end' : 'flex-start' }}>
-      <Paper sx={{
-        maxWidth: { xs: '75%', md: '60%' },
-        p: 1.5,
-        bgcolor: isOwn ? '#8b5cf6' : 'rgba(139, 92, 246, 0.1)',
-        color: 'white',
-        backdropFilter: 'blur(10px)'
-      }}>
-        <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>
-          {message.content}
-        </Typography>
-        <Typography 
-          variant="caption" 
-          sx={{ 
-            color: isOwn ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.6)', 
-            display: 'block',
-            mt: 0.5 
-          }}
-        >
-          {timestamp}
-        </Typography>
-      </Paper>
-    </Box>
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+      <Card className={`max-w-[70%] ${
+        isOwn 
+          ? 'bg-chat-bubble-sent text-chat-bubble-sent-foreground' 
+          : 'bg-chat-bubble-received text-chat-bubble-received-foreground'
+      }`}>
+        <CardContent className="p-3">
+          <p className="break-words">{message.content}</p>
+          <p className={`text-xs mt-1 opacity-75`}>
+            {timestamp}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -1,11 +1,11 @@
-// @generated whisperrchat-tool: main-layout hash: initial DO NOT EDIT DIRECTLY
-// Main application layout
-
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Settings, Shield, LogOut, Plus, Search } from 'lucide-react';
 import { ConversationList } from '../messaging/conversation-list';
 import { ChatInterface } from '../messaging/chat-interface';
-import { Paper, Box, Typography, IconButton, Avatar as MuiAvatar, Button as MuiButton, Dialog, DialogTitle, DialogContent, TextField } from '@mui/material';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Input } from '../ui/input';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 import type { User, Conversation } from '../../types';
 import { messagingService } from '../../services';
 
@@ -19,10 +19,6 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
   const [showNewConversationDialog, setShowNewConversationDialog] = useState(false);
   const [newConversationRecipient, setNewConversationRecipient] = useState('');
 
-  const handleLogout = () => {
-    onLogout();
-  };
-
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
   };
@@ -35,7 +31,6 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
     if (!newConversationRecipient.trim()) return;
 
     try {
-      // TODO(ai): Validate recipient exists and get their ID
       const recipientId = newConversationRecipient.trim();
       
       const conversation = await messagingService.createConversation([
@@ -61,52 +56,46 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <Paper 
-        sx={{ 
-          width: 320, 
-          display: 'flex', 
-          flexDirection: 'column',
-          backgroundColor: 'rgba(139, 92, 246, 0.1)',
-          backdropFilter: 'blur(10px)'
-        }}
-      >
+      <Card className="w-80 flex flex-col bg-card border-r border-border">
         {/* User header */}
-        <Box sx={{ p: 2, borderBottom: '1px solid rgba(139, 92, 246, 0.2)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <MuiAvatar sx={{ bgcolor: '#8b5cf6' }}>
-                {getInitials(currentUser.displayName)}
-              </MuiAvatar>
-              <Box>
-                <Typography variant="h6" sx={{ color: 'white' }}>
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {getInitials(currentUser.displayName)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
                   {currentUser.displayName}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                </h2>
+                <p className="text-sm text-muted-foreground">
                   @{currentUser.username}
-                </Typography>
-              </Box>
-            </Box>
-            <IconButton sx={{ color: '#8b5cf6' }}>
-              <Settings />
-            </IconButton>
-          </Box>
-        </Box>
+                </p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
 
         {/* Conversation list */}
-        <Box sx={{ flex: 1 }}>
+        <div className="flex-1 overflow-hidden">
           <ConversationList
             currentUser={currentUser}
             onSelectConversation={handleSelectConversation}
             onNewConversation={handleNewConversation}
             selectedConversationId={selectedConversation?.id}
           />
-        </Box>
-      </Paper>
+        </div>
+      </Card>
 
       {/* Main content */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="flex-1 flex flex-col">
         {selectedConversation ? (
           <ChatInterface
             conversation={selectedConversation}
@@ -114,99 +103,55 @@ export function MainLayout({ currentUser, onLogout }: MainLayoutProps) {
             onClose={() => setSelectedConversation(null)}
           />
         ) : (
-          <Box 
-            sx={{ 
-              flex: 1, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              textAlign: 'center'
-            }}
-          >
-            <Box>
-              <Box 
-                sx={{ 
-                  width: 64, 
-                  height: 64, 
-                  bgcolor: 'rgba(139, 92, 246, 0.2)', 
-                  borderRadius: '50%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  mx: 'auto', 
-                  mb: 2 
-                }}
-              >
-                <Shield style={{ color: '#8b5cf6', fontSize: 32 }} />
-              </Box>
-              <Typography variant="h5" sx={{ mb: 1, color: 'white' }}>
+          <div className="flex-1 flex items-center justify-center bg-background">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-semibold text-foreground">
                 Welcome to WhisperrChat
-              </Typography>
-              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.7)', mb: 3 }}>
+              </h2>
+              <p className="text-muted-foreground mb-6">
                 Your messages are end-to-end encrypted and secured by design
-              </Typography>
-              <MuiButton 
-                variant="contained" 
-                onClick={handleNewConversation}
-                sx={{ 
-                  bgcolor: '#8b5cf6', 
-                  '&:hover': { bgcolor: '#7c3aed' },
-                  textTransform: 'none'
-                }}
-              >
-                <Plus style={{ marginRight: 8, fontSize: 16 }} />
+              </p>
+              <Button onClick={handleNewConversation} className="gap-2">
+                <Plus className="w-4 h-4" />
                 Start a Conversation
-              </MuiButton>
-            </Box>
-          </Box>
+              </Button>
+            </div>
+          </div>
         )}
-      </Box>
+      </div>
 
       {/* New conversation dialog */}
-      <Dialog 
-        open={showNewConversationDialog} 
-        onClose={() => setShowNewConversationDialog(false)}
-      >
-        <DialogContent sx={{ bgcolor: 'rgba(139, 92, 246, 0.1)', backdropFilter: 'blur(10px)' }}>
-          <DialogTitle sx={{ color: 'white' }}>Start New Conversation</DialogTitle>
-          <Box sx={{ mt: 2 }}>
-            <TextField
-              fullWidth
-              label="Recipient Username"
-              placeholder="Enter username..."
-              value={newConversationRecipient}
-              onChange={(e) => setNewConversationRecipient(e.target.value)}
-              sx={{
-                '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' },
-                '& .MuiOutlinedInput-root': {
-                  color: 'white',
-                  '& fieldset': { borderColor: 'rgba(139, 92, 246, 0.5)' },
-                  '&:hover fieldset': { borderColor: '#8b5cf6' },
-                }
-              }}
-            />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}>
-              <MuiButton 
-                onClick={() => setShowNewConversationDialog(false)}
-                sx={{ color: 'rgba(255,255,255,0.7)' }}
-              >
-                Cancel
-              </MuiButton>
-              <MuiButton 
-                variant="contained"
-                onClick={createNewConversation}
-                disabled={!newConversationRecipient.trim()}
-                sx={{ 
-                  bgcolor: '#8b5cf6', 
-                  '&:hover': { bgcolor: '#7c3aed' }
-                }}
-              >
-                Start Chat
-              </MuiButton>
-            </Box>
-          </Box>
-        </DialogContent>
-      </Dialog>
-    </Box>
+      {showNewConversationDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4 p-6">
+            <h3 className="text-lg font-semibold mb-4">Start New Conversation</h3>
+            <div className="space-y-4">
+              <Input
+                placeholder="Enter username..."
+                value={newConversationRecipient}
+                onChange={(e) => setNewConversationRecipient(e.target.value)}
+              />
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setShowNewConversationDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={createNewConversation}
+                  disabled={!newConversationRecipient.trim()}
+                >
+                  Start Chat
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
   );
 }
