@@ -173,17 +173,6 @@ export const pluginService = {
   getAvailableBots: () => []
 };
 
-// Re-export service instances for convenience
-export const services = {
-  auth: authService,
-  crypto: cryptoService,
-  messaging: messagingService,
-  keyManagement: keyManagementService,
-  blockchain: chainClient,
-  notarization: notarizationService,
-  plugins: pluginService
-} as const;
-
 console.log('✓ WhisperrChat services initialized (stub mode)');
 
 // Try to initialize real services asynchronously without blocking

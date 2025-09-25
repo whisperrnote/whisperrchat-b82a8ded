@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: conversation-list@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated whisperrchat-tool: conversation-list hash: initial DO NOT EDIT DIRECTLY
 // Conversation list component
 
 import React, { useState, useEffect } from 'react';
