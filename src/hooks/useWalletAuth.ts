@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPublicClient, http, verifyMessage } from 'viem';
 import { mainnet } from 'viem/chains';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed; will integrate with Appwrite or backend later
 import { toast } from 'sonner';
 
 declare global {
@@ -72,57 +72,31 @@ export const useWalletAuth = () => {
       }
 
       // Check if user already exists
-      let { data: existingAuth } = await supabase
-        .from('user_auth_methods')
-        .select('user_id')
-        .eq('method', 'wallet_connect')
-        .contains('method_data', { address: address.toLowerCase() })
-        .single();
-
-      let userId;
-
-      if (existingAuth) {
-        userId = existingAuth.user_id;
-        toast.success('Welcome back!');
+      const existingRaw = localStorage.getItem('wallet_auth');
+      let userId: string;
+      if (existingRaw) {
+        const existing = JSON.parse(existingRaw);
+        if (existing.address === address.toLowerCase()) {
+          userId = existing.user_id;
+          toast.success('Welcome back!');
+        } else {
+          userId = crypto.randomUUID();
+        }
       } else {
-        // Create new user
-        const anonymousId = crypto.randomUUID();
-        const newUserId = crypto.randomUUID();
-        
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: newUserId,
-            anonymous_id: anonymousId,
-            display_name: displayName || `User ${address.slice(0, 6)}...${address.slice(-4)}`,
-            allow_contact_discovery: false,
-            visibility_mode: 'friends'
-          })
-          .select()
-          .single();
-
-        if (profileError) throw profileError;
-
-        const { error: authError } = await supabase
-          .from('user_auth_methods')
-          .insert({
-            user_id: profile.id,
-            method: 'wallet_connect',
-            method_data: {
-              address: address.toLowerCase(),
-              chainId: await window.ethereum.request({ method: 'eth_chainId' }),
-              signature,
-              message
-            },
-            verified: true,
-            is_primary: true
-          });
-
-        if (authError) throw authError;
-
-        userId = profile.id;
+        userId = crypto.randomUUID();
         toast.success('Wallet registered successfully!');
       }
+      const walletAuth = {
+        user_id: userId,
+        method: 'wallet_connect',
+        address: address.toLowerCase(),
+        chainId: await window.ethereum.request({ method: 'eth_chainId' }),
+        signature,
+        message,
+        verified: true,
+        is_primary: true
+      };
+      localStorage.setItem('wallet_auth', JSON.stringify(walletAuth));
 
       // Store authentication state
       localStorage.setItem('wallet_user_id', userId);

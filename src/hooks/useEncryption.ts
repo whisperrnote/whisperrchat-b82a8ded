@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed; temporary in-memory key registry
 import { toast } from 'sonner';
 import {
   generateKeyPair,
@@ -46,31 +46,24 @@ export const useEncryption = () => {
       const deviceFingerprint = generateDeviceFingerprint();
       
       // Check if device already exists
-      const { data: existingDevice } = await supabase
-        .from('user_devices')
-        .select('id, device_fingerprint')
-        .eq('user_id', user.id)
-        .eq('device_fingerprint', deviceFingerprint)
-        .single();
-
+      // In-memory/localStorage device registry
+      const devicesKey = `enc_devices_${user.id}`;
+      const rawDevices = localStorage.getItem(devicesKey);
+      let devices = rawDevices ? JSON.parse(rawDevices) : [];
+      let existingDevice = devices.find((d: any) => d.device_fingerprint === deviceFingerprint);
       let deviceId = existingDevice?.id;
-      
       if (!existingDevice) {
-        // Create new device
-        const { data: newDevice, error: deviceError } = await supabase
-          .from('user_devices')
-          .insert({
-            user_id: user.id,
+        deviceId = crypto.randomUUID();
+        const newDevice = {
+          id: deviceId,
+          user_id: user.id,
             device_fingerprint: deviceFingerprint,
             device_name: `${navigator.platform} - ${navigator.userAgent.split(' ')[0]}`,
-            device_type: 'web' as const,
+            device_type: 'web',
             is_trusted: true
-          })
-          .select('id')
-          .single();
-
-        if (deviceError) throw deviceError;
-        deviceId = newDevice.id;
+        };
+        devices.push(newDevice);
+        localStorage.setItem(devicesKey, JSON.stringify(devices));
       }
 
       // Load or generate keys
@@ -91,19 +84,19 @@ export const useEncryption = () => {
         );
 
         // Store public key and metadata in database
-        const { error: keyError } = await supabase
-          .from('user_keys')
-          .upsert({
-            user_id: user.id,
-            device_id: deviceId,
-            public_key: publicKeyPem,
-            encrypted_private_key: 'stored_locally', // We store encrypted private key locally
-            key_version: 1,
-            is_active: true,
-            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
-          });
-
-        if (keyError) throw keyError;
+        const keyStoreKey = `enc_keys_${user.id}`;
+        const rawKeys = localStorage.getItem(keyStoreKey);
+        const keyEntries = rawKeys ? JSON.parse(rawKeys) : [];
+        keyEntries.push({
+          user_id: user.id,
+          device_id: deviceId,
+          public_key: publicKeyPem,
+          encrypted_private_key: 'stored_locally',
+          key_version: 1,
+          is_active: true,
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        });
+        localStorage.setItem(keyStoreKey, JSON.stringify(keyEntries));
         keys = keyPair;
       }
 
@@ -145,49 +138,36 @@ export const useEncryption = () => {
       const { encryptedContent, iv } = await encryptMessage(content, messageKey);
       
       // Get recipient public keys
-      const { data: recipientKeys, error: keysError } = await supabase
-        .from('user_keys')
-        .select('user_id, public_key, device_id')
-        .in('user_id', recipientIds)
-        .eq('is_active', true);
-
-      if (keysError) throw keysError;
-
-      // Create message record
-      const { data: message, error: messageError } = await supabase
-        .from('messages')
-        .insert({
-          sender_id: user.id,
-          chat_id: chatId,
-          encrypted_content: `${encryptedContent}:${iv}`,
-          sender_key_fingerprint: deviceKey.fingerprint,
-          type: 'text'
-        })
-        .select('id')
-        .single();
-
-      if (messageError) throw messageError;
-
-      // Encrypt message key for each recipient
+      const keyStoreKey = `enc_keys_${user.id}`;
+      const allKeys = localStorage.getItem(keyStoreKey);
+      const keyEntries = allKeys ? JSON.parse(allKeys) : [];
+      const recipientKeys = keyEntries.filter((k: any) => recipientIds.includes(k.user_id) && k.is_active);
+      const messageId = crypto.randomUUID();
+      const messageRecord = {
+        id: messageId,
+        sender_id: user.id,
+        chat_id: chatId,
+        encrypted_content: `${encryptedContent}:${iv}`,
+        sender_key_fingerprint: deviceKey.fingerprint,
+        type: 'text'
+      };
+      const msgStoreKey = `enc_messages_${chatId}`;
+      const rawMsgs = localStorage.getItem(msgStoreKey);
+      const msgs = rawMsgs ? JSON.parse(rawMsgs) : [];
+      msgs.push(messageRecord);
+      localStorage.setItem(msgStoreKey, JSON.stringify(msgs));
       const messageRecipients = await Promise.all(
-        recipientKeys.map(async (recipientKey) => {
+        recipientKeys.map(async (recipientKey: any) => {
           const publicKey = await importPublicKey(recipientKey.public_key);
           const encryptedMessageKey = await encryptSymmetricKey(messageKey, publicKey);
-          
           return {
-            message_id: message.id,
+            message_id: messageId,
             recipient_id: recipientKey.user_id,
             encrypted_message_key: encryptedMessageKey
           };
         })
       );
-
-      // Store encrypted keys for recipients
-      const { error: recipientsError } = await supabase
-        .from('message_recipients')
-        .insert(messageRecipients);
-
-      if (recipientsError) throw recipientsError;
+      localStorage.setItem(`enc_message_recipients_${messageId}`, JSON.stringify(messageRecipients));
 
       toast.success('Message sent securely');
       return true;
@@ -208,16 +188,11 @@ export const useEncryption = () => {
 
     try {
       // Get encrypted message key for this user
-      const { data: messageRecipient, error: recipientError } = await supabase
-        .from('message_recipients')
-        .select('encrypted_message_key')
-        .eq('message_id', messageId)
-        .eq('recipient_id', user.id)
-        .single();
-
-      if (recipientError) throw recipientError;
-
-      // Decrypt the message key
+      const recRaw = localStorage.getItem(`enc_message_recipients_${messageId}`);
+      if (!recRaw) throw new Error('No recipients stored');
+      const recipients = JSON.parse(recRaw);
+      const messageRecipient = recipients.find((r: any) => r.recipient_id === user.id);
+      if (!messageRecipient) throw new Error('Recipient key not found');
       const messageKey = await decryptSymmetricKey(
         messageRecipient.encrypted_message_key,
         deviceKey.privateKey
@@ -244,20 +219,15 @@ export const useEncryption = () => {
     fingerprint: string;
   }[]> => {
     try {
-      const { data: members, error: membersError } = await supabase
-        .from('chat_members')
-        .select('user_id')
-        .eq('chat_id', chatId);
-
-      if (membersError) throw membersError;
-
-      const { data: keys, error: keysError } = await supabase
-        .from('user_keys')
-        .select('user_id, public_key')
-        .in('user_id', members.map(m => m.user_id))
-        .eq('is_active', true);
-
-      if (keysError) throw keysError;
+      // Demo: aggregate keys across all users (no membership filtering)
+      const keys: any[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i)!;
+        if (k.startsWith('enc_keys_')) {
+          const arr = JSON.parse(localStorage.getItem(k)!);
+            arr.filter((r: any) => r.is_active).forEach((r: any) => keys.push(r));
+        }
+      }
 
       return await Promise.all(
         keys.map(async (key) => {
@@ -291,25 +261,20 @@ export const useEncryption = () => {
       const fingerprint = await generateKeyFingerprint(newKeyPair.publicKey);
 
       // Deactivate old key
-      await supabase
-        .from('user_keys')
-        .update({ is_active: false })
-        .eq('device_id', deviceKey.id);
-
-      // Store new key
-      const { error: keyError } = await supabase
-        .from('user_keys')
-        .insert({
-          user_id: user.id,
-          device_id: deviceKey.id,
-          public_key: publicKeyPem,
-          encrypted_private_key: 'stored_locally',
-          key_version: 2,
-          is_active: true,
-          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-        });
-
-      if (keyError) throw keyError;
+      const keyStoreKey = `enc_keys_${user.id}`;
+      const rawKeys = localStorage.getItem(keyStoreKey);
+      const keyEntries = rawKeys ? JSON.parse(rawKeys) : [];
+      keyEntries.forEach((k: any) => { if (k.device_id === deviceKey.id) k.is_active = false; });
+      keyEntries.push({
+        user_id: user.id,
+        device_id: deviceKey.id,
+        public_key: publicKeyPem,
+        encrypted_private_key: 'stored_locally',
+        key_version: 2,
+        is_active: true,
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+      });
+      localStorage.setItem(keyStoreKey, JSON.stringify(keyEntries));
 
       // Update local storage
       await SecureKeyStorage.storeDeviceKeys(
