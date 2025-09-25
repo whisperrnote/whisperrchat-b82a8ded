@@ -50,7 +50,7 @@ export interface DecryptedMessage {
   recipientId: string;
   content: string;
   timestamp: Date;
-  type: 'text' | 'media' | 'file';
+  type: 'text' | 'media' | 'file' | 'gift';
   metadata?: Record<string, any>;
 }
 

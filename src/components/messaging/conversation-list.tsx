@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Lock, Users } from 'lucide-react';
+import { Plus, Search, Lock, Users, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card } from '../ui/card';
@@ -11,19 +11,19 @@ import { messagingService } from '../../services';
 interface ConversationListProps {
   currentUser: User;
   onSelectConversation: (conversation: Conversation) => void;
-  onNewConversation: () => void;
   selectedConversationId?: string;
 }
 
 export function ConversationList({ 
   currentUser, 
   onSelectConversation, 
-  onNewConversation,
   selectedConversationId 
 }: ConversationListProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [showNewConversationForm, setShowNewConversationForm] = useState(false);
+  const [newConversationRecipient, setNewConversationRecipient] = useState('');
 
   useEffect(() => {
     loadConversations();
@@ -57,6 +57,30 @@ export function ConversationList({
       console.error('Failed to load conversations:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleNewConversationClick = () => {
+    setShowNewConversationForm(!showNewConversationForm);
+    setNewConversationRecipient('');
+  };
+
+  const createNewConversation = async () => {
+    if (!newConversationRecipient.trim()) return;
+
+    try {
+      const recipientId = newConversationRecipient.trim();
+
+      const conversation = await messagingService.createConversation([
+        currentUser.id,
+        recipientId
+      ]);
+
+      onSelectConversation(conversation);
+      setShowNewConversationForm(false);
+      setNewConversationRecipient('');
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
     }
   };
 
@@ -114,23 +138,42 @@ export function ConversationList({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-foreground">Messages</h3>
           <Button 
-            onClick={onNewConversation}
+            onClick={handleNewConversationClick}
+            variant={showNewConversationForm ? 'ghost' : 'default'}
             size="sm"
             className="h-8 w-8"
+            aria-label={showNewConversationForm ? "Cancel new conversation" : "New conversation"}
           >
-            <Plus className="h-4 w-4" />
+            {showNewConversationForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           </Button>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        {showNewConversationForm ? (
+          <div className="space-y-2">
+            <Input
+              placeholder="Enter recipient username..."
+              value={newConversationRecipient}
+              onChange={(e) => setNewConversationRecipient(e.target.value)}
+            />
+            <Button
+              onClick={createNewConversation}
+              disabled={!newConversationRecipient.trim()}
+              className="w-full"
+            >
+              Start Chat
+            </Button>
+          </div>
+        ) : (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        )}
       </div>
 
       {/* Conversations */}

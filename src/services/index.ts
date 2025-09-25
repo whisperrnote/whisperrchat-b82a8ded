@@ -145,6 +145,13 @@ export const notarizationService = {
   queueMessageForAnchoring: async () => {}
 };
 
+// Gifting Service - always functional
+export const giftingService = {
+  sendGift: async (sender: any, recipientId: string, amount: number) => {
+    console.log(`Stub gifting service: sendGift of ${amount} from ${sender.id} to ${recipientId} called`);
+  }
+};
+
 // Plugin Service - always functional
 export const pluginService = {
   executeHooks: async (p0: { type: string; timestamp: Date; data: { userId: string; }; source: string; }, p1: { userId: string; permissions: { type: string; description: string; required: boolean; }[]; }) => {},
@@ -187,6 +194,7 @@ setTimeout(async () => {
     const { KeyManagementService } = await import('./key-management.service');
     const { ChainClient, NotarizationService } = await import('./blockchain.service');
     const { PluginService } = await import('./plugin.service');
+    const { GiftingService } = await import('./gifting.service');
     
     // Try to create real instances
     const realCrypto = new CryptoService();
@@ -195,6 +203,7 @@ setTimeout(async () => {
     const realMessaging = new MessagingService(realCrypto, realKeyManagement);
     const realChain = new ChainClient(realCrypto);
     const realNotarization = new NotarizationService(realCrypto, realChain);
+    const realGifting = new GiftingService();
     const realPlugin = new PluginService();
     
     // Replace stub methods with real implementations
@@ -204,6 +213,7 @@ setTimeout(async () => {
     Object.assign(messagingService, realMessaging);
     Object.assign(chainClient, realChain);
     Object.assign(notarizationService, realNotarization);
+    Object.assign(giftingService, realGifting);
     Object.assign(pluginService, realPlugin);
     
     console.log('✓ Successfully upgraded to real services');
@@ -221,5 +231,6 @@ export const services = {
   keyManagement: keyManagementService,
   blockchain: chainClient,
   notarization: notarizationService,
+  gifting: giftingService,
   plugins: pluginService
 } as const;
