@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ==========================================================================
    TenChat (a.k.a. WhisperrChat) Global Styles
    Purpose: Deterministic, token-driven, theme-extensible global layer.
