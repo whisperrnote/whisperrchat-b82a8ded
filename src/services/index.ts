@@ -58,7 +58,7 @@ export const messagingService = {
   sendMessage: async (message: any) => {
     console.log('Stub messaging service: sendMessage called', message);
   },
-  getMessages: async () => [],
+  getMessages: async (conversationId?: string) => [],
   createConversation: async (participants: string[]) => ({
     id: `stub-conversation-${Date.now()}`,
     participants,
@@ -81,7 +81,7 @@ export const messagingService = {
   off: (event: string, callback: Function) => {
     console.log(`Stub messaging service: stopped listening for ${event}`);
   },
-  decryptMessage: async () => ({
+  decryptMessage: async (encryptedMessage?: any) => ({
     id: 'stub-message',
     senderId: '',
     recipientId: '',
@@ -104,23 +104,23 @@ export const cryptoService = {
     signedPreKey: '',
     oneTimePreKeys: []
   }),
-  deriveSharedSecret: async () => '',
-  hkdf: async () => '',
-  encryptMessage: async () => ({ ciphertext: '', nonce: '' }),
-  decryptMessage: async () => '',
-  initializeSession: async () => ({
+  deriveSharedSecret: async (privateKey?: string, publicKey?: string) => '',
+  hkdf: async (sharedSecret?: string, salt?: string, info?: string, length?: number) => '',
+  encryptMessage: async (plaintext?: string, key?: string) => ({ ciphertext: '', nonce: '' }),
+  decryptMessage: async (ciphertext?: string, key?: string, nonce?: string) => '',
+  initializeSession: async (sharedSecret?: string) => ({
     sendingChain: { chainKey: '', messageNumber: 0 },
     receivingChains: new Map(),
     rootKey: '',
     sessionId: 'stub-session'
   }),
-  advanceChain: async () => ({
+  advanceChain: async (chainState?: any) => ({
     messageKey: '',
     newChainState: { chainKey: '', messageNumber: 0 }
   }),
-  generateRandomBytes: () => 'stub-random-data',
-  hash: async () => 'stub-hash',
-  verifySignature: async () => false
+  generateRandomBytes: (length?: number) => 'stub-random-data',
+  hash: async (data?: string) => 'stub-hash',
+  verifySignature: async (data?: string, signature?: string, publicKey?: string) => false
 };
 
 // Chain Client - always functional
