@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: chat-interface@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated whisperrchat-tool: chat-interface hash: initial DO NOT EDIT DIRECTLY
 // Main chat interface component
 
 import React, { useState, useEffect, useRef } from 'react';
