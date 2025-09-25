@@ -1,222 +1,212 @@
-# Whisperrchat – Foundation & Implementation Roadmap
+# WhisperrChat – Architecture-Aligned Implementation Roadmap (Reset)
 
-Version: 0.1 (Initial consolidated plan)
+Version: 0.2 (Architecture sync reset)
 Updated: 2025-09-18
 Owner: Engineering
 Status Legend: [ ] pending  [~] in-progress  [x] done  [!] blocked  [-] dropped
 
 ---
-## 1. Core Architecture Consolidation
-
-### Goals
-Unify the application into a single-page chat experience with overlay-driven authentication and encryption initialization; remove page-routing complexity until multi-route needs emerge.
-
-### Tasks
-- [ ] 1.1 Replace router-based page model with state-driven `ChatApp` root component
-  - Acceptance: `App.tsx` no longer mounts `<BrowserRouter>`; only providers + `<ChatApp />`
-  - Side-effects: Remove `ProtectedRoute` usage
-- [ ] 1.2 Introduce `ChatApp` composition layer
-  - Contains: AuthOverlay, EncryptionSetup overlay gating, ChatShell layout
-  - Acceptance: App boots to Connect state (unauth), then encryption setup (first-time), then chat
-- [ ] 1.3 Central UI State (auth + encryption + active chat)
-  - Provide hook or context for: `activeChatId`, `showAuthOverlay`
-- [ ] 1.4 Remove obsolete pages (Landing, Auth, Index, NotFound, legacy Chat) after migration
-  - Keep `EncryptionSetup` component (overlay usage)
-- [ ] 1.5 Introduce design tokens / consolidate Tailwind utility drift (optional, light in this phase)
-
-### Risks / Notes
-- Minimize breaking removal of routing for future navigation; keep design reversible.
+## 0. Guiding Snapshot
+Derived from ARCHITECTURE.md v0.1.0. Focus near-term on: secure baseline (identity + keys + encrypted messaging), cohesive single-page client shell, deterministic evolution hooks. Advanced domains (payments, notarization, plugins) deferred until core E2EE pipeline, event model, and policy scaffold exist.
 
 ---
-## 2. Auth System Overhaul
+## 1. Phase 1 – Bootstrap & Cleanup (Foundations)
+Goals: Minimal viable encrypted chat shell, unified state, removal of legacy routing & Supabase remnants, scaffold for future backend (Appwrite or custom services).
 
-### Goals
-Single overlay flow: Email first (identifier), then choose Passkey / Wallet / Email+Password path. Normalize resulting user session abstraction.
+Tasks:
+- [x] 1.1 Purge Supabase integration (client/types + dependency) (ref: cleanup)
+- [ ] 1.2 Introduce `AppPlatform` root (replaces router) mounting providers + Chat experience
+- [ ] 1.3 Create `ChatApp` state orchestrator (auth gate + encryption gate + chat shell)
+- [ ] 1.4 Remove obsolete routed pages (`Landing`, `Auth`, `Index`, `NotFound`, legacy `Chat`)
+- [ ] 1.5 Remove `ProtectedRoute` and update imports
+- [ ] 1.6 Central UI state context: `{ activeChatId, setActiveChatId, showAuthOverlay }`
+- [ ] 1.7 Add lightweight feature flag stub (in-memory map) for future toggles
 
-### Tasks
-- [ ] 2.1 Create `AuthOverlay` (full-screen, dismissible only after auth success)
-- [ ] 2.2 Step 1: Email capture + basic validation (store provisional email in context)
-- [ ] 2.3 Step 2: Auth method selection: Passkey, Wallet, Email & Password (Sign In / Register toggle)
-- [ ] 2.4 Refactor `usePasskeyAuth` to require email argument for both register + authenticate
-  - Remove generation of internal placeholder email; pass captured email
-  - Add TODO markers for real server-side WebAuthn verification
-- [ ] 2.5 Refactor `useWalletAuth` to require email for continuity & potential future linking
-  - Store email in `user_profiles` metadata if not present
-- [ ] 2.6 Create `UnifiedAuthContext` facade
-  - Normalized shape: `{ id, displayName, primaryAuthMethod, email?, walletAddress?, passkeyRegistered }`
-- [ ] 2.7 Integrate Supabase session for email/password path only (for now) – mark others as pseudo-session
-- [ ] 2.8 Add explicit warning banner in dev mode if user is using non-Supabase-authenticated session (passkey/wallet placeholder)
-- [ ] 2.9 Sign-out should clear all local pseudo-session markers + encryption key references
-
-### Deferred / Backlog
-- [ ] 2.B1 Real server-mediated passkey challenge/response verification + session issuance
-- [ ] 2.B2 Wallet SIWE (Sign-In with Ethereum) standard implementation
-
-### Risks
-- RLS policies may break for passkey / wallet operations without real Supabase auth user. Current design relies on custom tables; must isolate operations that require RLS. Mark clearly.
+Risks / Notes:
+- Keep removal reversible by isolating new root mount point logic.
 
 ---
-## 3. Encryption & Security Improvements
+## 2. Phase 2 – Identity & Key Management (Arch §6)
+Goals: Formalize device + key bootstrap; prepare for prekey & future double-ratchet integration.
 
-### Immediate Fixes
-- [ ] 3.1 Fix recipient resolution bug (currently using chatId as recipient ID)
-  - Use `getChatMemberKeys(chatId)` to determine member user IDs; exclude sender
-- [ ] 3.2 Unify send path: remove UI usage of `useRealtimeMessages.sendMessage`; only call `useEncryption.sendEncryptedMessage`
-- [ ] 3.3 Structured encrypted payload
-  - Change `encrypted_content` from `cipher:iv` to JSON: `{"v":1,"c":"<base64>","iv":"<base64>"}`
-  - Update decryption logic accordingly
-- [ ] 3.4 Backward compatibility parser (handle legacy `cipher:iv` if present)
-- [ ] 3.5 Add optional `encryption_key_version` (derive from active key fingerprint mapping) on message insert
+Tasks:
+- [ ] 2.1 Define machine-readable key bundle schema (JSON) aligning with spec (`keyBundle` fields)
+- [ ] 2.2 Refactor current encryption hook to emit & persist a prekey bundle structure (local only)
+- [ ] 2.3 Add key fingerprint registry index (per user, active/inactive tracking)
+- [ ] 2.4 Manual key rotation UX action (already logic stubbed) – surface in UI settings
+- [ ] 2.5 Design doc stub: planned X3DH-like handshake (placeholder file: `docs/handshake-spec.md`)
+- [ ] 2.6 Add device revocation placeholder list (local simulation)
 
-### Enhancements
-- [ ] 3.6 Add message authenticity design placeholder (signatures plan doc comment)
-- [ ] 3.7 Add local caching for decrypted messages (in-memory Map keyed by messageId)
-- [ ] 3.8 Add timeout / abort guard for decryption attempts (avoid UI lock on malformed messages)
-
-### Backlog
-- [ ] 3.B1 Forward secrecy via per-session ephemeral ECDH (replace RSA-OAEP) – design spec
-- [ ] 3.B2 Key rotation automation scheduler
-- [ ] 3.B3 Multi-device key sync + recovery flow
-
-### Risks
-- Modifying schema storage format requires ensuring no server code depends on parsing `:` delimiter.
+Backlog:
+- [ ] 2.B1 One-time prekeys pool generation & consumption model
+- [ ] 2.B2 Encrypted backup export (passphrase-derived) design stub
 
 ---
-## 4. Chat Application UI
+## 3. Phase 3 – Encrypted Messaging Pipeline (Arch §§7,14)
+Goals: Structured encrypted payloads, unified send path, recipient resolution correctness, forward compatibility.
 
-### Layout & Components
-- [ ] 4.1 Create `ChatShell` (parent flex container)
-- [ ] 4.2 Create `ChatSidebar` (list + search + new chat)
-- [ ] 4.3 Active chat header component (avatar, name, encryption badge, actions)
-- [ ] 4.4 Messages list (reuse existing `ChatMessage` with minor prop adjustments)
-- [ ] 4.5 Composer: input + send button + encryption status icon
-- [ ] 4.6 Empty state UX (no chats, no messages)
+Immediate:
+- [ ] 3.1 Fix recipient resolution (exclude sender; derive from member key registry)
+- [ ] 3.2 Unify send path → only `useEncryption.sendEncryptedMessage`
+- [ ] 3.3 Migrate encrypted content format to JSON envelope `{v, c, iv}`
+- [ ] 3.4 Dual parser (legacy `cipher:iv` fallback)
+- [ ] 3.5 Store `encryption_key_version` (or fingerprint alias) with message record
 
-### UX / Polish
-- [ ] 4.7 Loading skeletons for sidebar + messages
-- [ ] 4.8 Key fingerprint display relocated to settings dropdown
-- [ ] 4.9 Responsive layout (sidebar collapsible on mobile)
-- [ ] 4.10 Scroll anchoring & auto-scroll on new message (only if at bottom)
+Enhancements:
+- [ ] 3.6 In-memory decrypted message cache (LRU or simple Map) keyed by messageId
+- [ ] 3.7 Decryption timeout guard + error isolation per message
+- [ ] 3.8 Authenticity roadmap comment (future signatures) in code
 
-### Backlog
-- [ ] 4.B1 Typing indicators
-- [ ] 4.B2 Read receipts (requires message delivery status design)
-- [ ] 4.B3 File / media messages pipeline
+Backlog:
+- [ ] 3.B1 Double ratchet session state design stub
+- [ ] 3.B2 Prekey consumption transition logic
 
 ---
-## 5. Data Layer & Realtime Integration
+## 4. Phase 4 – UI Shell & Interaction (Arch §§4,25)
+Goals: Modular chat shell layout, responsive behavior, accessibility & basic offline readiness hooks.
 
-### Tasks
-- [ ] 5.1 Ensure `useRealtimeChats` supports selecting first chat automatically when available
-- [ ] 5.2 Centralize active chat selection state in context
-- [ ] 5.3 Optimize message subscription lifecycle (unsubscribe when chat changes)
-- [ ] 5.4 Add defensive null checks for chat membership before sending
-- [ ] 5.5 Add minimal error boundary around encryption failure to avoid blocking entire list
+Tasks:
+- [ ] 4.1 Implement `ChatShell` layout container
+- [ ] 4.2 Implement `ChatSidebar` (list, create placeholder, search stub)
+- [ ] 4.3 Active chat header (encryption status badge + actions placeholder)
+- [ ] 4.4 Messages list component (virtual scroll optional later) using decrypted cache
+- [ ] 4.5 Composer (input, send, encryption indicator)
+- [ ] 4.6 Empty states (no chats / no messages)
+- [ ] 4.7 Scroll anchoring & auto-scroll only when near bottom
+- [ ] 4.8 Mobile responsive collapse of sidebar
 
-### Backlog
-- [ ] 5.B1 Paginated message loading (infinite scroll / cursor-based)
-- [ ] 5.B2 Server-side computed last_message field updates
-
----
-## 6. Cleanup & Deprecation
-
-### Tasks
-- [ ] 6.1 Remove obsolete pages: `Landing.tsx`, `Auth.tsx`, `Index.tsx`, `NotFound.tsx`, legacy `Chat.tsx`
-- [ ] 6.2 Remove `ProtectedRoute.tsx`
-- [ ] 6.3 Update imports & dead code references (ESLint pass)
-- [ ] 6.4 Adjust `components.json` / shadcn not needed pages if any dynamic references
-- [ ] 6.5 Update README quickstart to reflect single-page model
-
-### Backlog
-- [ ] 6.B1 Introduce feature flags for future multi-route expansions
+Backlog:
+- [ ] 4.B1 Typing indicators (ephemeral events channel design)
+- [ ] 4.B2 Read receipts (needs message delivery status abstraction)
+- [ ] 4.B3 Media attachment UX placeholder
 
 ---
-## 7. Quality, Tooling & Verification
+## 5. Phase 5 – State, Realtime & Event Model (Arch §§9,10)
+Goals: Abstract event envelope, prepare for future server-sourced streams; replace polling.
 
-### Immediate
-- [ ] 7.1 Type-safe refactor after structural changes (TS errors = fail criteria)
-- [ ] 7.2 Add lightweight unit tests: encryption round-trip (if test infra practical)
-- [ ] 7.3 Run `bun / npm run build` smoke test
-- [ ] 7.4 Lint & format (existing eslint + any prettier if configured)
+Tasks:
+- [ ] 5.1 Define internal event envelope TS type mirroring spec (`id,type,occurredAt,partitionKey,payload,privacy`)
+- [ ] 5.2 Refactor message/chats polling hooks to consume a local EventBus abstraction
+- [ ] 5.3 Introduce subscription manager interface (future WebSocket / SSE adapter)
+- [ ] 5.4 Active chat subscription lifecycle cleanup (unsubscribe on change)
+- [ ] 5.5 Error boundary wrapping message list (isolate decryption failures)
 
-### Backlog
-- [ ] 7.B1 Add vitest config & CI placeholder
-- [ ] 7.B2 Introduce storybook or component harness (optional)
-
----
-## 8. Security & Compliance Notes
-
-### Immediate Warnings
-- [ ] 8.1 Label passkey & wallet flows as non-production (no server verification) – UI banner dev mode only
-- [ ] 8.2 Add console warning if sending message without authentic Supabase session
-- [ ] 8.3 Document current cryptography limitations (no signatures, RSA-OAEP overhead)
-
-### Planned
-- [ ] 8.4 Choose ECDH + X25519 or P-256 for future key agreement
-- [ ] 8.5 Plan signature layer (Ed25519 preferred) – design doc stub
+Backlog:
+- [ ] 5.B1 Event persistence replay strategy (local log ring buffer)
+- [ ] 5.B2 Causal ordering metadata (sequence or lamport stub)
 
 ---
-## 9. Open Questions / Decisions Required
-(Track as issues; unblock tasks referencing them)
-- [ ] 9.1 Confirm retention of `chats` schema vs migrating to `conversations`
-- [ ] 9.2 Define max participant size expectation (affects encryption scaling strategy)
-- [ ] 9.3 Clarify product priority: forward secrecy vs feature expansion (scheduling)
-- [ ] 9.4 Decide if pseudo-sessions should be disabled in production builds until real auth
+## 6. Phase 6 – Data Classification & Privacy (Arch §5)
+Goals: Start labeling in code and preparing metadata minimization.
+
+Tasks:
+- [ ] 6.1 Introduce classification enum (C0–C4) & annotate message payload generation
+- [ ] 6.2 Redact high-level logs (no plaintext, classification label only)
+- [ ] 6.3 Add developer console warnings when plaintext would be logged
+
+Backlog:
+- [ ] 6.B1 Length padding strategy design note
 
 ---
-## 10. Backlog / Future Enhancements (Not in current sprint)
-- [ ] 10.B1 Offline queue & resend
-- [ ] 10.B2 Push notifications integration
-- [ ] 10.B3 Message search (encrypted index strategy required)
-- [ ] 10.B4 Profile & avatar management
-- [ ] 10.B5 Device management UI (list & revoke)
-- [ ] 10.B6 Key transparency / public audit log
+## 7. Phase 7 – Policy & Authorization Scaffold (Arch §27)
+Goals: Prepare policy evaluation model (client simulation) ahead of server integration.
+
+Tasks:
+- [ ] 7.1 Define policy rule interface (`resource, action, effect, roles, conditions[]`)
+- [ ] 7.2 Add evaluator stub (deny-first, allow evaluation) with tests (optional)
+- [ ] 7.3 Tag chat actions with required capability constant
+
+Backlog:
+- [ ] 7.B1 Condition predicate parser (safe subset)
 
 ---
-## 11. Implementation Order (Suggested Sequence)
-1. (1.1–1.3) Core architecture shell
-2. (2.1–2.3) Auth overlay baseline (email + selection) – placeholder passkey/wallet
-3. (3.1–3.4) Encryption fixes (recipient bug + payload format)
-4. (4.1–4.5) Chat UI extraction & integration
-5. (6.1–6.3) Cleanup removed pages
-6. (5.1–5.4) Data layer robustness
-7. (7.1–7.3) Quality gates, smoke build
-8. (8.1–8.3) Security warning surfaces
-9. (Docs) README update & TODO refresh
+## 8. Phase 8 – Observability & Telemetry (Arch §§23,22)
+Goals: Minimal instrumentation respecting privacy.
+
+Tasks:
+- [ ] 8.1 Add lightweight metrics facade (counters: sendMessage, decryptFail)
+- [ ] 8.2 Add error boundary global + structured error object
+- [ ] 8.3 Anonymize user IDs in debug logs (hash + salt placeholder)
+
+Backlog:
+- [ ] 8.B1 Differential privacy noise injection design note
 
 ---
-## 12. Tracking Table (Roll-Up Summary)
-| ID | Title | Status | Owner | Depends |
-|----|-------|--------|-------|---------|
-|1.1|Remove router|pending| | |
-|1.2|Add ChatApp|pending| |1.1|
-|2.1|AuthOverlay|pending| |1.2|
-|3.1|Fix recipients|pending| |1.2,2.x|
-|3.3|Payload JSON|pending| |3.1|
-|4.2|ChatSidebar|pending| |1.2,5.1|
-|4.4|Messages list|pending| |3.1|
-|6.1|Remove pages|pending| |4.x|
-|7.3|Smoke build|pending| |All above|
-|8.1|Warn pseudo auth|pending| |2.x|
-
-(Non-exhaustive; full details above.)
+## 9. Phase 9 – Future (Deferred Domains)
+(Do NOT implement yet; placeholders for sequencing)
+- Payments & Value Layer (Arch §15)
+- Notarization / Anchoring (Arch §16)
+- Plugin / Bot Runtime (Arch §13)
+- Media Chunk Pipeline (Arch §26)
+- Governance / Moderation UI (Arch §§17,18)
+- Deterministic regeneration pipeline tooling (Arch §20)
 
 ---
-## 13. Notes for Contributors
-- Keep PRs narrow: group by vertical slice (e.g., Auth Overlay in one PR, Encryption send fix in another) – reference task IDs.
-- When modifying encryption format: DO NOT retro-migrate existing rows yet; implement dual-read parse first.
-- Avoid adding new dependencies without justification in TODO file update.
+## 10. Security & Hardening (Arch §§21,5)
+Tasks:
+- [ ] 10.1 Security notes banner (dev mode: non-production cryptography warning)
+- [ ] 10.2 Console warning when using placeholder auth
+- [ ] 10.3 Document current cryptographic limitations (no signatures, no forward secrecy yet)
+
+Backlog:
+- [ ] 10.B1 Threat model expansion document stub
 
 ---
-## 14. Changelog (After First Updates Begin)
-(Initialize after first task completion.)
+## 11. Deterministic Regeneration Hooks (Arch §20)
+Tasks:
+- [ ] 11.1 Create `spec/` directory placeholders (domain-model.json, events.json, policy.json)
+- [ ] 11.2 Add integrity file with SHA256 of spec placeholders
+- [ ] 11.3 Script stub (npm) to verify digests (`spec:verify`)
+
+Backlog:
+- [ ] 11.B1 Codegen prototype for types from event schema
 
 ---
-## 15. Update Procedure
-1. Implement task
-2. Update status tag in this file (or separate PR if large)
-3. Add note to Changelog section for notable architectural shifts
-4. Keep sections stable; append rather than rewrite to preserve history
+## 12. Sprint Candidate (Initial Focus Set)
+Recommended first execution order:
+1. (1.2,1.3,1.4,1.5) Root consolidation
+2. (4.1–4.5) UI shell baseline
+3. (3.1–3.5) Messaging encryption correctness
+4. (5.1–5.3) Event abstraction
+5. (2.1–2.3,2.4) Key bundle formalization + rotation UX
+6. (10.1–10.3) Security visibility
+7. (11.1–11.3) Regeneration scaffolding
 
 ---
-END OF PLAN
+## 13. Tracking Table (Roll-Up)
+| ID | Title | Status | Depends |
+|----|-------|--------|---------|
+|1.2|AppPlatform root|pending| |
+|1.3|ChatApp orchestrator|pending|1.2|
+|1.4|Remove pages|pending|1.2|
+|3.1|Fix recipient resolution|pending|1.3|
+|3.3|Payload JSON envelope|pending|3.1|
+|4.2|ChatSidebar|pending|1.3|
+|4.4|Messages list|pending|3.3|
+|5.2|EventBus abstraction|pending|5.1|
+|2.2|Prekey bundle persist|pending|2.1|
+|10.1|Dev security banner|pending|1.3|
+|11.2|Spec integrity hashes|pending|11.1|
+
+(Non-exhaustive; see full sections.)
+
+---
+## 14. Notes for Contributors
+- Keep PRs vertically scoped (e.g., "Phase3: payload envelope + dual parser").
+- Include architecture section references in PR descriptions.
+- Do not introduce new encryption algorithms without design stub referencing Arch §21.
+- Maintain dual-read strategy during format transitions.
+
+---
+## 15. Changelog (Starts After First Task Completion)
+(Empty – populate once initial Phase 1 tasks merge.)
+
+---
+## 16. Update Procedure
+1. Implement task.
+2. Update status here (or follow-up PR if large).
+3. Append Changelog entry for structural or protocol-affecting changes.
+4. Preserve IDs; add new with incremental suffix.
+
+---
+END OF RESET ROADMAP
