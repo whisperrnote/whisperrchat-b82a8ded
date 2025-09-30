@@ -14,23 +14,91 @@ export type {
 console.log('Initializing TenChat services...');
 
 // Auth Service - always functional
+const AUTH_STORAGE_KEY = 'whisperr_auth_state';
+
+function loadAuthState() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveAuthState(state: any) {
+  try {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state));
+  } catch {}
+}
+
+function clearAuthState() {
+  try {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+  } catch {}
+}
+
 export const authService = {
-  getCurrentUser: async () => null,
-  login: async (credentials: any) => ({ 
+  getCurrentUser: async () => {
+    const state = loadAuthState();
+    return state?.user ?? null;
+  },
+  login: async (_credentials: any) => ({ 
     success: false, 
     error: 'Service temporarily unavailable - please try again' 
   }),
+  loginWithWallet: async () => {
+    try {
+      const { AuthService } = await import('./auth.service');
+      const { CryptoService } = await import('./crypto.service');
+      const realAuth = new AuthService(new CryptoService());
+      const res = await realAuth.loginWithWallet();
+      if (res.success) {
+        saveAuthState({ user: res.user, token: res.token, timestamp: Date.now() });
+      }
+      return res;
+    } catch (e) {
+      return {
+        success: false,
+        error: 'Wallet login unavailable in stub mode'
+      };
+    }
+  },
+  loginAnonymous: async (username: string) => {
+    const id = `anon:${username.toLowerCase()}#${Math.random().toString(36).slice(2, 8)}`;
+    const user = {
+      id,
+      displayName: username,
+      identity: {
+        id: 'anon', publicKey: '', identityKey: '', signedPreKey: '', oneTimePreKeys: []
+      },
+      createdAt: new Date(),
+      lastSeen: new Date()
+    };
+    const token = `anon.${btoa(username)}.${Date.now()}`;
+    saveAuthState({ user, token, timestamp: Date.now() });
+    return { success: true, user, token };
+  },
   logout: async () => {
+    clearAuthState();
     console.log('Auth service logout called');
   },
-  register: async (userInfo: any) => ({ 
+  register: async (_userInfo: any) => ({ 
     success: false, 
     error: 'Service temporarily unavailable - please try again' 
   }),
-  refreshToken: async () => '',
-  verifyToken: async (token: never) => false,
-  getToken: () => null,
-  isAuthenticated: () => false
+  refreshToken: async () => {
+    const state = loadAuthState();
+    return state?.token ?? '';
+  },
+  verifyToken: async (_token: never) => false,
+  getToken: () => {
+    const state = loadAuthState();
+    return state?.token ?? null;
+  },
+  isAuthenticated: () => {
+    const state = loadAuthState();
+    return !!(state?.user && state?.token);
+  }
 };
 
 // Key Management Service - always functional

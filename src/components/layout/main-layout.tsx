@@ -37,13 +37,16 @@ import { Separator } from '../ui/separator';
 import type { User, Conversation } from '../../types';
 import { messagingService } from '../../services';
 import { WalletConnectionModal } from '../wallet/wallet-connection-modal';
+import { Topbar } from './topbar';
 
 interface MainLayoutProps {
   currentUser: User | null;
   onLogin: () => void;
+  onAnonymousLogin: (username: string) => Promise<void> | void;
+  onLogout?: () => void;
 }
 
-export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
+export function MainLayout({ currentUser, onLogin, onAnonymousLogin, onLogout }: MainLayoutProps) {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
@@ -75,7 +78,14 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <div className="h-screen bg-black text-white flex flex-col md:flex-row">
+        <div className="h-screen bg-black text-white flex flex-col">
+          <Topbar
+            currentUser={currentUser}
+            onConnectWallet={() => setShowWalletModal(true)}
+            onAnonymousLogin={onAnonymousLogin}
+            onLogout={onLogout}
+          />
+          <div className="flex-1 flex flex-col md:flex-row">
           {/* Left Sidebar - Crypto Dashboard + Conversations */}
           <div className={`${currentUser && selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-80 bg-gradient-to-b from-black via-gray-900 to-black border-r border-violet-900/20 flex-col`}>
             {currentUser ? (
@@ -194,30 +204,18 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
               </>
             ) : (
               <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                <div className="relative mb-8">
-                  <div className="w-24 h-24 bg-gradient-to-br from-violet-600 to-purple-600 rounded-full flex items-center justify-center mb-4">
-                    <Wallet className="w-12 h-12 text-white" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-black" />
+                <div className="relative mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-violet-600 to-purple-600 rounded-full flex items-center justify-center mb-3">
+                    <Wallet className="w-10 h-10 text-white" />
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-3">Connect Your Wallet</h2>
-                <p className="text-gray-400 mb-6 text-sm leading-relaxed">
-                  Experience secure, encrypted messaging with built-in crypto features. 
-                  Send messages, gifts, and more on the blockchain.
+                <h2 className="text-xl font-semibold text-white mb-2">Welcome to TenChat</h2>
+                <p className="text-gray-400 mb-2 text-sm leading-relaxed">
+                  Start by setting a username or connecting a wallet.
                 </p>
-                <Button 
-                  className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0 h-12 text-base font-semibold"
-                  onClick={() => setShowWalletModal(true)}
-                >
-                  <Wallet className="w-5 h-5 mr-2" />
-                  Connect Wallet
-                </Button>
-                <div className="mt-4 text-xs text-gray-500 flex items-center gap-2">
-                  <Shield className="w-3 h-3" />
-                  <span>End-to-end encrypted • Blockchain secured</span>
-                </div>
+                <p className="text-xs text-gray-500">
+                  Use the top bar to Set Username or Connect Wallet.
+                </p>
               </div>
             )}
           </div>
@@ -305,6 +303,7 @@ export function MainLayout({ currentUser, onLogin }: MainLayoutProps) {
               </div>
             )}
           </div>
+        </div>
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="bg-gray-900 border-gray-700 text-white">
