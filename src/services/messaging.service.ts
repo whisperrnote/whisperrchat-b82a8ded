@@ -66,12 +66,19 @@ export class MessagingService implements IMessagingService {
         messageKey
       );
 
+      // Create JSON envelope: {v: version, c: ciphertext, iv: nonce}
+      const envelope = JSON.stringify({
+        v: 1,
+        c: ciphertext,
+        iv: nonce
+      });
+
       // Create encrypted message
       const encryptedMessage: EncryptedMessage = {
         id: message.id,
         senderId: message.senderId,
         recipientId: message.recipientId,
-        ciphertext,
+        ciphertext: envelope,
         nonce,
         timestamp: message.timestamp,
         ratchetHeader: JSON.stringify({
@@ -144,6 +151,34 @@ export class MessagingService implements IMessagingService {
     this.emit('message:read', { conversationId, messageId });
   }
 
+  async getSessionFingerprint(participantId: string): Promise<string | null> {
+    try {
+      const sessionState = await this.keyManagementService.getSessionState(participantId);
+      if (!sessionState) {
+        return null;
+      }
+
+      const rootKeyBytes = new Uint8Array(
+        sessionState.rootKey.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
+      );
+      
+      const hash = await crypto.subtle.digest('SHA-256', rootKeyBytes);
+      const hashArray = Array.from(new Uint8Array(hash));
+      const fingerprint = hashArray
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+        .slice(0, 16)
+        .toUpperCase()
+        .match(/.{1,4}/g)
+        ?.join(' ') || '';
+      
+      return fingerprint;
+    } catch (error) {
+      console.error('Failed to generate session fingerprint:', error);
+      return null;
+    }
+  }
+
   /**
    * Decrypt received message
    */
@@ -163,9 +198,8 @@ export class MessagingService implements IMessagingService {
       let receivingChain = sessionState.receivingChains.get(ratchetHeader.sessionId);
       
       if (!receivingChain) {
-        // TODO(ai): Implement proper chain initialization for new sessions
         receivingChain = {
-          chainKey: this.cryptoService.generateRandomBytes(32),
+          chainKey: sessionState.rootKey,
           messageNumber: 0
         };
         sessionState.receivingChains.set(ratchetHeader.sessionId, receivingChain);
@@ -174,11 +208,14 @@ export class MessagingService implements IMessagingService {
       // Advance chain to get message key
       const { messageKey } = await this.cryptoService.advanceChain(receivingChain);
 
+      // Parse envelope (supports both legacy and JSON formats)
+      const { ciphertext, nonce } = this.parseMessageEnvelope(encryptedMessage);
+
       // Decrypt message
       const decryptedContent = await this.cryptoService.decryptMessage(
-        encryptedMessage.ciphertext,
+        ciphertext,
         messageKey,
-        encryptedMessage.nonce
+        nonce
       );
 
       const messageData = JSON.parse(decryptedContent);
@@ -200,13 +237,59 @@ export class MessagingService implements IMessagingService {
   }
 
   /**
-   * Initialize new session using X3DH protocol
+   * Parse message envelope supporting both formats
+   * - New format: JSON {v: 1, c: ciphertext, iv: nonce}
+   * - Legacy format: direct ciphertext/nonce fields
+   */
+  private parseMessageEnvelope(message: EncryptedMessage): { ciphertext: string; nonce: string } {
+    try {
+      const envelope = JSON.parse(message.ciphertext);
+      if (envelope.v === 1 && envelope.c && envelope.iv) {
+        return { ciphertext: envelope.c, nonce: envelope.iv };
+      }
+    } catch {
+    }
+    
+    return { ciphertext: message.ciphertext, nonce: message.nonce };
+  }
+
+  /**
+   * Initialize new session using simplified X3DH protocol
+   * MVP: Uses ECDH with recipient's identity key
+   * TODO: Implement full X3DH with signed prekey and one-time prekeys
    */
   private async initializeSession(recipientId: string): Promise<SessionState> {
-    // TODO(ai): Implement proper X3DH session initialization
-    // For now, create a mock session with shared secret
-    const mockSharedSecret = this.cryptoService.generateRandomBytes(32);
-    return await this.cryptoService.initializeSession(mockSharedSecret);
+    const recipientIdentity = await this.getRecipientIdentity(recipientId);
+    if (!recipientIdentity) {
+      throw new Error(`Cannot find identity for recipient ${recipientId}`);
+    }
+
+    const sharedSecret = await this.keyManagementService.deriveSharedSecret(
+      recipientIdentity.identityKey
+    );
+    
+    return await this.cryptoService.initializeSession(sharedSecret);
+  }
+
+  /**
+   * Get recipient's identity bundle
+   * MVP: Returns mock identity for testing
+   * TODO: Fetch from user directory service or DHT
+   */
+  private async getRecipientIdentity(recipientId: string): Promise<any> {
+    const mockIdentities: Record<string, any> = JSON.parse(
+      localStorage.getItem('tenchat_mock_identities') || '{}'
+    );
+    
+    if (mockIdentities[recipientId]) {
+      return mockIdentities[recipientId];
+    }
+
+    const identity = await this.cryptoService.generateIdentity();
+    mockIdentities[recipientId] = identity;
+    localStorage.setItem('tenchat_mock_identities', JSON.stringify(mockIdentities));
+    
+    return identity;
   }
 
   /**

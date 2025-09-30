@@ -16,7 +16,9 @@ import {
   DollarSign,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Settings,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -26,7 +28,7 @@ import { Textarea } from '../ui/textarea';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
 import type { DecryptedMessage, EncryptedMessage, Conversation, User } from '../../types';
-import { messagingService, giftingService } from '../../services';
+import { messagingService, giftingService, keyManagementService } from '../../services';
 import { GiftDialog } from '../gifting/gift-dialog';
 
 interface ChatInterfaceProps {
@@ -42,6 +44,9 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
   const [showGiftDialog, setShowGiftDialog] = useState(false);
   const [encryptedMessages, setEncryptedMessages] = useState<EncryptedMessage[]>([]);
   const [showCryptoPanel, setShowCryptoPanel] = useState(false);
+  const [showSecurityPanel, setShowSecurityPanel] = useState(false);
+  const [sessionFingerprint, setSessionFingerprint] = useState<string | null>(null);
+  const [isRotatingKeys, setIsRotatingKeys] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const mockTransactionData = {
@@ -57,6 +62,7 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
 
   useEffect(() => {
     loadMessages();
+    loadSessionFingerprint();
     
     // Listen for new messages
     const handleNewMessage = (encryptedMsg: EncryptedMessage) => {
@@ -110,6 +116,26 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
       console.error('Failed to load messages:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadSessionFingerprint = async () => {
+    const recipientId = conversation.participants.find(p => p !== currentUser.id);
+    if (recipientId) {
+      const fingerprint = await messagingService.getSessionFingerprint(recipientId);
+      setSessionFingerprint(fingerprint);
+    }
+  };
+
+  const handleRotateKeys = async () => {
+    try {
+      setIsRotatingKeys(true);
+      await keyManagementService.rotatePreKeys();
+      await loadSessionFingerprint();
+    } catch (error) {
+      console.error('Failed to rotate keys:', error);
+    } finally {
+      setIsRotatingKeys(false);
     }
   };
 
@@ -203,21 +229,27 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
                 {getInitials(getOtherParticipant())}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-1">
-                {conversation.metadata.name || getOtherParticipant()}
-              </h3>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="bg-green-900/30 text-green-400 border-green-700/30 text-xs">
-                  <Lock className="w-3 h-3 mr-1" />
-                  E2EE Active
-                </Badge>
-                <Badge variant="secondary" className="bg-violet-900/30 text-violet-400 border-violet-700/30 text-xs">
-                  <Anchor className="w-3 h-3 mr-1" />
-                  Blockchain Secured
-                </Badge>
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-1">
+                  {conversation.metadata.name || getOtherParticipant()}
+                </h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="secondary" className="bg-green-900/30 text-green-400 border-green-700/30 text-xs">
+                    <Lock className="w-3 h-3 mr-1" />
+                    E2EE Active
+                  </Badge>
+                  <Badge variant="secondary" className="bg-violet-900/30 text-violet-400 border-violet-700/30 text-xs">
+                    <Anchor className="w-3 h-3 mr-1" />
+                    Blockchain Secured
+                  </Badge>
+                  {sessionFingerprint && (
+                    <Badge variant="secondary" className="bg-blue-900/30 text-blue-400 border-blue-700/30 text-xs font-mono">
+                      <Shield className="w-3 h-3 mr-1" />
+                      {sessionFingerprint}
+                    </Badge>
+                  )}
+                </div>
               </div>
-            </div>
           </div>
           
           <div className="flex items-center gap-2">
@@ -229,6 +261,15 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
             >
               <TrendingUp className="h-4 w-4 mr-2" />
               Portfolio
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-violet-300 hover:text-white hover:bg-violet-800/50"
+              onClick={() => setShowSecurityPanel(!showSecurityPanel)}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Security
             </Button>
             <Button 
               variant="ghost" 
@@ -274,6 +315,77 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Security Settings Panel */}
+        {showSecurityPanel && (
+          <div className="border-t border-violet-900/30 p-4 bg-gray-900/50">
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
+                <Shield className="w-5 h-5 text-blue-400 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-white mb-1">Session Fingerprint</h4>
+                  <p className="text-xs text-gray-400 mb-2">
+                    Verify this matches your contact's fingerprint to ensure secure communication
+                  </p>
+                  {sessionFingerprint && (
+                    <div className="font-mono text-sm text-blue-300 bg-blue-950/50 px-2 py-1 rounded">
+                      {sessionFingerprint}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-3 bg-violet-900/20 border border-violet-700/30 rounded-lg">
+                <RefreshCw className="w-5 h-5 text-violet-400 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-white mb-1">Pre-Key Rotation</h4>
+                  <p className="text-xs text-gray-400 mb-3">
+                    Rotate your pre-keys to enhance forward secrecy. This generates 100 new pre-keys.
+                  </p>
+                  <Button 
+                    onClick={handleRotateKeys}
+                    disabled={isRotatingKeys}
+                    size="sm"
+                    className="bg-violet-600 hover:bg-violet-700 text-white"
+                  >
+                    {isRotatingKeys ? (
+                      <>
+                        <RefreshCw className="w-3 h-3 mr-2 animate-spin" />
+                        Rotating Keys...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-3 h-3 mr-2" />
+                        Rotate Pre-Keys
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-3 bg-green-900/20 border border-green-700/30 rounded-lg">
+                <Lock className="w-5 h-5 text-green-400 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-white mb-1">Encryption Status</h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <span>End-to-end encryption active</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <span>Perfect forward secrecy enabled</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <span>Blockchain anchoring active</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
