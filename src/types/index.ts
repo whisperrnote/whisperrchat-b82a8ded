@@ -224,6 +224,9 @@ export interface AuthResult {
   user?: User;
   token?: string;
   error?: string;
+  requiresOTP?: boolean;
+  requiresSignature?: boolean;
+  message?: string;
 }
 
 // Event Types

@@ -42,11 +42,10 @@ import { Topbar } from './topbar';
 interface MainLayoutProps {
   currentUser: User | null;
   onLogin: () => void;
-  onAnonymousLogin: (username: string) => Promise<void> | void;
   onLogout?: () => void;
 }
 
-export function MainLayout({ currentUser, onLogin, onAnonymousLogin, onLogout }: MainLayoutProps) {
+export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
@@ -82,7 +81,6 @@ export function MainLayout({ currentUser, onLogin, onAnonymousLogin, onLogout }:
           <Topbar
             currentUser={currentUser}
             onConnectWallet={() => setShowWalletModal(true)}
-            onAnonymousLogin={onAnonymousLogin}
             onLogout={onLogout}
           />
           <div className="flex-1 flex flex-col md:flex-row">

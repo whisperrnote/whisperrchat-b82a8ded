@@ -1,194 +1,285 @@
-// @generated whisperrchat-tool: auth-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
-// Authentication service with identity management
-
-import type { 
-  IAuthService, 
-  LoginCredentials, 
-  RegisterInfo, 
-  AuthResult, 
-  User, 
-  Identity 
-} from '../types';
+import { account } from '../lib/appwrite';
+import { ID, Models } from 'appwrite';
+import type { User, AuthResult } from '../types';
 import { CryptoService } from './crypto.service';
-import { ChainClient } from './blockchain.service';
 
-export class AuthService implements IAuthService {
+export type AuthMethod = 'otp' | 'passkey' | 'wallet';
+
+export interface OTPCredentials {
+  phone: string;
+  code?: string;
+  userId?: string;
+}
+
+export interface PasskeyCredentials {
+  email: string;
+}
+
+export interface WalletCredentials {
+  address: string;
+  signature?: string;
+  message?: string;
+}
+
+function bufferToBase64Url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function publicKeyCredentialToJSON(pubKeyCred: any): any {
+  if (Array.isArray(pubKeyCred)) {
+    return pubKeyCred.map(publicKeyCredentialToJSON);
+  }
+  if (pubKeyCred instanceof ArrayBuffer) {
+    return bufferToBase64Url(pubKeyCred);
+  }
+  if (pubKeyCred && typeof pubKeyCred === 'object') {
+    const obj: any = {};
+    for (const key in pubKeyCred) {
+      obj[key] = publicKeyCredentialToJSON(pubKeyCred[key]);
+    }
+    return obj;
+  }
+  return pubKeyCred;
+}
+
+export class AuthService {
   private currentUser: User | null = null;
-  private token: string | null = null;
-  private readonly storageKey = 'whisperr_auth_state';
+  private appwriteUser: Models.User<Models.Preferences> | null = null;
   private cryptoService: CryptoService;
 
   constructor(cryptoService?: CryptoService) {
+    this.cryptoService = cryptoService || new CryptoService();
+    this.initializeAuth();
+  }
+
+  private async initializeAuth(): Promise<void> {
     try {
-      this.cryptoService = cryptoService || new CryptoService();
-      this.loadAuthState();
+      const session = await account.get();
+      if (session) {
+        this.appwriteUser = session;
+        await this.loadUserFromAppwrite(session);
+      }
     } catch (error) {
-      console.error('AuthService constructor failed:', error);
-      // Don't throw, just log and continue with degraded functionality
-      this.cryptoService = this.cryptoService || ({
-        generateIdentity: async () => ({ id: 'stub', publicKey: '', identityKey: '', signedPreKey: '', oneTimePreKeys: [] }),
-        hash: async (data: string) => btoa(data).slice(0, 32)
-      } as any);
+      console.log('No active session');
     }
   }
 
-  async loginWithWallet(): Promise<AuthResult> {
+  private async loadUserFromAppwrite(appwriteUser: Models.User<Models.Preferences>): Promise<void> {
+    const identity = await this.cryptoService.generateIdentity();
+    
+    this.currentUser = {
+      id: appwriteUser.$id,
+      displayName: appwriteUser.name || appwriteUser.email || appwriteUser.phone || 'User',
+      identity,
+      createdAt: new Date(appwriteUser.$createdAt),
+      lastSeen: new Date()
+    };
+  }
+
+  async loginWithOTP(credentials: OTPCredentials): Promise<AuthResult> {
     try {
-      const chainClient = new ChainClient(this.cryptoService);
-      const address = await chainClient.connectWallet();
+      if (!credentials.code) {
+        const token = await account.createPhoneToken(
+          ID.unique(),
+          credentials.phone
+        );
+        
+        return {
+          success: true,
+          requiresOTP: true,
+          user: undefined,
+          token: token.userId
+        };
+      }
 
-      const identity = await this.cryptoService.generateIdentity();
-      
-      const user: User = {
-        id: address,
-        displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
-        identity,
-        createdAt: new Date(),
-        lastSeen: new Date()
-      };
+      if (!credentials.userId) {
+        throw new Error('User ID is required for OTP verification');
+      }
 
-      const token = await this.generateSessionToken(user.id);
-      
-      this.currentUser = user;
-      this.token = token;
-      this.saveAuthState();
+      const session = await account.updatePhoneSession(
+        credentials.userId,
+        credentials.code
+      );
+
+      const appwriteUser = await account.get();
+      await this.loadUserFromAppwrite(appwriteUser);
 
       return {
         success: true,
-        user,
-        token
+        user: this.currentUser!,
+        token: session.$id
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Login failed'
+        error: error instanceof Error ? error.message : 'OTP login failed'
+      };
+    }
+  }
+
+  async loginWithPasskey(email: string, isRegistration: boolean = false): Promise<AuthResult> {
+    if (!('credentials' in navigator)) {
+      return { success: false, error: 'WebAuthn is not supported in this browser' };
+    }
+
+    try {
+      if (isRegistration) {
+        const options = await this.generateRegistrationOptions(email);
+        const credential = await navigator.credentials.create({ publicKey: options });
+        
+        if (!credential) {
+          return { success: false, error: 'Credential creation failed' };
+        }
+
+        const credentialJSON = publicKeyCredentialToJSON(credential);
+        
+        const token = await account.createJWT();
+        
+        await account.updatePrefs({
+          passkey: credentialJSON,
+          passkeyChallenge: options.challenge
+        });
+
+        const appwriteUser = await account.get();
+        await this.loadUserFromAppwrite(appwriteUser);
+
+        return { success: true, user: this.currentUser!, token: token.jwt };
+      } else {
+        const options = await this.generateAuthenticationOptions(email);
+        const assertion = await navigator.credentials.get({ publicKey: options });
+        
+        if (!assertion) {
+          return { success: false, error: 'Authentication failed' };
+        }
+
+        const appwriteUser = await account.get();
+        await this.loadUserFromAppwrite(appwriteUser);
+
+        const token = await account.createJWT();
+        return { success: true, user: this.currentUser!, token: token.jwt };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Passkey authentication failed'
+      };
+    }
+  }
+
+  async loginWithWallet(address: string, signature?: string): Promise<AuthResult> {
+    try {
+      if (!signature) {
+        const message = `Sign this message to authenticate with WhisperChat: ${Date.now()}`;
+        return {
+          success: true,
+          requiresSignature: true,
+          user: undefined,
+          token: undefined,
+          message
+        };
+      }
+
+      const token = await account.createJWT();
+      
+      await account.updatePrefs({
+        walletAddress: address,
+        walletSignature: signature
+      });
+
+      const appwriteUser = await account.get();
+      await this.loadUserFromAppwrite(appwriteUser);
+
+      return {
+        success: true,
+        user: this.currentUser!,
+        token: token.jwt
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Wallet login failed'
       };
     }
   }
 
   async logout(): Promise<void> {
-    this.currentUser = null;
-    this.token = null;
-    this.clearAuthState();
-  }
-
-  async refreshToken(): Promise<string> {
-    if (!this.currentUser) {
-      throw new Error('No authenticated user');
+    try {
+      await account.deleteSession('current');
+      this.currentUser = null;
+      this.appwriteUser = null;
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
-
-    // TODO(ai): Implement proper token refresh with backend
-    this.token = await this.generateSessionToken(this.currentUser.id);
-    this.saveAuthState();
-    return this.token;
   }
 
   async getCurrentUser(): Promise<User | null> {
+    if (!this.currentUser) {
+      try {
+        const appwriteUser = await account.get();
+        await this.loadUserFromAppwrite(appwriteUser);
+      } catch (error) {
+        return null;
+      }
+    }
     return this.currentUser;
   }
 
-  /**
-   * Generate JWT-like session token (simplified for demo)
-   */
-  private async generateSessionToken(userId: string): Promise<string> {
-    const payload = {
-      userId,
-      iat: Date.now(),
-      exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-    };
-
-    // TODO(ai): Use proper JWT signing with HMAC-SHA256
-    const tokenData = btoa(JSON.stringify(payload));
-    return `whisperr.${tokenData}.${await this.cryptoService.hash(tokenData)}`;
-  }
-
-  /**
-   * Verify session token
-   */
-  async verifyToken(token: string): Promise<boolean> {
-    try {
-      const [prefix, payload, signature] = token.split('.');
-      
-      if (prefix !== 'whisperr') {
-        return false;
-      }
-
-      const decodedPayload = JSON.parse(atob(payload));
-      const expectedSignature = await this.cryptoService.hash(payload);
-      
-      // Check signature
-      if (signature !== expectedSignature) {
-        return false;
-      }
-
-      // Check expiration
-      if (Date.now() > decodedPayload.exp) {
-        return false;
-      }
-
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Save authentication state to localStorage
-   */
-  private saveAuthState(): void {
-    if (this.currentUser && this.token) {
-      const authState = {
-        user: this.currentUser,
-        token: this.token,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(this.storageKey, JSON.stringify(authState));
-    }
-  }
-
-  /**
-   * Load authentication state from localStorage
-   */
-  private loadAuthState(): void {
-    try {
-      const storedState = localStorage.getItem(this.storageKey);
-      if (storedState) {
-        const authState = JSON.parse(storedState);
-        
-        // Check if token is still valid (24 hour expiry)
-        if (Date.now() - authState.timestamp < 24 * 60 * 60 * 1000) {
-          this.currentUser = authState.user;
-          this.token = authState.token;
-        } else {
-          this.clearAuthState();
-        }
-      }
-    } catch {
-      this.clearAuthState();
-    }
-  }
-
-  /**
-   * Clear authentication state
-   */
-  private clearAuthState(): void {
-    localStorage.removeItem(this.storageKey);
-  }
-
-
-  /**
-   * Get current authentication token
-   */
-  getToken(): string | null {
-    return this.token;
-  }
-
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated(): boolean {
-    return !!(this.currentUser && this.token);
+    return !!this.currentUser;
+  }
+
+  async getSession(): Promise<Models.Session | null> {
+    try {
+      return await account.getSession('current');
+    } catch {
+      return null;
+    }
+  }
+
+  private async generateRegistrationOptions(email: string): Promise<any> {
+    const rpName = 'WhisperChat';
+    const rpID = window.location.hostname;
+    
+    const encoder = new TextEncoder();
+    const data = encoder.encode(email);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const userId = new Uint8Array(hashBuffer);
+
+    return {
+      rp: { name: rpName, id: rpID },
+      user: {
+        id: userId,
+        name: email,
+        displayName: email
+      },
+      challenge: bufferToBase64Url(crypto.getRandomValues(new Uint8Array(32))),
+      pubKeyCredParams: [
+        { type: 'public-key', alg: -7 },
+        { type: 'public-key', alg: -257 }
+      ],
+      authenticatorSelection: {
+        userVerification: 'preferred',
+        residentKey: 'preferred'
+      },
+      attestation: 'none',
+      timeout: 60000
+    };
+  }
+
+  private async generateAuthenticationOptions(email: string): Promise<any> {
+    const rpID = window.location.hostname;
+    
+    return {
+      challenge: bufferToBase64Url(crypto.getRandomValues(new Uint8Array(32))),
+      rpId: rpID,
+      timeout: 60000,
+      userVerification: 'preferred'
+    };
   }
 }
-
-// Service instance will be created in index.ts to avoid circular dependencies
