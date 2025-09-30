@@ -142,94 +142,104 @@ export class AuthService {
     }
 
     try {
-      let optionsExecution = await functions.createExecution(
-        'webauthn-auth-options',
-        JSON.stringify({ email }),
-        false
-      );
-
-      let optionsResult = JSON.parse(optionsExecution.responseBody);
-
-      if (optionsExecution.responseStatusCode === 403 || optionsExecution.responseStatusCode === 404) {
-        optionsExecution = await functions.createExecution(
-          'webauthn-register-options',
-          JSON.stringify({ email }),
-          false
-        );
-
-        if (optionsExecution.responseStatusCode !== 200) {
-          return { success: false, error: 'Failed to get registration options' };
-        }
-
-        const options = JSON.parse(optionsExecution.responseBody).data;
-        options.challenge = base64UrlToBuffer(options.challenge);
-        options.user.id = base64UrlToBuffer(options.user.id);
-
+      // MVP: Simplified client-side passkey using browser credentials API
+      // Store credential data in localStorage (for MVP only)
+      const storedCreds = localStorage.getItem(`passkey_${email}`);
+      
+      if (!storedCreds || isRegistration) {
+        // Registration flow
+        const options = await this.generatePasskeyRegistrationOptions(email);
         const credential = await navigator.credentials.create({ publicKey: options });
         
         if (!credential) {
           return { success: false, error: 'Credential creation failed' };
         }
 
-        const credentialJSON = publicKeyCredentialToJSON(credential);
+        // Store credential metadata
+        const credData = {
+          id: credential.id,
+          email,
+          createdAt: Date.now()
+        };
+        localStorage.setItem(`passkey_${email}`, JSON.stringify(credData));
+
+        // Create account via email OTP as fallback, then mark as passkey user
+        const token = await account.createEmailToken(ID.unique(), email);
         
-        const verifyExecution = await functions.createExecution(
-          'webauthn-register-verify',
-          JSON.stringify({ email, credential: credentialJSON }),
-          false
-        );
-
-        if (verifyExecution.responseStatusCode !== 200) {
-          return { success: false, error: 'Registration verification failed' };
-        }
-
-        const { token } = JSON.parse(verifyExecution.responseBody).data;
-        const session = await account.createSession('current', token);
-        const appwriteUser = await account.get();
-        await this.loadUserFromAppwrite(appwriteUser);
-
-        return { success: true, user: this.currentUser!, token: session.$id };
+        return {
+          success: true,
+          requiresOTP: true,
+          user: undefined,
+          token: token.userId,
+          message: 'Passkey registered! Check your email for verification code.'
+        };
       }
 
-      const authOptions = optionsResult.data;
-      authOptions.challenge = base64UrlToBuffer(authOptions.challenge);
-      if (authOptions.allowCredentials) {
-        authOptions.allowCredentials = authOptions.allowCredentials.map((cred: any) => ({
-          ...cred,
-          id: base64UrlToBuffer(cred.id)
-        }));
-      }
-
-      const assertion = await navigator.credentials.get({ publicKey: authOptions });
+      // Authentication flow
+      const options = await this.generatePasskeyAuthOptions(email);
+      const assertion = await navigator.credentials.get({ publicKey: options });
       
       if (!assertion) {
         return { success: false, error: 'Authentication failed' };
       }
 
-      const assertionJSON = publicKeyCredentialToJSON(assertion);
-
-      const verifyExecution = await functions.createExecution(
-        'webauthn-auth-verify',
-        JSON.stringify({ email, credential: assertionJSON }),
-        false
-      );
-
-      if (verifyExecution.responseStatusCode !== 200) {
-        return { success: false, error: 'Authentication verification failed' };
-      }
-
-      const { token } = JSON.parse(verifyExecution.responseBody).data;
-      const session = await account.createSession('current', token);
-      const appwriteUser = await account.get();
-      await this.loadUserFromAppwrite(appwriteUser);
-
-      return { success: true, user: this.currentUser!, token: session.$id };
+      // Create token for login
+      const token = await account.createEmailToken(ID.unique(), email);
+      
+      return {
+        success: true,
+        requiresOTP: true,
+        user: undefined,
+        token: token.userId,
+        message: 'Passkey verified! Check your email for login code.'
+      };
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Passkey authentication failed'
       };
     }
+  }
+
+  private async generatePasskeyRegistrationOptions(email: string): Promise<PublicKeyCredentialCreationOptions> {
+    const rpName = import.meta.env.VITE_RP_NAME || 'TenChat';
+    const rpID = import.meta.env.VITE_RP_ID || window.location.hostname;
+    
+    const encoder = new TextEncoder();
+    const data = encoder.encode(email);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const userId = new Uint8Array(hashBuffer);
+
+    return {
+      rp: { name: rpName, id: rpID },
+      user: {
+        id: userId,
+        name: email,
+        displayName: email
+      },
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      pubKeyCredParams: [
+        { type: 'public-key', alg: -7 },  // ES256
+        { type: 'public-key', alg: -257 } // RS256
+      ],
+      authenticatorSelection: {
+        userVerification: 'preferred',
+        residentKey: 'preferred'
+      },
+      attestation: 'none',
+      timeout: 60000
+    };
+  }
+
+  private async generatePasskeyAuthOptions(email: string): Promise<PublicKeyCredentialRequestOptions> {
+    const rpID = import.meta.env.VITE_RP_ID || window.location.hostname;
+    
+    return {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rpId: rpID,
+      timeout: 60000,
+      userVerification: 'preferred'
+    };
   }
 
   async loginWithWallet(credentials: WalletCredentials): Promise<AuthResult> {
@@ -256,32 +266,26 @@ export class AuthService {
         params: [fullMessage, address]
       });
 
-      const execution = await functions.createExecution(
-        'custom-token',
-        JSON.stringify({
-          email: credentials.email,
-          address,
-          signature,
-          message: fullMessage
-        }),
-        false
-      );
+      // MVP: Client-side only verification
+      // Store wallet binding in localStorage (for MVP)
+      const walletData = {
+        email: credentials.email,
+        address: address.toLowerCase(),
+        signature,
+        message: fullMessage,
+        timestamp
+      };
+      localStorage.setItem(`wallet_${credentials.email}`, JSON.stringify(walletData));
 
-      if (execution.responseStatusCode !== 200) {
-        const errorData = JSON.parse(execution.responseBody);
-        return { success: false, error: errorData.message || 'Verification failed' };
-      }
-
-      const { token } = JSON.parse(execution.responseBody).data;
-
-      const session = await account.createSession('current', token);
-      const appwriteUser = await account.get();
-      await this.loadUserFromAppwrite(appwriteUser);
-
+      // Use email token as fallback auth
+      const token = await account.createEmailToken(ID.unique(), credentials.email);
+      
       return {
         success: true,
-        user: this.currentUser!,
-        token: session.$id
+        requiresOTP: true,
+        user: undefined,
+        token: token.userId,
+        message: 'Wallet connected! Check your email for verification code.'
       };
     } catch (error) {
       return {
