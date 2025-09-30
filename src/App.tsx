@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from './components/ui/sonner';
 import Chat from './pages/Chat';
 import { authService } from './services';
+import { AuthModal } from './components/auth/auth-modal';
 import type { User } from './types';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -15,20 +17,13 @@ function App() {
     checkUser();
   }, []);
 
-  const handleLogin = async () => {
-    const result = await authService.loginWithWallet();
-    if (result.success) {
-      setCurrentUser(result.user || null);
-    } else {
-      console.error(result.error);
-    }
+  const handleLoginRequest = () => {
+    setAuthModalOpen(true);
   };
 
-  const handleAnonymousLogin = async (username: string) => {
-    const result = await authService.loginAnonymous(username);
-    if (result.success) {
-      setCurrentUser(result.user || null);
-    }
+  const handleAuthSuccess = async () => {
+    const user = await authService.getCurrentUser();
+    setCurrentUser(user);
   };
 
   const handleLogout = async () => {
@@ -40,9 +35,13 @@ function App() {
     <>
       <Chat 
         currentUser={currentUser} 
-        onLogin={handleLogin} 
-        onAnonymousLogin={handleAnonymousLogin}
+        onLogin={handleLoginRequest}
         onLogout={handleLogout}
+      />
+      <AuthModal 
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        onSuccess={handleAuthSuccess}
       />
       <Toaster position="top-right" />
     </>

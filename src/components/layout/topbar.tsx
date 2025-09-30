@@ -10,11 +10,10 @@ import type { User } from '../../types';
 interface TopbarProps {
   currentUser: User | null;
   onConnectWallet: () => void;
-  onAnonymousLogin: (username: string) => Promise<void> | void;
   onLogout?: () => void;
 }
 
-export function Topbar({ currentUser, onConnectWallet, onAnonymousLogin, onLogout }: TopbarProps) {
+export function Topbar({ currentUser, onConnectWallet, onLogout }: TopbarProps) {
   const [openUsernameDialog, setOpenUsernameDialog] = useState(false);
   const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,14 +21,11 @@ export function Topbar({ currentUser, onConnectWallet, onAnonymousLogin, onLogou
   const handleSubmitUsername = async () => {
     const name = username.trim();
     if (!name) return;
-    try {
-      setIsSubmitting(true);
-      await onAnonymousLogin(name);
-      setOpenUsernameDialog(false);
-      setUsername('');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setIsSubmitting(true);
+    onConnectWallet();
+    setOpenUsernameDialog(false);
+    setUsername('');
+    setIsSubmitting(false);
   };
 
   const getInitials = (name: string): string => {

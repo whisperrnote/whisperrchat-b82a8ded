@@ -5,17 +5,15 @@ import type { User } from '../types';
 interface ChatPageProps {
   currentUser: User | null;
   onLogin: () => void;
-  onAnonymousLogin: (username: string) => Promise<void> | void;
   onLogout?: () => void;
 }
 
-export default function Chat({ currentUser, onLogin, onAnonymousLogin, onLogout }: ChatPageProps) {
+export default function Chat({ currentUser, onLogin, onLogout }: ChatPageProps) {
   return (
     <div className="min-h-screen bg-background">
       <MainLayout 
         currentUser={currentUser} 
-        onLogin={onLogin} 
-        onAnonymousLogin={onAnonymousLogin}
+        onLogin={onLogin}
         onLogout={onLogout}
       />
     </div>
