@@ -1,5 +1,5 @@
-import { account } from '../lib/appwrite';
-import { ID, Models } from 'appwrite';
+import { account, functions } from '../lib/appwrite';
+import { ID, Models, ExecutionMethod } from 'appwrite';
 import type { User, AuthResult } from '../types';
 import { CryptoService } from './crypto.service';
 
@@ -30,6 +30,18 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
   }
   const base64 = btoa(binary);
   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlToBuffer(base64url: string): ArrayBuffer {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const padLen = (4 - (base64.length % 4)) % 4;
+  const padded = base64 + '='.repeat(padLen);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
 }
 
 function publicKeyCredentialToJSON(pubKeyCred: any): any {
@@ -130,8 +142,29 @@ export class AuthService {
     }
 
     try {
-      if (isRegistration) {
-        const options = await this.generateRegistrationOptions(email);
+      let optionsExecution = await functions.createExecution(
+        'webauthn-auth-options',
+        JSON.stringify({ email }),
+        false
+      );
+
+      let optionsResult = JSON.parse(optionsExecution.responseBody);
+
+      if (optionsExecution.responseStatusCode === 403 || optionsExecution.responseStatusCode === 404) {
+        optionsExecution = await functions.createExecution(
+          'webauthn-register-options',
+          JSON.stringify({ email }),
+          false
+        );
+
+        if (optionsExecution.responseStatusCode !== 200) {
+          return { success: false, error: 'Failed to get registration options' };
+        }
+
+        const options = JSON.parse(optionsExecution.responseBody).data;
+        options.challenge = base64UrlToBuffer(options.challenge);
+        options.user.id = base64UrlToBuffer(options.user.id);
+
         const credential = await navigator.credentials.create({ publicKey: options });
         
         if (!credential) {
@@ -140,31 +173,57 @@ export class AuthService {
 
         const credentialJSON = publicKeyCredentialToJSON(credential);
         
-        const token = await account.createJWT();
-        
-        await account.updatePrefs({
-          passkey: credentialJSON,
-          passkeyChallenge: options.challenge
-        });
+        const verifyExecution = await functions.createExecution(
+          'webauthn-register-verify',
+          JSON.stringify({ email, credential: credentialJSON }),
+          false
+        );
 
-        const appwriteUser = await account.get();
-        await this.loadUserFromAppwrite(appwriteUser);
-
-        return { success: true, user: this.currentUser!, token: token.jwt };
-      } else {
-        const options = await this.generateAuthenticationOptions(email);
-        const assertion = await navigator.credentials.get({ publicKey: options });
-        
-        if (!assertion) {
-          return { success: false, error: 'Authentication failed' };
+        if (verifyExecution.responseStatusCode !== 200) {
+          return { success: false, error: 'Registration verification failed' };
         }
 
+        const { token } = JSON.parse(verifyExecution.responseBody).data;
+        const session = await account.createSession('current', token);
         const appwriteUser = await account.get();
         await this.loadUserFromAppwrite(appwriteUser);
 
-        const token = await account.createJWT();
-        return { success: true, user: this.currentUser!, token: token.jwt };
+        return { success: true, user: this.currentUser!, token: session.$id };
       }
+
+      const authOptions = optionsResult.data;
+      authOptions.challenge = base64UrlToBuffer(authOptions.challenge);
+      if (authOptions.allowCredentials) {
+        authOptions.allowCredentials = authOptions.allowCredentials.map((cred: any) => ({
+          ...cred,
+          id: base64UrlToBuffer(cred.id)
+        }));
+      }
+
+      const assertion = await navigator.credentials.get({ publicKey: authOptions });
+      
+      if (!assertion) {
+        return { success: false, error: 'Authentication failed' };
+      }
+
+      const assertionJSON = publicKeyCredentialToJSON(assertion);
+
+      const verifyExecution = await functions.createExecution(
+        'webauthn-auth-verify',
+        JSON.stringify({ email, credential: assertionJSON }),
+        false
+      );
+
+      if (verifyExecution.responseStatusCode !== 200) {
+        return { success: false, error: 'Authentication verification failed' };
+      }
+
+      const { token } = JSON.parse(verifyExecution.responseBody).data;
+      const session = await account.createSession('current', token);
+      const appwriteUser = await account.get();
+      await this.loadUserFromAppwrite(appwriteUser);
+
+      return { success: true, user: this.currentUser!, token: session.$id };
     } catch (error) {
       return {
         success: false,
@@ -179,57 +238,50 @@ export class AuthService {
         return { success: false, error: 'No wallet found. Please install MetaMask.' };
       }
 
-      if (!credentials.address || !credentials.signature) {
-        const accounts = await (window as any).ethereum.request({ 
-          method: 'eth_requestAccounts' 
-        });
-        
-        if (!accounts || accounts.length === 0) {
-          return { success: false, error: 'No wallet account selected' };
-        }
+      const accounts = await (window as any).ethereum.request({ 
+        method: 'eth_requestAccounts' 
+      });
+      
+      if (!accounts || accounts.length === 0) {
+        return { success: false, error: 'No wallet account selected' };
+      }
 
-        const address = accounts[0];
-        const timestamp = Date.now();
-        const message = `auth-${timestamp}`;
-        const fullMessage = `Sign this message to authenticate: ${message}`;
+      const address = accounts[0];
+      const timestamp = Date.now();
+      const message = `auth-${timestamp}`;
+      const fullMessage = `Sign this message to authenticate: ${message}`;
 
-        const signature = await (window as any).ethereum.request({
-          method: 'personal_sign',
-          params: [fullMessage, address]
-        });
+      const signature = await (window as any).ethereum.request({
+        method: 'personal_sign',
+        params: [fullMessage, address]
+      });
 
-        return {
-          success: true,
-          requiresSignature: true,
-          user: undefined,
-          token: undefined,
+      const execution = await functions.createExecution(
+        'custom-token',
+        JSON.stringify({
+          email: credentials.email,
           address,
           signature,
-          message
-        };
+          message: fullMessage
+        }),
+        false
+      );
+
+      if (execution.responseStatusCode !== 200) {
+        const errorData = JSON.parse(execution.responseBody);
+        return { success: false, error: errorData.message || 'Verification failed' };
       }
 
-      const existingUser = await account.get().catch(() => null);
-      
-      if (existingUser) {
-        await account.updatePrefs({
-          ...existingUser.prefs,
-          walletEth: credentials.address.toLowerCase()
-        });
-      } else {
-        await account.create(ID.unique(), credentials.email, undefined, credentials.email);
-        await account.updatePrefs({
-          walletEth: credentials.address.toLowerCase()
-        });
-      }
+      const { token } = JSON.parse(execution.responseBody).data;
 
+      const session = await account.createSession('current', token);
       const appwriteUser = await account.get();
       await this.loadUserFromAppwrite(appwriteUser);
 
       return {
         success: true,
         user: this.currentUser!,
-        token: appwriteUser.$id
+        token: session.$id
       };
     } catch (error) {
       return {
@@ -271,46 +323,5 @@ export class AuthService {
     } catch {
       return null;
     }
-  }
-
-  private async generateRegistrationOptions(email: string): Promise<any> {
-    const rpName = 'WhisperChat';
-    const rpID = window.location.hostname;
-    
-    const encoder = new TextEncoder();
-    const data = encoder.encode(email);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const userId = new Uint8Array(hashBuffer);
-
-    return {
-      rp: { name: rpName, id: rpID },
-      user: {
-        id: userId,
-        name: email,
-        displayName: email
-      },
-      challenge: bufferToBase64Url(crypto.getRandomValues(new Uint8Array(32))),
-      pubKeyCredParams: [
-        { type: 'public-key', alg: -7 },
-        { type: 'public-key', alg: -257 }
-      ],
-      authenticatorSelection: {
-        userVerification: 'preferred',
-        residentKey: 'preferred'
-      },
-      attestation: 'none',
-      timeout: 60000
-    };
-  }
-
-  private async generateAuthenticationOptions(email: string): Promise<any> {
-    const rpID = window.location.hostname;
-    
-    return {
-      challenge: bufferToBase64Url(crypto.getRandomValues(new Uint8Array(32))),
-      rpId: rpID,
-      timeout: 60000,
-      userVerification: 'preferred'
-    };
   }
 }

@@ -22,8 +22,6 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpUserId, setOtpUserId] = useState<string | undefined>();
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
 
   const handleOTPAuth = async () => {
     if (!email) {
@@ -59,7 +57,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
     }
   };
 
-  const handlePasskeyAuth = async (isRegistration: boolean) => {
+  const handlePasskeyAuth = async () => {
     if (!email) {
       setError('Please enter your email');
       return;
@@ -69,7 +67,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
     setError('');
 
     try {
-      const result = await authService.loginWithPasskey(email, isRegistration);
+      const result = await authService.loginWithPasskey(email);
       if (result.success && result.user) {
         onSuccess();
         onOpenChange(false);
@@ -100,13 +98,9 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
         onOpenChange(false);
       } else if (result.error) {
         setError(result.error);
-      } else if (result.address) {
-        setWalletAddress(result.address);
-        setWalletConnected(true);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Wallet authentication failed');
-      setWalletConnected(false);
     } finally {
       setLoading(false);
     }
@@ -131,7 +125,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={otpSent || walletConnected}
+              disabled={otpSent}
             />
           </div>
 
@@ -170,7 +164,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
               </Button>
 
               <Button 
-                onClick={() => handlePasskeyAuth(false)} 
+                onClick={() => handlePasskeyAuth()} 
                 disabled={loading || !email} 
                 variant="outline" 
                 className="w-full justify-start"
@@ -186,7 +180,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
                 className="w-full justify-start"
               >
                 <Wallet className="w-4 h-4 mr-2" />
-                {walletConnected ? `Connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Continue with Web3 Wallet'}
+                Continue with Web3 Wallet
               </Button>
 
               <div className="text-xs text-muted-foreground text-center pt-2">

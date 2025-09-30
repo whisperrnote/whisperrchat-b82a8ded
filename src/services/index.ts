@@ -143,6 +143,7 @@ export const messagingService = {
   }),
   getConversations: async () => [],
   markAsRead: async () => {},
+  getSessionFingerprint: async (participantId: string) => null,
   on: (event: string, callback: Function) => {
     console.log(`Stub messaging service: listening for ${event}`);
   },
