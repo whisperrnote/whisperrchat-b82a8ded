@@ -35,8 +35,6 @@ import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
 import type { User, Conversation } from '../../types';
-import { messagingService } from '../../services';
-import { WalletConnectionModal } from '../wallet/wallet-connection-modal';
 import { Topbar } from './topbar';
 
 interface MainLayoutProps {
@@ -49,7 +47,7 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
-  const [showWalletModal, setShowWalletModal] = useState(false);
+
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
@@ -80,7 +78,7 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
         <div className="h-screen bg-black text-white flex flex-col">
           <Topbar
             currentUser={currentUser}
-            onConnectWallet={() => setShowWalletModal(true)}
+            onConnect={onLogin}
             onLogout={onLogout}
           />
           <div className="flex-1 flex flex-col md:flex-row">
@@ -314,20 +312,7 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
         </ContextMenuItem>
       </ContextMenuContent>
 
-      {/* Wallet Connection Modal */}
-      {!currentUser && (
-        <WalletConnectionModal
-          open={showWalletModal}
-          onOpenChange={setShowWalletModal}
-          onConnect={async () => {
-            try {
-              await onLogin();
-            } finally {
-              setShowWalletModal(false);
-            }
-          }}
-        />
-      )}
+
     </ContextMenu>
   );
 }
