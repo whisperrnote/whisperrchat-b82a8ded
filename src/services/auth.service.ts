@@ -6,7 +6,7 @@ import { CryptoService } from './crypto.service';
 export type AuthMethod = 'otp' | 'passkey' | 'wallet';
 
 export interface OTPCredentials {
-  phone: string;
+  email: string;
   code?: string;
   userId?: string;
 }
@@ -16,7 +16,8 @@ export interface PasskeyCredentials {
 }
 
 export interface WalletCredentials {
-  address: string;
+  email: string;
+  address?: string;
   signature?: string;
   message?: string;
 }
@@ -85,9 +86,9 @@ export class AuthService {
   async loginWithOTP(credentials: OTPCredentials): Promise<AuthResult> {
     try {
       if (!credentials.code) {
-        const token = await account.createPhoneToken(
+        const token = await account.createEmailToken(
           ID.unique(),
-          credentials.phone
+          credentials.email
         );
         
         return {
@@ -102,7 +103,7 @@ export class AuthService {
         throw new Error('User ID is required for OTP verification');
       }
 
-      const session = await account.updatePhoneSession(
+      const session = await account.createSession(
         credentials.userId,
         credentials.code
       );
@@ -172,25 +173,55 @@ export class AuthService {
     }
   }
 
-  async loginWithWallet(address: string, signature?: string): Promise<AuthResult> {
+  async loginWithWallet(credentials: WalletCredentials): Promise<AuthResult> {
     try {
-      if (!signature) {
-        const message = `Sign this message to authenticate with WhisperChat: ${Date.now()}`;
+      if (!(window as any).ethereum) {
+        return { success: false, error: 'No wallet found. Please install MetaMask.' };
+      }
+
+      if (!credentials.address || !credentials.signature) {
+        const accounts = await (window as any).ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        
+        if (!accounts || accounts.length === 0) {
+          return { success: false, error: 'No wallet account selected' };
+        }
+
+        const address = accounts[0];
+        const timestamp = Date.now();
+        const message = `auth-${timestamp}`;
+        const fullMessage = `Sign this message to authenticate: ${message}`;
+
+        const signature = await (window as any).ethereum.request({
+          method: 'personal_sign',
+          params: [fullMessage, address]
+        });
+
         return {
           success: true,
           requiresSignature: true,
           user: undefined,
           token: undefined,
+          address,
+          signature,
           message
         };
       }
 
-      const token = await account.createJWT();
+      const existingUser = await account.get().catch(() => null);
       
-      await account.updatePrefs({
-        walletAddress: address,
-        walletSignature: signature
-      });
+      if (existingUser) {
+        await account.updatePrefs({
+          ...existingUser.prefs,
+          walletEth: credentials.address.toLowerCase()
+        });
+      } else {
+        await account.create(ID.unique(), credentials.email, undefined, credentials.email);
+        await account.updatePrefs({
+          walletEth: credentials.address.toLowerCase()
+        });
+      }
 
       const appwriteUser = await account.get();
       await this.loadUserFromAppwrite(appwriteUser);
@@ -198,7 +229,7 @@ export class AuthService {
       return {
         success: true,
         user: this.currentUser!,
-        token: token.jwt
+        token: appwriteUser.$id
       };
     } catch (error) {
       return {
