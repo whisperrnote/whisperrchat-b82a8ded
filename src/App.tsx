@@ -20,14 +20,30 @@ function App() {
     if (result.success) {
       setCurrentUser(result.user || null);
     } else {
-      // Handle login error
       console.error(result.error);
     }
   };
 
+  const handleAnonymousLogin = async (username: string) => {
+    const result = await authService.loginAnonymous(username);
+    if (result.success) {
+      setCurrentUser(result.user || null);
+    }
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+    setCurrentUser(null);
+  };
+
   return (
     <>
-      <Chat currentUser={currentUser} onLogin={handleLogin} />
+      <Chat 
+        currentUser={currentUser} 
+        onLogin={handleLogin} 
+        onAnonymousLogin={handleAnonymousLogin}
+        onLogout={handleLogout}
+      />
       <Toaster position="top-right" />
     </>
   );

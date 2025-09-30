@@ -221,13 +221,14 @@ export class ChainClient implements IChainClient {
   }
 
   async connectWallet(): Promise<string> {
-    if (typeof window.ethereum === 'undefined') {
+    const ethProvider = (window as any).ethereum;
+    if (typeof ethProvider === 'undefined') {
       throw new Error('MetaMask is not installed.');
     }
 
     this.walletClient = createWalletClient({
       chain: mainnet,
-      transport: custom(window.ethereum)
+      transport: custom(ethProvider)
     });
 
     const [address] = await this.walletClient.requestAddresses();
