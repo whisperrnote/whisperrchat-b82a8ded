@@ -1,5 +1,5 @@
-import { account, functions } from '../lib/appwrite';
-import { ID, Models, ExecutionMethod } from 'appwrite';
+import { account } from '../lib/appwrite';
+import { ID, Models } from 'appwrite';
 import type { User, AuthResult } from '../types';
 import { CryptoService } from './crypto.service';
 
@@ -20,45 +20,6 @@ export interface WalletCredentials {
   address?: string;
   signature?: string;
   message?: string;
-}
-
-function bufferToBase64Url(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  const base64 = btoa(binary);
-  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-function base64UrlToBuffer(base64url: string): ArrayBuffer {
-  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
-  const padLen = (4 - (base64.length % 4)) % 4;
-  const padded = base64 + '='.repeat(padLen);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
-
-function publicKeyCredentialToJSON(pubKeyCred: any): any {
-  if (Array.isArray(pubKeyCred)) {
-    return pubKeyCred.map(publicKeyCredentialToJSON);
-  }
-  if (pubKeyCred instanceof ArrayBuffer) {
-    return bufferToBase64Url(pubKeyCred);
-  }
-  if (pubKeyCred && typeof pubKeyCred === 'object') {
-    const obj: any = {};
-    for (const key in pubKeyCred) {
-      obj[key] = publicKeyCredentialToJSON(pubKeyCred[key]);
-    }
-    return obj;
-  }
-  return pubKeyCred;
 }
 
 export class AuthService {
