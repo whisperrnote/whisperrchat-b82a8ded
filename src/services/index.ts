@@ -46,12 +46,12 @@ export const authService = {
     success: false, 
     error: 'Service temporarily unavailable - please try again' 
   }),
-  loginWithWallet: async () => {
+  loginWithWallet: async (email: string) => {
     try {
       const { AuthService } = await import('./auth.service');
       const { CryptoService } = await import('./crypto.service');
       const realAuth = new AuthService(new CryptoService());
-      const res = await realAuth.loginWithWallet();
+      const res = await realAuth.loginWithWallet(email);
       if (res.success) {
         saveAuthState({ user: res.user, token: res.token, timestamp: Date.now() });
       }

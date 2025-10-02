@@ -160,7 +160,7 @@ export interface BotDefinition {
 
 // Service Provider Interfaces
 export interface IAuthService {
-  loginWithWallet(): Promise<AuthResult>;
+  loginWithWallet(email: string): Promise<AuthResult>;
   logout(): Promise<void>;
   refreshToken(): Promise<string>;
   getCurrentUser(): Promise<User | null>;
@@ -224,11 +224,7 @@ export interface AuthResult {
   user?: User;
   token?: string;
   error?: string;
-  requiresOTP?: boolean;
-  requiresSignature?: boolean;
   message?: string;
-  address?: string;
-  signature?: string;
 }
 
 // Event Types

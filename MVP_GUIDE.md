@@ -6,11 +6,9 @@ This is the **Minimum Viable Product (MVP)** version of TenChat - an end-to-end 
 
 ## ⚠️ MVP Security Notice
 
-**This MVP implements simplified authentication for demonstration purposes:**
+**Authentication:**
 
-- ✅ **OTP Authentication**: Fully functional via Appwrite Email OTP
-- ⚠️ **Passkey Authentication**: Simplified client-side only (stores metadata in localStorage)
-- ⚠️ **Wallet Authentication**: Simplified client-side only (stores signature in localStorage)
+- ✅ **Wallet Authentication**: Uses Appwrite Function for verification and session creation
 
 **For Production:**
 - Passkey and Wallet auth require backend API routes for proper verification
@@ -67,10 +65,7 @@ Edit `.env.local` with your Appwrite credentials:
 ```env
 VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
 VITE_APPWRITE_PROJECT_ID=your-project-id
-
-# Optional: For passkey auth
-VITE_RP_ID=localhost
-VITE_RP_NAME=TenChat
+VITE_WEB3_FUNCTION_ID=your-web3-auth-function-id
 ```
 
 ### 3. Setup Appwrite Project
@@ -125,31 +120,15 @@ src/
 - **Session State**: Double Ratchet-inspired protocol (simplified for MVP)
 - **Storage**: Keys stored in browser IndexedDB/localStorage (encrypted at rest planned)
 
-### Authentication Methods
+### Authentication Method
 
-#### 1. OTP (Recommended for MVP)
+#### Wallet via Appwrite Function
 ```typescript
-// Fully functional via Appwrite
-- User enters email
-- Receives 6-digit code via email
-- Verifies and creates session
-```
-
-#### 2. Passkey (Simplified)
-```typescript
-// Client-side only (MVP limitation)
-- Creates WebAuthn credential
-- Stores metadata in localStorage
-- Falls back to OTP for session creation
-```
-
-#### 3. Wallet (Simplified)
-```typescript
-// Client-side only (MVP limitation)
-- Connects to MetaMask/Web3 wallet
-- Signs authentication message
-- Stores signature in localStorage
-- Falls back to OTP for session creation
+// Flow:
+// 1) Connect wallet (MetaMask)
+// 2) Sign message
+// 3) Call Appwrite Function with { email, address, signature, message }
+// 4) Receive { userId, secret } and create session via account.createSession
 ```
 
 ## 📊 TODO Progress

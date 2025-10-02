@@ -6,18 +6,9 @@
 **File**: `src/services/auth.service.ts`
 
 **Changes**:
-1. **Removed Appwrite Functions dependency** - No longer requires backend functions
-2. **Simplified Passkey authentication**:
-   - Client-side credential generation
-   - Stores metadata in localStorage for MVP
-   - Falls back to OTP for session creation
-   - Full WebAuthn API integration maintained
-3. **Simplified Wallet authentication**:
-   - Client-side signature verification
-   - Stores wallet binding in localStorage
-   - Falls back to OTP for session creation
-   - MetaMask integration maintained
-4. **Kept OTP authentication** - Fully functional via Appwrite
+1. Replaced all auth methods with wallet-only auth
+2. Integrates Appwrite `Functions` to call Web3 auth function
+3. Creates session using `account.createSession({ userId, secret })`
 
 **Why**: The original implementation relied on Appwrite Functions (custom-token, webauthn-*) which aren't available. For MVP, we use client-side verification with localStorage while maintaining the same UX. Production deployment should add proper backend verification (see `ignore1/passkey` and `ignore1/web3` examples).
 
@@ -25,16 +16,14 @@
 **File**: `src/lib/appwrite.ts`
 
 **Changes**:
-- Removed `Functions` import (not needed)
-- Kept Account, Databases, Storage
+- Added `Functions` client export for calling Appwrite Function
 
 ### 🎨 UI Updates
 **File**: `src/components/auth/auth-modal.tsx`
 
 **Changes**:
-- Added MVP security notice banner (dev mode only)
-- Changed Email OTP button to primary variant (recommended method)
-- Updated app name from "WhisperChat" to "TenChat"
+- Removed OTP and Passkey flows
+- Single wallet button that triggers Appwrite Function auth
 
 ### 📝 Documentation Added
 
@@ -60,7 +49,7 @@
 ## ✅ MVP Status
 
 ### What Works
-- ✅ Email OTP authentication (fully functional)
+- ✅ Wallet authentication (Appwrite Function)
 - ✅ End-to-end encrypted messaging
 - ✅ Conversation creation and management
 - ✅ Key generation and rotation
@@ -70,7 +59,6 @@
 - ✅ Wallet auth (simplified, client-side)
 
 ### Known Limitations
-- ⚠️ Passkey/Wallet auth are simplified (no backend verification)
 - ⚠️ Messages stored in localStorage (not synced across devices)
 - ⚠️ No real-time updates (uses polling)
 - ⚠️ Single device only
