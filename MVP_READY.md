@@ -8,7 +8,7 @@ The TenChat codebase has been successfully prepared for MVP deployment. All auth
 
 ### Core Features
 - ✅ **End-to-End Encryption**: Full E2EE with AES-GCM 256-bit
-- ✅ **Authentication**: OTP (primary), Passkey, and Wallet auth (simplified)
+- ✅ **Authentication**: Wallet auth via Appwrite Function
 - ✅ **Messaging**: Real-time encrypted chat with conversation management
 - ✅ **Key Management**: Automatic key generation and rotation support
 - ✅ **UI**: Responsive design with dark mode
@@ -52,42 +52,23 @@ Three new comprehensive guides have been added:
 
 ## 🔧 Key Changes Made
 
-### 1. Authentication Service (Previously Committed)
-The auth service was already updated to remove Appwrite Functions dependency:
+### 1. Authentication Service
+Replaced all previous auth with wallet-only, backed by Appwrite Function:
 
-**Passkey Authentication**:
 ```typescript
-// Now uses client-side WebAuthn API
-// Stores credential metadata in localStorage
-// Falls back to OTP for session creation
+// Connect wallet → sign message → call Function → create session
 ```
 
-**Wallet Authentication**:
-```typescript
-// Direct MetaMask integration
-// Client-side signature storage
-// Falls back to OTP for session creation
-```
-
-**OTP Authentication**:
-```typescript
-// Fully functional via Appwrite Email OTP
-// No changes needed - works out of the box
-```
-
-### 2. UI Improvements (This Session)
+### 2. UI Updates
 **File**: `src/components/auth/auth-modal.tsx`
 
-- Added MVP security notice banner (dev mode only)
-- Made Email OTP the primary/recommended method
-- Updated branding from "WhisperChat" to "TenChat"
-- Improved visual hierarchy
+- Removed OTP and Passkey buttons
+- Single "Continue with Web3 Wallet" action
 
-### 3. Library Cleanup (Previously Done)
+### 3. Library Update
 **File**: `src/lib/appwrite.ts`
 
-- Removed `Functions` import (not needed)
-- Kept only: Account, Databases, Storage
+- Added `Functions` client for calling the Web3 auth function
 
 ## 📊 Build Analysis
 
@@ -107,38 +88,14 @@ Total: ~560 KB uncompressed, ~190 KB gzipped
 - ✅ On-demand service loading working
 - ⚠️ Could be optimized further (tree-shaking, code splitting)
 
-## 🎯 Authentication Strategy (MVP)
+## 🎯 Authentication Strategy
 
-### Primary: Email OTP (Recommended)
-```
-User Flow:
-1. User enters email
-2. Appwrite sends OTP code
-3. User enters code
-4. Session created
-✅ Fully secure, no backend needed
-```
-
-### Secondary: Passkey (Simplified)
-```
-User Flow:
-1. User enters email
-2. WebAuthn credential created/verified
-3. Metadata stored in localStorage
-4. Falls back to OTP for session
-⚠️ MVP: No backend verification
-✅ Production: Add backend (see ignore1/passkey)
-```
-
-### Tertiary: Wallet (Simplified)
 ```
 User Flow:
 1. User enters email
 2. MetaMask signs message
-3. Signature stored in localStorage
-4. Falls back to OTP for session
-⚠️ MVP: No backend verification
-✅ Production: Add backend (see ignore1/web3)
+3. Appwrite Function verifies and returns { userId, secret }
+4. Client creates session via account.createSession
 ```
 
 ## 🔒 Security Notice
@@ -248,9 +205,7 @@ See `MVP_CHECKLIST.md` for detailed steps.
 4. **Basic Search**: No full-text search implemented
 
 ### MVP-Specific
-1. **Passkey**: Client-side verification only
-2. **Wallet**: No signature verification backend
-3. **No Backup**: Keys can be lost if localStorage cleared
+1. **No Backup**: Keys can be lost if localStorage cleared
 
 ### Not Issues (By Design)
 - Messages in localStorage (intentional for MVP)

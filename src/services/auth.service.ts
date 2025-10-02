@@ -1,25 +1,12 @@
-import { account } from '../lib/appwrite';
+import { account, functions } from '../lib/appwrite';
 import { ID, Models } from 'appwrite';
 import type { User, AuthResult } from '../types';
 import { CryptoService } from './crypto.service';
 
-export type AuthMethod = 'otp' | 'passkey' | 'wallet';
-
-export interface OTPCredentials {
-  email: string;
-  code?: string;
-  userId?: string;
-}
-
-export interface PasskeyCredentials {
-  email: string;
-}
+export type AuthMethod = 'wallet';
 
 export interface WalletCredentials {
   email: string;
-  address?: string;
-  signature?: string;
-  message?: string;
 }
 
 export class AuthService {
@@ -56,154 +43,7 @@ export class AuthService {
     };
   }
 
-  async loginWithOTP(credentials: OTPCredentials): Promise<AuthResult> {
-    try {
-      if (!credentials.code) {
-        const token = await account.createEmailToken(
-          ID.unique(),
-          credentials.email
-        );
-        
-        return {
-          success: true,
-          requiresOTP: true,
-          user: undefined,
-          token: token.userId
-        };
-      }
-
-      if (!credentials.userId) {
-        throw new Error('User ID is required for OTP verification');
-      }
-
-      const session = await account.createSession(
-        credentials.userId,
-        credentials.code
-      );
-
-      const appwriteUser = await account.get();
-      await this.loadUserFromAppwrite(appwriteUser);
-
-      return {
-        success: true,
-        user: this.currentUser!,
-        token: session.$id
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'OTP login failed'
-      };
-    }
-  }
-
-  async loginWithPasskey(email: string, isRegistration: boolean = false): Promise<AuthResult> {
-    if (!('credentials' in navigator)) {
-      return { success: false, error: 'WebAuthn is not supported in this browser' };
-    }
-
-    try {
-      // MVP: Simplified client-side passkey using browser credentials API
-      // Store credential data in localStorage (for MVP only)
-      const storedCreds = localStorage.getItem(`passkey_${email}`);
-      
-      if (!storedCreds || isRegistration) {
-        // Registration flow
-        const options = await this.generatePasskeyRegistrationOptions(email);
-        const credential = await navigator.credentials.create({ publicKey: options });
-        
-        if (!credential) {
-          return { success: false, error: 'Credential creation failed' };
-        }
-
-        // Store credential metadata
-        const credData = {
-          id: credential.id,
-          email,
-          createdAt: Date.now()
-        };
-        localStorage.setItem(`passkey_${email}`, JSON.stringify(credData));
-
-        // Create account via email OTP as fallback, then mark as passkey user
-        const token = await account.createEmailToken(ID.unique(), email);
-        
-        return {
-          success: true,
-          requiresOTP: true,
-          user: undefined,
-          token: token.userId,
-          message: 'Passkey registered! Check your email for verification code.'
-        };
-      }
-
-      // Authentication flow
-      const options = await this.generatePasskeyAuthOptions(email);
-      const assertion = await navigator.credentials.get({ publicKey: options });
-      
-      if (!assertion) {
-        return { success: false, error: 'Authentication failed' };
-      }
-
-      // Create token for login
-      const token = await account.createEmailToken(ID.unique(), email);
-      
-      return {
-        success: true,
-        requiresOTP: true,
-        user: undefined,
-        token: token.userId,
-        message: 'Passkey verified! Check your email for login code.'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Passkey authentication failed'
-      };
-    }
-  }
-
-  private async generatePasskeyRegistrationOptions(email: string): Promise<PublicKeyCredentialCreationOptions> {
-    const rpName = import.meta.env.VITE_RP_NAME || 'TenChat';
-    const rpID = import.meta.env.VITE_RP_ID || window.location.hostname;
-    
-    const encoder = new TextEncoder();
-    const data = encoder.encode(email);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const userId = new Uint8Array(hashBuffer);
-
-    return {
-      rp: { name: rpName, id: rpID },
-      user: {
-        id: userId,
-        name: email,
-        displayName: email
-      },
-      challenge: crypto.getRandomValues(new Uint8Array(32)),
-      pubKeyCredParams: [
-        { type: 'public-key', alg: -7 },  // ES256
-        { type: 'public-key', alg: -257 } // RS256
-      ],
-      authenticatorSelection: {
-        userVerification: 'preferred',
-        residentKey: 'preferred'
-      },
-      attestation: 'none',
-      timeout: 60000
-    };
-  }
-
-  private async generatePasskeyAuthOptions(email: string): Promise<PublicKeyCredentialRequestOptions> {
-    const rpID = import.meta.env.VITE_RP_ID || window.location.hostname;
-    
-    return {
-      challenge: crypto.getRandomValues(new Uint8Array(32)),
-      rpId: rpID,
-      timeout: 60000,
-      userVerification: 'preferred'
-    };
-  }
-
-  async loginWithWallet(credentials: WalletCredentials): Promise<AuthResult> {
+  async loginWithWallet(email: string): Promise<AuthResult> {
     try {
       if (!(window as any).ethereum) {
         return { success: false, error: 'No wallet found. Please install MetaMask.' };
@@ -227,27 +67,28 @@ export class AuthService {
         params: [fullMessage, address]
       });
 
-      // MVP: Client-side only verification
-      // Store wallet binding in localStorage (for MVP)
-      const walletData = {
-        email: credentials.email,
-        address: address.toLowerCase(),
-        signature,
-        message: fullMessage,
-        timestamp
-      };
-      localStorage.setItem(`wallet_${credentials.email}`, JSON.stringify(walletData));
+      const functionId = import.meta.env.VITE_WEB3_FUNCTION_ID;
+      if (!functionId) {
+        return { success: false, error: 'Missing VITE_WEB3_FUNCTION_ID' };
+      }
 
-      // Use email token as fallback auth
-      const token = await account.createEmailToken(ID.unique(), credentials.email);
-      
-      return {
-        success: true,
-        requiresOTP: true,
-        user: undefined,
-        token: token.userId,
-        message: 'Wallet connected! Check your email for verification code.'
-      };
+      const execution = await functions.createExecution(
+        functionId,
+        JSON.stringify({ email, address, signature, message }),
+        false
+      );
+
+      const response = JSON.parse(execution.responseBody || '{}');
+      if (execution.responseStatusCode !== 200) {
+        const errorMessage = response?.error || 'Authentication failed';
+        return { success: false, error: errorMessage };
+      }
+
+      await account.createSession({ userId: response.userId, secret: response.secret });
+      const appwriteUser = await account.get();
+      await this.loadUserFromAppwrite(appwriteUser);
+
+      return { success: true, user: this.currentUser! };
     } catch (error) {
       return {
         success: false,
