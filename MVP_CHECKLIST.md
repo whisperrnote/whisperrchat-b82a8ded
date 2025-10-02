@@ -7,13 +7,13 @@
 - [ ] Appwrite project created and configured
 - [ ] Project ID matches environment variable
 - [ ] Allowed origins/domains configured in Appwrite
-- [ ] Email provider configured in Appwrite for OTP
+- [ ] JWT/custom tokens enabled in Appwrite Auth settings
 
 ### 2. Code Quality
 - [ ] `npm run lint` passes (ignore contract/function errors)
 - [ ] `npm run build` completes successfully
 - [ ] No console errors in development mode
-- [ ] Authentication flow tested (OTP)
+- [ ] Authentication flow tested (Wallet via Appwrite Function)
 - [ ] Message sending/receiving tested
 - [ ] Encryption/decryption verified
 
@@ -25,8 +25,7 @@
 - [ ] HTTPS enabled for production domain
 
 ### 4. Feature Testing
-- [ ] User can sign up with email
-- [ ] OTP code received and verified
+- [ ] User can sign in with wallet
 - [ ] User can create conversation
 - [ ] User can send encrypted message
 - [ ] User can receive and decrypt message

@@ -10,7 +10,7 @@
 2. Integrates Appwrite `Functions` to call Web3 auth function
 3. Creates session using `account.createSession({ userId, secret })`
 
-**Why**: The original implementation relied on Appwrite Functions (custom-token, webauthn-*) which aren't available. For MVP, we use client-side verification with localStorage while maintaining the same UX. Production deployment should add proper backend verification (see `ignore1/passkey` and `ignore1/web3` examples).
+**Why**: We standardized on a wallet-only flow using an Appwrite Function for verification and session creation.
 
 ### 📦 Library Configuration
 **File**: `src/lib/appwrite.ts`
@@ -93,8 +93,7 @@ The codebase is now ready for MVP deployment:
 ## 🔜 Post-MVP Next Steps
 
 ### Priority 1: Backend Auth Verification
-Add proper backend API routes for passkey and wallet verification:
-- Reference: `ignore1/passkey/` for passkey implementation
+Add proper backend API routes for wallet verification:
 - Reference: `ignore1/web3/` for wallet implementation
 - Can use Next.js API routes, Express, or similar
 
@@ -140,7 +139,7 @@ See `TODO.md` for detailed roadmap progress.
 2. **Security Testing**:
    - Verify messages encrypted in localStorage
    - Check no plain text in network requests
-   - Confirm HTTPS required for passkeys
+   - Confirm HTTPS is enforced in production
    - Test in incognito mode
 
 3. **Browser Compatibility**:
