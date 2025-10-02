@@ -39,8 +39,7 @@ This is the **Minimum Viable Product (MVP)** version of TenChat - an end-to-end 
 
 - Node.js 18+ and npm
 - Appwrite account and project
-- Modern browser with WebAuthn support (optional, for passkeys)
-- Web3 wallet like MetaMask (optional, for wallet auth)
+- Web3 wallet like MetaMask
 
 ## 🛠️ Setup Instructions
 
