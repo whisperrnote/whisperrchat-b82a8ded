@@ -110,11 +110,18 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Sign in to WhisperChat</DialogTitle>
+          <DialogTitle>Sign in to TenChat</DialogTitle>
           <DialogDescription>
             Enter your email and choose your authentication method
           </DialogDescription>
         </DialogHeader>
+
+        {import.meta.env.DEV && (
+          <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-xs">
+            <strong className="text-amber-800 dark:text-amber-200">⚠️ MVP Notice:</strong>
+            <span className="text-amber-700 dark:text-amber-300"> Email OTP is recommended. Passkey/Wallet auth are simplified for MVP (client-side only).</span>
+          </div>
+        )}
 
         <div className="space-y-6">
           <div className="space-y-2">
@@ -156,7 +163,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
               <Button 
                 onClick={handleOTPAuth} 
                 disabled={loading || !email} 
-                variant="outline" 
+                variant="default" 
                 className="w-full justify-start"
               >
                 <Mail className="w-4 h-4 mr-2" />
