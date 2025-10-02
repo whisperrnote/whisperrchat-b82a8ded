@@ -1,9 +1,0 @@
-{
-  "name": "webauthn-auth-options",
-  "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "node-appwrite": "^14.1.0",
-    "@simplewebauthn/server": "^11.0.0"
-  }
-}
