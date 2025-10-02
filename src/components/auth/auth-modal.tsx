@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Wallet } from 'lucide-react';
-import { AuthService } from '@/services/auth.service';
+import { authService } from '@/services';
 
 interface AuthModalProps {
   open: boolean;
@@ -13,16 +13,13 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
-  const [authService] = useState(() => new AuthService());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-
   const [email, setEmail] = useState('');
-  
 
   const handleWalletAuth = async () => {
-    if (!email) {
-      setError('Please enter your email');
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -39,7 +36,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
         setError(result.error);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Wallet authentication failed');
+      setError(err instanceof Error ? err.message : 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -51,16 +48,9 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
         <DialogHeader>
           <DialogTitle>Sign in to TenChat</DialogTitle>
           <DialogDescription>
-            Enter your email and choose your authentication method
+            Connect your wallet to sign in securely
           </DialogDescription>
         </DialogHeader>
-
-        {import.meta.env.DEV && (
-          <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-xs">
-            <strong className="text-amber-800 dark:text-amber-200">ℹ️ Note:</strong>
-            <span className="text-amber-700 dark:text-amber-300"> Wallet authentication uses an Appwrite Function.</span>
-          </div>
-        )}
 
         <div className="space-y-6">
           <div className="space-y-2">
@@ -71,23 +61,30 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={otpSent}
+              disabled={loading}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !loading && email) {
+                  handleWalletAuth();
+                }
+              }}
             />
           </div>
 
-          <div className="space-y-3">
-            <Button 
-              onClick={handleWalletAuth} 
-              disabled={loading || !email} 
-              variant="default" 
-              className="w-full justify-start"
-            >
-              <Wallet className="w-4 h-4 mr-2" />
-              Continue with Web3 Wallet
-            </Button>
-          </div>
+          <Button 
+            onClick={handleWalletAuth} 
+            disabled={loading || !email} 
+            variant="default" 
+            className="w-full"
+          >
+            <Wallet className="w-4 h-4 mr-2" />
+            {loading ? 'Connecting...' : 'Connect Wallet & Sign'}
+          </Button>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
