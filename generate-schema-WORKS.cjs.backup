@@ -20,43 +20,33 @@ const attr = (key, type, required = false, options = {}) => {
   
   if (type === 'string') {
     base.size = options.size || 255;
-    // Don't set default if required
-    if (!required) {
-      base.default = options.default || null;
-    }
+    base.default = options.default || null;
     base.encrypt = options.encrypt || false;
     if (options.elements) {
       base.format = 'enum';
       base.elements = options.elements;
     }
   } else if (type === 'integer') {
-    base.min = options.min !== undefined ? options.min : -2147483648;
-    base.max = options.max !== undefined ? options.max : 2147483647;
-    // Don't set default if required
-    if (!required) {
-      base.default = options.default !== undefined ? options.default : null;
-    }
+    base.min = options.min || -9223372036854775808;
+    base.max = options.max || 9223372036854775807;
+    base.default = options.default !== undefined ? options.default : null;
   } else if (type === 'double') {
     base.min = options.min || -1.7976931348623157e+308;
     base.max = options.max || 1.7976931348623157e+308;
     base.default = options.default !== undefined ? options.default : null;
   } else if (type === 'boolean') {
-    // Don't set default if required (Appwrite restriction)
-    if (!required) {
-      base.default = options.default !== undefined ? options.default : false;
-    }
+    base.default = options.default !== undefined ? options.default : false;
   } else if (type === 'datetime') {
     base.format = '';
     base.default = options.default || null;
-  }
-  
-  // email, url, ip must be string type with format (not separate types)
-  if (['email', 'url', 'ip'].includes(type)) {
-    base.type = 'string';
-    base.format = type;
-    if (type === 'email') base.size = options.size || 320;
-    if (type === 'url') base.size = options.size || 512;  // Reduced from 2048
-    if (type === 'ip') base.size = options.size || 45;
+  } else if (type === 'url') {
+    base.format = 'url';
+    base.default = options.default || null;
+  } else if (type === 'email') {
+    base.format = 'email';
+    base.default = options.default || null;
+  } else if (type === 'ip') {
+    base.format = 'ip';
     base.default = options.default || null;
   }
   
