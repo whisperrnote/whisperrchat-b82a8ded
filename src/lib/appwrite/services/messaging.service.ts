@@ -3,104 +3,85 @@
  * Handles conversations and messages
  */
 
-import { ID, Query, type Models } from 'appwrite';
-import { databases } from '../config/client';
+import { ID, Query } from 'appwrite';
+import { tablesDB } from '../config/client';
 import { DATABASE_IDS, MAIN_COLLECTIONS } from '../config/constants';
 import type { Conversations, Messages } from '@/types/appwrite.d';
 
 export class MessagingService {
   private readonly databaseId = DATABASE_IDS.MAIN;
-  private readonly conversationsCollection = MAIN_COLLECTIONS.CONVERSATIONS;
-  private readonly messagesCollection = MAIN_COLLECTIONS.MESSAGES;
+  private readonly conversationsTable = MAIN_COLLECTIONS.CONVERSATIONS;
+  private readonly messagesTable = MAIN_COLLECTIONS.MESSAGES;
 
-  /**
-   * Create a new conversation
-   */
   async createConversation(data: Partial<Conversations>): Promise<Conversations> {
-    return await databases.createDocument<Conversations>(
-      this.databaseId,
-      this.conversationsCollection,
-      ID.unique(),
-      {
+    return await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: this.conversationsTable,
+      rowId: ID.unique(),
+      data: {
         ...data,
         participantCount: data.participantIds?.length || 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-    );
+    }) as Conversations;
   }
 
-  /**
-   * Get conversation by ID
-   */
   async getConversation(conversationId: string): Promise<Conversations | null> {
     try {
-      return await databases.getDocument<Conversations>(
-        this.databaseId,
-        this.conversationsCollection,
-        conversationId
-      );
+      return await tablesDB.getRow({
+        databaseId: this.databaseId,
+        tableId: this.conversationsTable,
+        rowId: conversationId
+      }) as Conversations;
     } catch (error) {
       console.error('Error getting conversation:', error);
       return null;
     }
   }
 
-  /**
-   * Get user's conversations
-   */
   async getUserConversations(userId: string, limit = 50): Promise<Conversations[]> {
     try {
-      const response = await databases.listDocuments<Conversations>(
-        this.databaseId,
-        this.conversationsCollection,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.conversationsTable,
+        queries: [
           Query.search('participantIds', userId),
           Query.orderDesc('lastMessageAt'),
           Query.limit(limit),
         ]
-      );
-      return response.documents;
+      });
+      return response.rows as Conversations[];
     } catch (error) {
       console.error('Error getting user conversations:', error);
       return [];
     }
   }
 
-  /**
-   * Update conversation
-   */
-  async updateConversation(
-    conversationId: string,
-    data: Partial<Conversations>
-  ): Promise<Conversations> {
-    return await databases.updateDocument<Conversations>(
-      this.databaseId,
-      this.conversationsCollection,
-      conversationId,
-      {
+  async updateConversation(conversationId: string, data: Partial<Conversations>): Promise<Conversations> {
+    return await tablesDB.updateRow({
+      databaseId: this.databaseId,
+      tableId: this.conversationsTable,
+      rowId: conversationId,
+      data: {
         ...data,
         updatedAt: new Date().toISOString(),
       }
-    );
+    }) as Conversations;
   }
 
-  /**
-   * Send a message
-   */
   async sendMessage(data: Partial<Messages>): Promise<Messages> {
-    const message = await databases.createDocument<Messages>(
-      this.databaseId,
-      this.messagesCollection,
-      ID.unique(),
-      {
+    const message = await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: this.messagesTable,
+      rowId: ID.unique(),
+      data: {
         ...data,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-    );
+    }) as Messages;
 
-    // Update conversation with last message
     if (data.conversationId) {
       await this.updateConversation(data.conversationId, {
         lastMessageId: message.$id,
@@ -113,47 +94,33 @@ export class MessagingService {
     return message;
   }
 
-  /**
-   * Get messages for a conversation
-   */
-  async getMessages(
-    conversationId: string,
-    limit = 50,
-    offset = 0
-  ): Promise<Messages[]> {
+  async getMessages(conversationId: string, limit = 50, offset = 0): Promise<Messages[]> {
     try {
-      const response = await databases.listDocuments<Messages>(
-        this.databaseId,
-        this.messagesCollection,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.messagesTable,
+        queries: [
           Query.equal('conversationId', conversationId),
           Query.orderDesc('createdAt'),
           Query.limit(limit),
           Query.offset(offset),
         ]
-      );
-      return response.documents;
+      });
+      return response.rows as Messages[];
     } catch (error) {
       console.error('Error getting messages:', error);
       return [];
     }
   }
 
-  /**
-   * Update message status (read, delivered)
-   */
-  async updateMessageStatus(
-    messageId: string,
-    status: string,
-    userId?: string
-  ): Promise<Messages> {
-    const message = await databases.getDocument<Messages>(
-      this.databaseId,
-      this.messagesCollection,
-      messageId
-    );
+  async updateMessageStatus(messageId: string, status: string, userId?: string): Promise<Messages> {
+    const message = await tablesDB.getRow({
+      databaseId: this.databaseId,
+      tableId: this.messagesTable,
+      rowId: messageId
+    }) as Messages;
 
-    const updates: Partial<Messages> = { status };
+    const updates: any = { status };
 
     if (userId) {
       if (status === 'read') {
@@ -163,72 +130,51 @@ export class MessagingService {
       }
     }
 
-    return await databases.updateDocument<Messages>(
-      this.databaseId,
-      this.messagesCollection,
-      messageId,
-      updates
-    );
+    return await tablesDB.updateRow({
+      databaseId: this.databaseId,
+      tableId: this.messagesTable,
+      rowId: messageId,
+      data: updates
+    }) as Messages;
   }
 
-  /**
-   * Delete message (soft delete)
-   */
   async deleteMessage(messageId: string, userId: string): Promise<Messages> {
-    const message = await databases.getDocument<Messages>(
-      this.databaseId,
-      this.messagesCollection,
-      messageId
-    );
+    const message = await tablesDB.getRow({
+      databaseId: this.databaseId,
+      tableId: this.messagesTable,
+      rowId: messageId
+    }) as Messages;
 
-    return await databases.updateDocument<Messages>(
-      this.databaseId,
-      this.messagesCollection,
-      messageId,
-      {
+    return await tablesDB.updateRow({
+      databaseId: this.databaseId,
+      tableId: this.messagesTable,
+      rowId: messageId,
+      data: {
         deletedFor: [...(message.deletedFor || []), userId],
         deletedAt: new Date().toISOString(),
       }
-    );
+    }) as Messages;
   }
 
-  /**
-   * Add reaction to message
-   */
-  async addReaction(
-    messageId: string,
-    userId: string,
-    emoji: string
-  ): Promise<Messages> {
-    const message = await databases.getDocument<Messages>(
-      this.databaseId,
-      this.messagesCollection,
-      messageId
-    );
+  async addReaction(messageId: string, userId: string, emoji: string): Promise<Messages> {
+    const message = await tablesDB.getRow({
+      databaseId: this.databaseId,
+      tableId: this.messagesTable,
+      rowId: messageId
+    }) as Messages;
 
     const reactions = message.reactions ? JSON.parse(message.reactions) : {};
-    
-    if (!reactions[emoji]) {
-      reactions[emoji] = [];
-    }
+    if (!reactions[emoji]) reactions[emoji] = [];
+    if (!reactions[emoji].includes(userId)) reactions[emoji].push(userId);
 
-    if (!reactions[emoji].includes(userId)) {
-      reactions[emoji].push(userId);
-    }
-
-    return await databases.updateDocument<Messages>(
-      this.databaseId,
-      this.messagesCollection,
-      messageId,
-      {
-        reactions: JSON.stringify(reactions),
-      }
-    );
+    return await tablesDB.updateRow({
+      databaseId: this.databaseId,
+      tableId: this.messagesTable,
+      rowId: messageId,
+      data: { reactions: JSON.stringify(reactions) }
+    }) as Messages;
   }
 
-  /**
-   * Pin/unpin conversation
-   */
   async togglePin(conversationId: string, userId: string): Promise<Conversations> {
     const conversation = await this.getConversation(conversationId);
     if (!conversation) throw new Error('Conversation not found');
@@ -238,14 +184,9 @@ export class MessagingService {
       ? isPinned.filter(id => id !== userId)
       : [...isPinned, userId];
 
-    return await this.updateConversation(conversationId, {
-      isPinned: newIsPinned,
-    });
+    return await this.updateConversation(conversationId, { isPinned: newIsPinned });
   }
 
-  /**
-   * Mute/unmute conversation
-   */
   async toggleMute(conversationId: string, userId: string): Promise<Conversations> {
     const conversation = await this.getConversation(conversationId);
     if (!conversation) throw new Error('Conversation not found');
@@ -255,22 +196,14 @@ export class MessagingService {
       ? isMuted.filter(id => id !== userId)
       : [...isMuted, userId];
 
-    return await this.updateConversation(conversationId, {
-      isMuted: newIsMuted,
-    });
+    return await this.updateConversation(conversationId, { isMuted: newIsMuted });
   }
 
-  /**
-   * Mark conversation as read
-   */
   async markAsRead(conversationId: string, userId: string): Promise<Conversations> {
     const conversation = await this.getConversation(conversationId);
     if (!conversation) throw new Error('Conversation not found');
 
-    const unreadCount = conversation.unreadCount 
-      ? JSON.parse(conversation.unreadCount) 
-      : {};
-    
+    const unreadCount = conversation.unreadCount ? JSON.parse(conversation.unreadCount) : {};
     unreadCount[userId] = 0;
 
     return await this.updateConversation(conversationId, {
@@ -278,25 +211,18 @@ export class MessagingService {
     });
   }
 
-  /**
-   * Search messages
-   */
-  async searchMessages(
-    conversationId: string,
-    query: string,
-    limit = 20
-  ): Promise<Messages[]> {
+  async searchMessages(conversationId: string, query: string, limit = 20): Promise<Messages[]> {
     try {
-      const response = await databases.listDocuments<Messages>(
-        this.databaseId,
-        this.messagesCollection,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.messagesTable,
+        queries: [
           Query.equal('conversationId', conversationId),
           Query.search('plainText', query),
           Query.limit(limit),
         ]
-      );
-      return response.documents;
+      });
+      return response.rows as Messages[];
     } catch (error) {
       console.error('Error searching messages:', error);
       return [];
