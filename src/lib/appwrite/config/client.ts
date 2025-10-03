@@ -2,7 +2,7 @@
  * Appwrite Client Configuration
  */
 
-import { Client, Account, Databases, Storage, Functions, Realtime } from 'appwrite';
+import { Client, Account, TablesDB, Storage, Functions, Realtime } from 'appwrite';
 
 // Get environment variables
 const ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1';
@@ -15,7 +15,7 @@ export const client = new Client()
 
 // Export service instances
 export const account = new Account(client);
-export const databases = new Databases(client);
+export const tablesDB = new TablesDB(client);
 export const storage = new Storage(client);
 export const functions = new Functions(client);
 export const realtime = new Realtime(client);
