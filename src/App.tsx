@@ -1,42 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Toaster } from './components/ui/sonner';
 import Chat from './pages/Chat';
-import { authService } from './services';
 import { AuthModal } from './components/auth/auth-modal';
-import type { User } from './types';
+import { AppwriteProvider, useAppwrite } from './contexts/AppwriteContext';
 
-function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+function AppContent() {
+  const { currentAccount, currentProfile, isAuthenticated, isLoading } = useAppwrite();
   const [authModalOpen, setAuthModalOpen] = useState(false);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const user = await authService.getCurrentUser();
-      setCurrentUser(user);
-    };
-    checkUser();
-  }, []);
 
   const handleLoginRequest = () => {
     setAuthModalOpen(true);
   };
 
-  const handleAuthSuccess = async () => {
-    const user = await authService.getCurrentUser();
-    setCurrentUser(user);
+  const handleAuthSuccess = () => {
+    setAuthModalOpen(false);
   };
 
-  const handleLogout = async () => {
-    await authService.logout();
-    setCurrentUser(null);
-  };
+  // Convert Appwrite account to legacy User type for compatibility
+  const legacyUser = currentAccount && currentProfile ? {
+    id: currentAccount.$id,
+    displayName: currentProfile.displayName || currentAccount.name,
+    identity: {
+      id: currentAccount.$id,
+      publicKey: '',
+      identityKey: '',
+      signedPreKey: '',
+      oneTimePreKeys: [],
+    },
+    createdAt: new Date(currentAccount.$createdAt),
+    lastSeen: new Date(currentProfile.lastSeen || currentAccount.$createdAt),
+  } : null;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
+          <p className="text-gray-400">Loading WhisperChat...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
       <Chat 
-        currentUser={currentUser} 
+        currentUser={legacyUser} 
         onLogin={handleLoginRequest}
-        onLogout={handleLogout}
       />
       <AuthModal 
         open={authModalOpen}
@@ -45,6 +55,14 @@ function App() {
       />
       <Toaster position="top-right" />
     </>
+  );
+}
+
+function App() {
+  return (
+    <AppwriteProvider>
+      <AppContent />
+    </AppwriteProvider>
   );
 }
 
