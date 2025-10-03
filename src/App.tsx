@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Toaster } from './components/ui/sonner';
 import Chat from './pages/Chat';
 import { AuthModal } from './components/auth/auth-modal';
@@ -6,14 +6,19 @@ import { AppwriteProvider, useAppwrite } from './contexts/AppwriteContext';
 
 function AppContent() {
   const { currentAccount, currentProfile, isAuthenticated, isLoading } = useAppwrite();
-  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const handleLoginRequest = () => {
-    setAuthModalOpen(true);
-  };
+  // Always show auth modal when not authenticated (persistent overlay)
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setShowAuthModal(true);
+    } else {
+      setShowAuthModal(false);
+    }
+  }, [isAuthenticated, isLoading]);
 
   const handleAuthSuccess = () => {
-    setAuthModalOpen(false);
+    setShowAuthModal(false);
   };
 
   // Convert Appwrite account to legacy User type for compatibility
@@ -44,13 +49,23 @@ function AppContent() {
 
   return (
     <>
-      <Chat 
-        currentUser={legacyUser} 
-        onLogin={handleLoginRequest}
-      />
+      {/* Blur and disable interaction when not authenticated */}
+      <div className={!isAuthenticated ? 'blur-sm pointer-events-none' : ''}>
+        <Chat 
+          currentUser={legacyUser} 
+          onLogin={() => setShowAuthModal(true)}
+        />
+      </div>
+      
+      {/* Persistent auth overlay - cannot be dismissed when not authenticated */}
       <AuthModal 
-        open={authModalOpen}
-        onOpenChange={setAuthModalOpen}
+        open={showAuthModal}
+        onOpenChange={(open) => {
+          // Only allow closing if authenticated
+          if (isAuthenticated) {
+            setShowAuthModal(open);
+          }
+        }}
         onSuccess={handleAuthSuccess}
       />
       <Toaster position="top-right" />

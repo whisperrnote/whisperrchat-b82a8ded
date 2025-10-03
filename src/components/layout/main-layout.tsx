@@ -36,6 +36,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
 import type { User, Conversation } from '../../types';
 import { Topbar } from './topbar';
+import { SettingsOverlay } from '../settings/settings-overlay';
 
 interface MainLayoutProps {
   currentUser: User | null;
@@ -47,6 +48,7 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
 
   const handleSelectConversation = (conversation: Conversation) => {
@@ -73,6 +75,7 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
   };
 
   return (
+    <>
     <ContextMenu>
       <ContextMenuTrigger>
         <div className="h-screen bg-black text-white flex flex-col">
@@ -111,7 +114,12 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
                           </div>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="text-violet-300 hover:text-white hover:bg-violet-800/50">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-violet-300 hover:text-white hover:bg-violet-800/50"
+                        onClick={() => setShowSettings(true)}
+                      >
                         <Settings className="h-4 w-4" />
                       </Button>
                     </div>
@@ -311,8 +319,13 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
           TenChat v0.1.0
         </ContextMenuItem>
       </ContextMenuContent>
-
-
     </ContextMenu>
+    
+    {/* Settings Overlay */}
+    <SettingsOverlay 
+      open={showSettings} 
+      onOpenChange={setShowSettings} 
+    />
+    </>
   );
 }

@@ -4,15 +4,11 @@
  */
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { account } from '@/lib/appwrite/config/client';
+import { account, functions } from '@/lib/appwrite/config/client';
 import type { Models } from 'appwrite';
 import {
   profileService,
-  messagingService,
-  socialService,
   web3Service,
-  storageService,
-  realtimeService,
 } from '@/lib/appwrite';
 
 interface AppwriteContextType {
@@ -20,7 +16,7 @@ interface AppwriteContextType {
   currentProfile: any | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  loginWithWallet: (email: string, address: string, signature: string, message: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -48,11 +44,13 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
       if (profile) {
         setCurrentProfile(profile);
       } else {
-        // Create profile if it doesn't exist
+        // Create profile if it doesn't exist - use wallet address as username
+        const walletAddress = user.prefs?.walletEth || user.email.split('@')[0];
         const newProfile = await profileService.createProfile(user.$id, {
-          username: user.name || user.email.split('@')[0],
-          displayName: user.name || 'User',
+          username: walletAddress.substring(0, 12),
+          displayName: `User ${walletAddress.substring(2, 8)}`,
           email: user.email,
+          walletAddress: user.prefs?.walletEth,
         });
         setCurrentProfile(newProfile);
       }
@@ -64,8 +62,35 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
-    await account.createEmailPasswordSession(email, password);
+  const loginWithWallet = async (email: string, address: string, signature: string, message: string) => {
+    // Get the Web3 function ID from environment
+    const functionId = import.meta.env.VITE_WEB3_FUNCTION_ID;
+    
+    if (!functionId) {
+      throw new Error('Web3 function not configured. Please set VITE_WEB3_FUNCTION_ID in your environment.');
+    }
+
+    // Call Appwrite Function for wallet authentication
+    const execution = await functions.createExecution(
+      functionId,
+      JSON.stringify({ email, address, signature, message }),
+      false // Synchronous execution
+    );
+
+    // Parse response
+    const response = JSON.parse(execution.responseBody);
+
+    if (execution.responseStatusCode !== 200) {
+      throw new Error(response.error || 'Authentication failed');
+    }
+
+    // Create Appwrite session with returned credentials
+    await account.createSession(
+      response.userId,
+      response.secret
+    );
+
+    // Fetch and set authenticated user data
     await checkAuth();
   };
 
@@ -112,7 +137,7 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
         currentProfile,
         isAuthenticated,
         isLoading,
-        login,
+        loginWithWallet,
         logout,
         refreshProfile,
       }}
