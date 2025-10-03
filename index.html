@@ -3,22 +3,51 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Whisperrchat - Secure End-to-End Encrypted Messaging</title>
-    <meta name="description" content="Open source, end-to-end encrypted chat application built on blockchain and Supabase. Secure messaging with military-grade encryption." />
-    <meta name="author" content="Whisperrchat Team" />
+    <title>WhisperChat - Secure Web3 Messaging</title>
+    <meta name="description" content="Next-gen Web3 messaging platform with end-to-end encryption, blockchain security, and crypto gifting. Connect your wallet and start chatting securely." />
+    <meta name="author" content="WhisperChat Team" />
+    <meta name="theme-color" content="#7c3aed" />
 
-    <meta property="og:title" content="Whisperrchat - Secure Messaging" />
-    <meta property="og:description" content="Open source, end-to-end encrypted chat application with blockchain security" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="WhisperChat - Secure Web3 Messaging" />
+    <meta property="og:description" content="Next-gen Web3 messaging with E2EE, blockchain security, and crypto gifting" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@whisperrchat" />
+    <meta name="twitter:title" content="WhisperChat - Secure Web3 Messaging" />
+    <meta name="twitter:description" content="Next-gen Web3 messaging with E2EE and crypto gifting" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <style>
+      /* Prevent FOUC (Flash of Unstyled Content) */
+      #root {
+        min-height: 100vh;
+        background: #000000;
+      }
+      
+      /* Loading state */
+      body:not(.loaded) #root::after {
+        content: '';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+      }
+    </style>
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Mark body as loaded once React takes over
+      window.addEventListener('load', () => {
+        document.body.classList.add('loaded');
+      });
+    </script>
   </body>
 </html>
