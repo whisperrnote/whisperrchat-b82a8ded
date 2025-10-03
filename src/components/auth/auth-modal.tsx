@@ -15,7 +15,7 @@ interface AuthModalProps {
 type LoadingState = 'idle' | 'connecting' | 'signing' | 'authenticating';
 
 export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
-  const { loginWithWallet } = useAppwrite();
+  const { loginWithWallet, forceRefreshAuth } = useAppwrite();
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [error, setError] = useState<string>('');
   const [email, setEmail] = useState('');
@@ -67,6 +67,9 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
       // Authenticate with backend
       await loginWithWallet(email, address, signature, message);
       
+      // Force a refresh to ensure state is updated
+      await forceRefreshAuth();
+      
       onSuccess();
       onOpenChange(false);
     } catch (err) {
@@ -78,6 +81,12 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
         setError('You cancelled the signature request. Please try again.');
       } else if (error.message?.includes('MetaMask')) {
         setError(error.message);
+      } else if (error.message?.includes('session already exists')) {
+        // Session already exists, just refresh
+        console.log('Session exists, refreshing...');
+        await forceRefreshAuth();
+        onSuccess();
+        onOpenChange(false);
       } else {
         setError(error?.message || 'Authentication failed. Please try again.');
       }
@@ -187,6 +196,26 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
               <div className="w-1 h-1 bg-gray-600 rounded-full mt-1.5" />
               <p>By continuing, you agree to our Terms & Privacy Policy</p>
             </div>
+            
+            {/* Debug: Check if there's an existing session */}
+            {error && error.includes('session') && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await forceRefreshAuth();
+                    onSuccess();
+                    onOpenChange(false);
+                  } catch (e) {
+                    setError('Could not restore session. Please logout from Appwrite Console and try again.');
+                  }
+                }}
+                className="w-full mt-2 bg-gray-800 hover:bg-gray-700 border-gray-700"
+              >
+                Try Restoring Session
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>
