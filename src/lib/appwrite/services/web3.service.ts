@@ -4,7 +4,7 @@
  */
 
 import { ID, Query } from 'appwrite';
-import { databases } from '../config/client';
+import { tablesDB } from '../config/client';
 import { DATABASE_IDS, WEB3_COLLECTIONS } from '../config/constants';
 import type { Wallets, Nfts, CryptoTransactions, TokenGifts, TokenHoldings } from '@/types/appwrite.d';
 
@@ -13,7 +13,7 @@ export class Web3Service {
 
   // Wallet Management
   async connectWallet(userId: string, address: string, chain: string, walletType: string): Promise<Wallets> {
-    return await databases.createRow<Wallets>(
+    return await tablesDB.createRow<Wallets>(
       this.databaseId,
       WEB3_COLLECTIONS.WALLETS,
       ID.unique(),
@@ -32,7 +32,7 @@ export class Web3Service {
 
   async getUserWallets(userId: string): Promise<Wallets[]> {
     try {
-      const response = await databases.listRows<Wallets>(
+      const response = await tablesDB.listRows<Wallets>(
         this.databaseId,
         WEB3_COLLECTIONS.WALLETS,
         [Query.equal('userId', userId)]
@@ -49,7 +49,7 @@ export class Web3Service {
     const wallets = await this.getUserWallets(userId);
     for (const wallet of wallets) {
       if (wallet.isPrimary) {
-        await databases.updateRow(
+        await tablesDB.updateRow(
           this.databaseId,
           WEB3_COLLECTIONS.WALLETS,
           wallet.$id,
@@ -59,7 +59,7 @@ export class Web3Service {
     }
 
     // Set new primary
-    await databases.updateRow(
+    await tablesDB.updateRow(
       this.databaseId,
       WEB3_COLLECTIONS.WALLETS,
       walletId,
@@ -69,7 +69,7 @@ export class Web3Service {
 
   // NFT Management
   async addNFT(userId: string, nftData: Partial<Nfts>): Promise<Nfts> {
-    return await databases.createRow<Nfts>(
+    return await tablesDB.createRow<Nfts>(
       this.databaseId,
       WEB3_COLLECTIONS.NFTS,
       ID.unique(),
@@ -86,7 +86,7 @@ export class Web3Service {
 
   async getUserNFTs(userId: string, limit = 50): Promise<Nfts[]> {
     try {
-      const response = await databases.listRows<Nfts>(
+      const response = await tablesDB.listRows<Nfts>(
         this.databaseId,
         WEB3_COLLECTIONS.NFTS,
         [
@@ -107,7 +107,7 @@ export class Web3Service {
     const nfts = await this.getUserNFTs(userId);
     for (const nft of nfts) {
       if (nft.isProfilePicture) {
-        await databases.updateRow(
+        await tablesDB.updateRow(
           this.databaseId,
           WEB3_COLLECTIONS.NFTS,
           nft.$id,
@@ -117,7 +117,7 @@ export class Web3Service {
     }
 
     // Set new profile picture
-    await databases.updateRow(
+    await tablesDB.updateRow(
       this.databaseId,
       WEB3_COLLECTIONS.NFTS,
       nftId,
@@ -127,7 +127,7 @@ export class Web3Service {
 
   // Transaction Tracking
   async recordTransaction(txData: Partial<CryptoTransactions>): Promise<CryptoTransactions> {
-    return await databases.createRow<CryptoTransactions>(
+    return await tablesDB.createRow<CryptoTransactions>(
       this.databaseId,
       WEB3_COLLECTIONS.CRYPTO_TRANSACTIONS,
       ID.unique(),
@@ -140,7 +140,7 @@ export class Web3Service {
   }
 
   async updateTransactionStatus(txId: string, status: string, blockNumber?: number): Promise<void> {
-    await databases.updateRow(
+    await tablesDB.updateRow(
       this.databaseId,
       WEB3_COLLECTIONS.CRYPTO_TRANSACTIONS,
       txId,
@@ -153,7 +153,7 @@ export class Web3Service {
 
   async getUserTransactions(userId: string, limit = 50): Promise<CryptoTransactions[]> {
     try {
-      const response = await databases.listRows<CryptoTransactions>(
+      const response = await tablesDB.listRows<CryptoTransactions>(
         this.databaseId,
         WEB3_COLLECTIONS.CRYPTO_TRANSACTIONS,
         [
@@ -174,7 +174,7 @@ export class Web3Service {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 day expiry
 
-    return await databases.createRow<TokenGifts>(
+    return await tablesDB.createRow<TokenGifts>(
       this.databaseId,
       WEB3_COLLECTIONS.TOKEN_GIFTS,
       ID.unique(),
@@ -188,7 +188,7 @@ export class Web3Service {
   }
 
   async claimGift(giftId: string, claimTxHash: string): Promise<void> {
-    await databases.updateRow(
+    await tablesDB.updateRow(
       this.databaseId,
       WEB3_COLLECTIONS.TOKEN_GIFTS,
       giftId,
@@ -202,7 +202,7 @@ export class Web3Service {
 
   async getPendingGifts(userId: string): Promise<TokenGifts[]> {
     try {
-      const response = await databases.listRows<TokenGifts>(
+      const response = await tablesDB.listRows<TokenGifts>(
         this.databaseId,
         WEB3_COLLECTIONS.TOKEN_GIFTS,
         [
@@ -220,7 +220,7 @@ export class Web3Service {
   // Token Holdings
   async updateHoldings(userId: string, holdingsData: Partial<TokenHoldings>): Promise<TokenHoldings> {
     // Try to find existing holding
-    const existing = await databases.listRows<TokenHoldings>(
+    const existing = await tablesDB.listRows<TokenHoldings>(
       this.databaseId,
       WEB3_COLLECTIONS.TOKEN_HOLDINGS,
       [
@@ -233,7 +233,7 @@ export class Web3Service {
 
     if (existing.rows.length > 0) {
       // Update existing
-      return await databases.updateRow<TokenHoldings>(
+      return await tablesDB.updateRow<TokenHoldings>(
         this.databaseId,
         WEB3_COLLECTIONS.TOKEN_HOLDINGS,
         existing.rows[0].$id,
@@ -245,7 +245,7 @@ export class Web3Service {
     }
 
     // Create new
-    return await databases.createRow<TokenHoldings>(
+    return await tablesDB.createRow<TokenHoldings>(
       this.databaseId,
       WEB3_COLLECTIONS.TOKEN_HOLDINGS,
       ID.unique(),
@@ -263,7 +263,7 @@ export class Web3Service {
       const queries = [Query.equal('userId', userId)];
       if (chain) queries.push(Query.equal('chain', chain));
 
-      const response = await databases.listRows<TokenHoldings>(
+      const response = await tablesDB.listRows<TokenHoldings>(
         this.databaseId,
         WEB3_COLLECTIONS.TOKEN_HOLDINGS,
         queries

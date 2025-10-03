@@ -4,7 +4,7 @@
  */
 
 import { ID, Query } from 'appwrite';
-import { databases } from '../config/client';
+import { tablesDB } from '../config/client';
 import { DATABASE_IDS, SOCIAL_COLLECTIONS } from '../config/constants';
 import type { Stories, StoryViews, Posts, PostReactions, Comments, Follows } from '@/types/appwrite.d';
 
@@ -18,7 +18,7 @@ export class SocialService {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
 
-    return await databases.createRow<Stories>(
+    return await tablesDB.createRow<Stories>(
       this.databaseId,
       SOCIAL_COLLECTIONS.STORIES,
       ID.unique(),
@@ -39,7 +39,7 @@ export class SocialService {
    */
   async getUserStories(userId: string): Promise<Stories[]> {
     try {
-      const response = await databases.listRows<Stories>(
+      const response = await tablesDB.listRows<Stories>(
         this.databaseId,
         SOCIAL_COLLECTIONS.STORIES,
         [
@@ -61,7 +61,7 @@ export class SocialService {
   async viewStory(storyId: string, viewerId: string): Promise<void> {
     try {
       // Check if already viewed
-      const existing = await databases.listRows<StoryViews>(
+      const existing = await tablesDB.listRows<StoryViews>(
         this.databaseId,
         SOCIAL_COLLECTIONS.STORY_VIEWS,
         [
@@ -74,7 +74,7 @@ export class SocialService {
       if (existing.rows.length > 0) return;
 
       // Create view record
-      await databases.createRow<StoryViews>(
+      await tablesDB.createRow<StoryViews>(
         this.databaseId,
         SOCIAL_COLLECTIONS.STORY_VIEWS,
         ID.unique(),
@@ -88,13 +88,13 @@ export class SocialService {
       );
 
       // Increment view count
-      const story = await databases.getRow<Stories>(
+      const story = await tablesDB.getRow<Stories>(
         this.databaseId,
         SOCIAL_COLLECTIONS.STORIES,
         storyId
       );
 
-      await databases.updateRow(
+      await tablesDB.updateRow(
         this.databaseId,
         SOCIAL_COLLECTIONS.STORIES,
         storyId,
@@ -112,7 +112,7 @@ export class SocialService {
    * Create a post
    */
   async createPost(data: Partial<Posts>): Promise<Posts> {
-    return await databases.createRow<Posts>(
+    return await tablesDB.createRow<Posts>(
       this.databaseId,
       SOCIAL_COLLECTIONS.POSTS,
       ID.unique(),
@@ -133,7 +133,7 @@ export class SocialService {
    */
   async getFeedPosts(limit = 20, offset = 0): Promise<Posts[]> {
     try {
-      const response = await databases.listRows<Posts>(
+      const response = await tablesDB.listRows<Posts>(
         this.databaseId,
         SOCIAL_COLLECTIONS.POSTS,
         [
@@ -154,7 +154,7 @@ export class SocialService {
    */
   async getUserPosts(userId: string, limit = 20): Promise<Posts[]> {
     try {
-      const response = await databases.listRows<Posts>(
+      const response = await tablesDB.listRows<Posts>(
         this.databaseId,
         SOCIAL_COLLECTIONS.POSTS,
         [
@@ -176,7 +176,7 @@ export class SocialService {
   async reactToPost(postId: string, userId: string, reaction: string): Promise<void> {
     try {
       // Check if already reacted
-      const existing = await databases.listRows<PostReactions>(
+      const existing = await tablesDB.listRows<PostReactions>(
         this.databaseId,
         SOCIAL_COLLECTIONS.POST_REACTIONS,
         [
@@ -188,7 +188,7 @@ export class SocialService {
 
       if (existing.rows.length > 0) {
         // Update reaction
-        await databases.updateRow(
+        await tablesDB.updateRow(
           this.databaseId,
           SOCIAL_COLLECTIONS.POST_REACTIONS,
           existing.rows[0].$id,
@@ -198,7 +198,7 @@ export class SocialService {
       }
 
       // Create reaction
-      await databases.createRow<PostReactions>(
+      await tablesDB.createRow<PostReactions>(
         this.databaseId,
         SOCIAL_COLLECTIONS.POST_REACTIONS,
         ID.unique(),
@@ -211,13 +211,13 @@ export class SocialService {
       );
 
       // Increment like count
-      const post = await databases.getRow<Posts>(
+      const post = await tablesDB.getRow<Posts>(
         this.databaseId,
         SOCIAL_COLLECTIONS.POSTS,
         postId
       );
 
-      await databases.updateRow(
+      await tablesDB.updateRow(
         this.databaseId,
         SOCIAL_COLLECTIONS.POSTS,
         postId,
@@ -239,7 +239,7 @@ export class SocialService {
     content: string,
     parentCommentId?: string
   ): Promise<Comments> {
-    const comment = await databases.createRow<Comments>(
+    const comment = await tablesDB.createRow<Comments>(
       this.databaseId,
       SOCIAL_COLLECTIONS.COMMENTS,
       ID.unique(),
@@ -257,13 +257,13 @@ export class SocialService {
     );
 
     // Increment post comment count
-    const post = await databases.getRow<Posts>(
+    const post = await tablesDB.getRow<Posts>(
       this.databaseId,
       SOCIAL_COLLECTIONS.POSTS,
       postId
     );
 
-    await databases.updateRow(
+    await tablesDB.updateRow(
       this.databaseId,
       SOCIAL_COLLECTIONS.POSTS,
       postId,
@@ -279,7 +279,7 @@ export class SocialService {
    * Follow a user
    */
   async followUser(followerId: string, followingId: string): Promise<Follows> {
-    return await databases.createRow<Follows>(
+    return await tablesDB.createRow<Follows>(
       this.databaseId,
       SOCIAL_COLLECTIONS.FOLLOWS,
       ID.unique(),
@@ -298,7 +298,7 @@ export class SocialService {
    * Unfollow a user
    */
   async unfollowUser(followerId: string, followingId: string): Promise<void> {
-    const follows = await databases.listRows<Follows>(
+    const follows = await tablesDB.listRows<Follows>(
       this.databaseId,
       SOCIAL_COLLECTIONS.FOLLOWS,
       [
@@ -309,7 +309,7 @@ export class SocialService {
     );
 
     if (follows.rows.length > 0) {
-      await databases.deleteRow(
+      await tablesDB.deleteRow(
         this.databaseId,
         SOCIAL_COLLECTIONS.FOLLOWS,
         follows.rows[0].$id
@@ -322,7 +322,7 @@ export class SocialService {
    */
   async getFollowers(userId: string, limit = 50): Promise<Follows[]> {
     try {
-      const response = await databases.listRows<Follows>(
+      const response = await tablesDB.listRows<Follows>(
         this.databaseId,
         SOCIAL_COLLECTIONS.FOLLOWS,
         [
@@ -342,7 +342,7 @@ export class SocialService {
    */
   async getFollowing(userId: string, limit = 50): Promise<Follows[]> {
     try {
-      const response = await databases.listRows<Follows>(
+      const response = await tablesDB.listRows<Follows>(
         this.databaseId,
         SOCIAL_COLLECTIONS.FOLLOWS,
         [
