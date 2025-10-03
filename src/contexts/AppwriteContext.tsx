@@ -20,6 +20,7 @@ interface AppwriteContextType {
   loginWithWallet: (email: string, address: string, signature: string, message: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  forceRefreshAuth: () => Promise<void>;
 }
 
 const AppwriteContext = createContext<AppwriteContextType | undefined>(undefined);
@@ -29,82 +30,127 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
   const [currentProfile, setCurrentProfile] = useState<Profiles | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    // Only check auth once on mount
+    if (!authCheckComplete) {
+      checkAuth();
+    }
+  }, [authCheckComplete]);
 
   const checkAuth = async () => {
     try {
+      console.log('Checking authentication...');
       const user = await account.get();
+      console.log('User found:', user.$id);
+      
       setCurrentAccount(user);
       setIsAuthenticated(true);
       
       // Load profile
-      const profile = await profileService.getProfile(user.$id);
-      if (profile) {
-        setCurrentProfile(profile);
-      } else {
-        // Create profile if it doesn't exist - use wallet address as username
-        const walletAddress = user.prefs?.walletEth || user.email.split('@')[0];
-        const newProfile = await profileService.createProfile(user.$id, {
-          username: walletAddress.substring(0, 12),
-          displayName: `User ${walletAddress.substring(2, 8)}`,
-          email: user.email,
-          walletAddress: user.prefs?.walletEth,
-        });
-        setCurrentProfile(newProfile);
+      try {
+        const profile = await profileService.getProfile(user.$id);
+        if (profile) {
+          console.log('Profile loaded:', profile.$id);
+          setCurrentProfile(profile);
+        } else {
+          console.log('Creating new profile...');
+          // Create profile if it doesn't exist - use wallet address as username
+          const walletAddress = user.prefs?.walletEth || user.email.split('@')[0];
+          const newProfile = await profileService.createProfile(user.$id, {
+            username: walletAddress.substring(0, 12),
+            displayName: `User ${walletAddress.substring(2, 8)}`,
+            email: user.email,
+            walletAddress: user.prefs?.walletEth,
+          });
+          console.log('Profile created:', newProfile.$id);
+          setCurrentProfile(newProfile);
+        }
+      } catch (profileError) {
+        console.error('Profile error:', profileError);
+        // Continue even if profile fails
       }
-    } catch (error) {
-      console.log('Not authenticated');
+    } catch (error: any) {
+      console.log('Not authenticated:', error?.message || error);
       setIsAuthenticated(false);
+      setCurrentAccount(null);
+      setCurrentProfile(null);
     } finally {
       setIsLoading(false);
+      setAuthCheckComplete(true);
     }
   };
 
   const loginWithWallet = async (email: string, address: string, signature: string, message: string) => {
-    // Get the Web3 function ID from environment
-    const functionId = import.meta.env.VITE_WEB3_FUNCTION_ID;
-    
-    if (!functionId) {
-      throw new Error('Web3 function not configured. Please set VITE_WEB3_FUNCTION_ID in your environment.');
+    try {
+      console.log('Starting wallet authentication...');
+      
+      // Get the Web3 function ID from environment
+      const functionId = import.meta.env.VITE_WEB3_FUNCTION_ID;
+      
+      if (!functionId) {
+        throw new Error('Web3 function not configured. Please set VITE_WEB3_FUNCTION_ID in your environment.');
+      }
+
+      console.log('Calling Web3 function...');
+      // Call Appwrite Function for wallet authentication
+      const execution = await functions.createExecution(
+        functionId,
+        JSON.stringify({ email, address, signature, message }),
+        false // Synchronous execution
+      );
+
+      console.log('Function response:', execution.responseStatusCode);
+      
+      // Parse response
+      const response = JSON.parse(execution.responseBody || '{}');
+
+      if (execution.responseStatusCode !== 200) {
+        throw new Error(response.error || 'Authentication failed');
+      }
+
+      console.log('Creating session with userId:', response.userId);
+      
+      // Create Appwrite session with returned credentials
+      // Use object parameter style for better compatibility
+      await account.createSession({
+        userId: response.userId,
+        secret: response.secret
+      });
+
+      console.log('Session created successfully');
+
+      // Fetch and set authenticated user data
+      await checkAuth();
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw error;
     }
-
-    // Call Appwrite Function for wallet authentication
-    const execution = await functions.createExecution(
-      functionId,
-      JSON.stringify({ email, address, signature, message }),
-      false // Synchronous execution
-    );
-
-    // Parse response
-    const response = JSON.parse(execution.responseBody);
-
-    if (execution.responseStatusCode !== 200) {
-      throw new Error(response.error || 'Authentication failed');
-    }
-
-    // Create Appwrite session with returned credentials
-    await account.createSession(
-      response.userId,
-      response.secret
-    );
-
-    // Fetch and set authenticated user data
-    await checkAuth();
   };
 
   const logout = async () => {
-    // Update online status
-    if (currentProfile) {
-      await profileService.updateOnlineStatus(currentProfile.$id, false);
+    try {
+      console.log('Logging out...');
+      
+      // Update online status
+      if (currentProfile) {
+        await profileService.updateOnlineStatus(currentProfile.$id, false);
+      }
+      
+      await account.deleteSession('current');
+      console.log('Session deleted');
+      
+      setCurrentAccount(null);
+      setCurrentProfile(null);
+      setIsAuthenticated(false);
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      // Force clear state even if API call fails
+      setCurrentAccount(null);
+      setCurrentProfile(null);
+      setIsAuthenticated(false);
     }
-    
-    await account.deleteSession('current');
-    setCurrentAccount(null);
-    setCurrentProfile(null);
-    setIsAuthenticated(false);
   };
 
   const refreshProfile = async () => {
@@ -112,6 +158,12 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
       const profile = await profileService.getProfile(currentAccount.$id);
       setCurrentProfile(profile);
     }
+  };
+
+  const forceRefreshAuth = async () => {
+    console.log('Force refreshing authentication state...');
+    setIsLoading(true);
+    await checkAuth();
   };
 
   // Update online status on mount/unmount
@@ -141,6 +193,7 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
         loginWithWallet,
         logout,
         refreshProfile,
+        forceRefreshAuth,
       }}
     >
       {children}
