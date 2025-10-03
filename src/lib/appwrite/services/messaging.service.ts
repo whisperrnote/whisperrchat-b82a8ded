@@ -6,7 +6,7 @@
 import { ID, Query, type Models } from 'appwrite';
 import { databases } from '../config/client';
 import { DATABASE_IDS, MAIN_COLLECTIONS } from '../config/constants';
-import type { Conversations, Messages } from '@/types/appwrite';
+import type { Conversations, Messages } from '@/types/appwrite.d';
 
 export class MessagingService {
   private readonly databaseId = DATABASE_IDS.MAIN;

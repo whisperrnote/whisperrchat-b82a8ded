@@ -6,7 +6,7 @@
 import { ID, Query } from 'appwrite';
 import { databases } from '../config/client';
 import { DATABASE_IDS, SOCIAL_COLLECTIONS } from '../config/constants';
-import type { Stories, StoryViews, Posts, PostReactions, Comments, Follows } from '@/types/appwrite';
+import type { Stories, StoryViews, Posts, PostReactions, Comments, Follows } from '@/types/appwrite.d';
 
 export class SocialService {
   private readonly databaseId = DATABASE_IDS.SOCIAL;
