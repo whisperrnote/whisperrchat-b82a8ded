@@ -54,8 +54,9 @@ export function SettingsOverlay({ open, onOpenChange }: SettingsOverlayProps) {
     try {
       // In a real implementation, this would trigger email verification
       toast.info('Verification email will be sent (not yet implemented)');
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to send verification email');
+    } catch (err) {
+      const error = err as { message?: string };
+      toast.error(error?.message || 'Failed to send verification email');
     } finally {
       setVerificationLoading(false);
     }
@@ -66,8 +67,9 @@ export function SettingsOverlay({ open, onOpenChange }: SettingsOverlayProps) {
       await logout();
       onOpenChange(false);
       toast.success('Logged out successfully');
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to logout');
+    } catch (err) {
+      const error = err as { message?: string };
+      toast.error(error?.message || 'Failed to logout');
     }
   };
 

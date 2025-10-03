@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { account, functions } from '@/lib/appwrite/config/client';
 import type { Models } from 'appwrite';
+import type { Profiles } from '@/types/appwrite.d';
 import {
   profileService,
   web3Service,
@@ -13,7 +14,7 @@ import {
 
 interface AppwriteContextType {
   currentAccount: Models.User<Models.Preferences> | null;
-  currentProfile: any | null;
+  currentProfile: Profiles | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   loginWithWallet: (email: string, address: string, signature: string, message: string) => Promise<void>;
@@ -25,7 +26,7 @@ const AppwriteContext = createContext<AppwriteContextType | undefined>(undefined
 
 export function AppwriteProvider({ children }: { children: React.ReactNode }) {
   const [currentAccount, setCurrentAccount] = useState<Models.User<Models.Preferences> | null>(null);
-  const [currentProfile, setCurrentProfile] = useState<any | null>(null);
+  const [currentProfile, setCurrentProfile] = useState<Profiles | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
