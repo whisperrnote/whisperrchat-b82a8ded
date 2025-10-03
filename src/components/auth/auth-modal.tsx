@@ -3,11 +3,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wallet, Mail, Lock } from 'lucide-react';
+import { Wallet, Mail, Loader2, AlertCircle } from 'lucide-react';
 import { useAppwrite } from '@/contexts/AppwriteContext';
-import { account } from '@/lib/appwrite/config/client';
-import { ID } from 'appwrite';
 
 interface AuthModalProps {
   open: boolean;
@@ -15,186 +12,182 @@ interface AuthModalProps {
   onSuccess: () => void;
 }
 
+type LoadingState = 'idle' | 'connecting' | 'signing' | 'authenticating';
+
 export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
-  const { login } = useAppwrite();
-  const [loading, setLoading] = useState(false);
+  const { loginWithWallet } = useAppwrite();
+  const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [error, setError] = useState<string>('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      setError('Please enter email and password');
+  const handleWalletConnect = async () => {
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address');
       return;
     }
 
-    setLoading(true);
     setError('');
 
     try {
-      await login(email, password);
-      onSuccess();
-      onOpenChange(false);
-    } catch (err: any) {
-      setError(err?.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignup = async () => {
-    if (!email || !password || !name) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      // Create account
-      await account.create(ID.unique(), email, password, name);
+      setLoadingState('connecting');
       
-      // Auto login after signup
-      await login(email, password);
+      // Check MetaMask
+      if (!window.ethereum) {
+        setError('MetaMask not installed. Please install MetaMask browser extension.');
+        setLoadingState('idle');
+        return;
+      }
+
+      // Request wallet connection
+      const accounts = await window.ethereum.request({ 
+        method: 'eth_requestAccounts' 
+      });
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No wallet account selected');
+      }
+
+      const address = accounts[0];
+
+      setLoadingState('signing');
+
+      // Generate authentication message
+      const timestamp = Date.now();
+      const message = `auth-${timestamp}`;
+      const fullMessage = `Sign this message to authenticate: ${message}`;
+
+      // Request signature
+      const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [fullMessage, address]
+      });
+
+      setLoadingState('authenticating');
+
+      // Authenticate with backend
+      await loginWithWallet(email, address, signature, message);
+      
       onSuccess();
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err?.message || 'Signup failed');
+    } catch (err) {
+      const error = err as { code?: number; message?: string };
+      console.error('Wallet connect error:', error);
+      
+      // Handle specific errors
+      if (error.code === 4001 || error.message?.includes('User rejected')) {
+        setError('You cancelled the signature request. Please try again.');
+      } else if (error.message?.includes('MetaMask')) {
+        setError(error.message);
+      } else {
+        setError(error?.message || 'Authentication failed. Please try again.');
+      }
     } finally {
-      setLoading(false);
+      setLoadingState('idle');
     }
   };
+
+  const getButtonText = () => {
+    switch (loadingState) {
+      case 'connecting': return 'Connecting to wallet...';
+      case 'signing': return 'Please sign the message...';
+      case 'authenticating': return 'Authenticating...';
+      default: return 'Connect Wallet';
+    }
+  };
+
+  const isLoading = loadingState !== 'idle';
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800">
+    <Dialog open={open} onOpenChange={isLoading ? undefined : onOpenChange}>
+      <DialogContent 
+        className="sm:max-w-md bg-gray-900/95 backdrop-blur-xl border-gray-800"
+        onPointerDownOutside={(e) => {
+          if (isLoading) e.preventDefault();
+        }}
+      >
         <DialogHeader>
-          <DialogTitle className="text-white">Welcome to WhisperChat</DialogTitle>
+          <DialogTitle className="text-white flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-purple-400" />
+            Welcome to WhisperChat
+          </DialogTitle>
           <DialogDescription className="text-gray-400">
-            Sign in or create an account to get started
+            Connect your wallet to get started. This is a Web3-first messaging platform.
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-gray-800">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="login" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="login-email" className="text-gray-300">Email</Label>
-              <Input
-                id="login-email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="login-password" className="text-gray-300">Password</Label>
-              <Input
-                id="login-password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !loading && email && password) {
-                    handleLogin();
-                  }
-                }}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-
-            <Button 
-              onClick={handleLogin} 
-              disabled={loading || !email || !password} 
-              className="w-full bg-purple-600 hover:bg-purple-700"
-            >
-              <Lock className="w-4 h-4 mr-2" />
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </TabsContent>
-
-          <TabsContent value="signup" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="signup-name" className="text-gray-300">Name</Label>
-              <Input
-                id="signup-name"
-                type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="signup-email" className="text-gray-300">Email</Label>
-              <Input
-                id="signup-email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="signup-password" className="text-gray-300">Password</Label>
-              <Input
-                id="signup-password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !loading && email && password && name) {
-                    handleSignup();
-                  }
-                }}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-              <p className="text-xs text-gray-500">Minimum 8 characters</p>
-            </div>
-
-            <Button 
-              onClick={handleSignup} 
-              disabled={loading || !email || !password || !name} 
-              className="w-full bg-purple-600 hover:bg-purple-700"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              {loading ? 'Creating account...' : 'Create Account'}
-            </Button>
-          </TabsContent>
-        </Tabs>
-
-        {error && (
-          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-            <p className="text-sm text-red-400">{error}</p>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-gray-300 flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Email Address
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !isLoading && email) {
+                  handleWalletConnect();
+                }
+              }}
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+            />
+            <p className="text-xs text-gray-500">
+              Your email is linked to your wallet for account recovery
+            </p>
           </div>
-        )}
 
-        <div className="text-center text-sm text-gray-500">
-          <p>By continuing, you agree to our Terms & Privacy Policy</p>
+          <Button 
+            onClick={handleWalletConnect} 
+            disabled={isLoading || !email} 
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-6"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {getButtonText()}
+              </>
+            ) : (
+              <>
+                <Wallet className="w-4 h-4 mr-2" />
+                {getButtonText()}
+              </>
+            )}
+          </Button>
+
+          {isLoading && (
+            <div className="flex items-center gap-2 text-sm text-gray-400 animate-pulse">
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+              {loadingState === 'connecting' && 'Opening MetaMask...'}
+              {loadingState === 'signing' && 'Waiting for signature...'}
+              {loadingState === 'authenticating' && 'Creating secure session...'}
+            </div>
+          )}
+
+          {error && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400 mt-0.5" />
+              <p className="text-sm text-red-400 flex-1">{error}</p>
+            </div>
+          )}
+
+          <div className="space-y-3 pt-4 border-t border-gray-800">
+            <div className="flex items-start gap-2 text-xs text-gray-500">
+              <div className="w-1 h-1 bg-gray-600 rounded-full mt-1.5" />
+              <p>No MetaMask? <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">Install it here</a></p>
+            </div>
+            <div className="flex items-start gap-2 text-xs text-gray-500">
+              <div className="w-1 h-1 bg-gray-600 rounded-full mt-1.5" />
+              <p>Your wallet address will be your primary identity</p>
+            </div>
+            <div className="flex items-start gap-2 text-xs text-gray-500">
+              <div className="w-1 h-1 bg-gray-600 rounded-full mt-1.5" />
+              <p>By continuing, you agree to our Terms & Privacy Policy</p>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
