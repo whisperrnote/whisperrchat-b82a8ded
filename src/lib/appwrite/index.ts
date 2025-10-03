@@ -17,6 +17,6 @@ export type {
   Stories,
   Posts,
   Wallets,
-  Nfts,
+  NfTs,
   TokenGifts,
 } from '@/types/appwrite.d';

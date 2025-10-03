@@ -1,5 +1,5 @@
 /**
- * Social Service
+ * Social Service  
  * Handles stories, posts, comments, and follows
  */
 
@@ -11,18 +11,15 @@ import type { Stories, StoryViews, Posts, PostReactions, Comments, Follows } fro
 export class SocialService {
   private readonly databaseId = DATABASE_IDS.SOCIAL;
 
-  /**
-   * Create a story
-   */
   async createStory(data: Partial<Stories>): Promise<Stories> {
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+    expiresAt.setHours(expiresAt.getHours() + 24);
 
-    return await tablesDB.createRow<Stories>(
-      this.databaseId,
-      SOCIAL_COLLECTIONS.STORIES,
-      ID.unique(),
-      {
+    return await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: SOCIAL_COLLECTIONS.STORIES,
+      rowId: ID.unique(),
+      data: {
         ...data,
         viewCount: 0,
         reactionCount: 0,
@@ -31,92 +28,80 @@ export class SocialService {
         expiresAt: expiresAt.toISOString(),
         createdAt: new Date().toISOString(),
       }
-    );
+    }) as Stories;
   }
 
-  /**
-   * Get user's stories
-   */
   async getUserStories(userId: string): Promise<Stories[]> {
     try {
-      const response = await tablesDB.listRows<Stories>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.STORIES,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.STORIES,
+        queries: [
           Query.equal('userId', userId),
           Query.greaterThan('expiresAt', new Date().toISOString()),
           Query.orderDesc('createdAt'),
         ]
-      );
-      return response.rows;
+      });
+      return response.rows as Stories[];
     } catch (error) {
       console.error('Error getting user stories:', error);
       return [];
     }
   }
 
-  /**
-   * Record story view
-   */
   async viewStory(storyId: string, viewerId: string): Promise<void> {
     try {
-      // Check if already viewed
-      const existing = await tablesDB.listRows<StoryViews>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.STORY_VIEWS,
-        [
+      const existing = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.STORY_VIEWS,
+        queries: [
           Query.equal('storyId', storyId),
           Query.equal('viewerId', viewerId),
           Query.limit(1),
         ]
-      );
+      });
 
       if (existing.rows.length > 0) return;
 
-      // Create view record
-      await tablesDB.createRow<StoryViews>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.STORY_VIEWS,
-        ID.unique(),
-        {
+      await tablesDB.createRow({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.STORY_VIEWS,
+        rowId: ID.unique(),
+        data: {
           storyId,
           viewerId,
           watchDuration: 0,
           completedView: false,
           viewedAt: new Date().toISOString(),
         }
-      );
+      });
 
-      // Increment view count
-      const story = await tablesDB.getRow<Stories>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.STORIES,
-        storyId
-      );
+      const story = await tablesDB.getRow({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.STORIES,
+        rowId: storyId
+      }) as Stories;
 
-      await tablesDB.updateRow(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.STORIES,
-        storyId,
-        {
+      await tablesDB.updateRow({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.STORIES,
+        rowId: storyId,
+        data: {
           viewCount: (story.viewCount || 0) + 1,
           viewerIds: [...(story.viewerIds || []), viewerId],
         }
-      );
+      });
     } catch (error) {
       console.error('Error recording story view:', error);
     }
   }
 
-  /**
-   * Create a post
-   */
   async createPost(data: Partial<Posts>): Promise<Posts> {
-    return await tablesDB.createRow<Posts>(
-      this.databaseId,
-      SOCIAL_COLLECTIONS.POSTS,
-      ID.unique(),
-      {
+    return await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: SOCIAL_COLLECTIONS.POSTS,
+      rowId: ID.unique(),
+      data: {
         ...data,
         likeCount: 0,
         commentCount: 0,
@@ -125,125 +110,104 @@ export class SocialService {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-    );
+    }) as Posts;
   }
 
-  /**
-   * Get feed posts
-   */
   async getFeedPosts(limit = 20, offset = 0): Promise<Posts[]> {
     try {
-      const response = await tablesDB.listRows<Posts>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.POSTS,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.POSTS,
+        queries: [
           Query.orderDesc('createdAt'),
           Query.limit(limit),
           Query.offset(offset),
         ]
-      );
-      return response.rows;
+      });
+      return response.rows as Posts[];
     } catch (error) {
       console.error('Error getting feed posts:', error);
       return [];
     }
   }
 
-  /**
-   * Get user posts
-   */
   async getUserPosts(userId: string, limit = 20): Promise<Posts[]> {
     try {
-      const response = await tablesDB.listRows<Posts>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.POSTS,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.POSTS,
+        queries: [
           Query.equal('userId', userId),
           Query.orderDesc('createdAt'),
           Query.limit(limit),
         ]
-      );
-      return response.rows;
+      });
+      return response.rows as Posts[];
     } catch (error) {
       console.error('Error getting user posts:', error);
       return [];
     }
   }
 
-  /**
-   * React to post
-   */
   async reactToPost(postId: string, userId: string, reaction: string): Promise<void> {
     try {
-      // Check if already reacted
-      const existing = await tablesDB.listRows<PostReactions>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.POST_REACTIONS,
-        [
+      const existing = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.POST_REACTIONS,
+        queries: [
           Query.equal('postId', postId),
           Query.equal('userId', userId),
           Query.limit(1),
         ]
-      );
+      });
 
       if (existing.rows.length > 0) {
-        // Update reaction
-        await tablesDB.updateRow(
-          this.databaseId,
-          SOCIAL_COLLECTIONS.POST_REACTIONS,
-          existing.rows[0].$id,
-          { reaction }
-        );
+        await tablesDB.updateRow({
+          databaseId: this.databaseId,
+          tableId: SOCIAL_COLLECTIONS.POST_REACTIONS,
+          rowId: existing.rows[0].$id,
+          data: { reaction }
+        });
         return;
       }
 
-      // Create reaction
-      await tablesDB.createRow<PostReactions>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.POST_REACTIONS,
-        ID.unique(),
-        {
+      await tablesDB.createRow({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.POST_REACTIONS,
+        rowId: ID.unique(),
+        data: {
           postId,
           userId,
           reaction,
           createdAt: new Date().toISOString(),
         }
-      );
+      });
 
-      // Increment like count
-      const post = await tablesDB.getRow<Posts>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.POSTS,
-        postId
-      );
+      const post = await tablesDB.getRow({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.POSTS,
+        rowId: postId
+      }) as Posts;
 
-      await tablesDB.updateRow(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.POSTS,
-        postId,
-        {
+      await tablesDB.updateRow({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.POSTS,
+        rowId: postId,
+        data: {
           likeCount: (post.likeCount || 0) + 1,
         }
-      );
+      });
     } catch (error) {
       console.error('Error reacting to post:', error);
     }
   }
 
-  /**
-   * Add comment to post
-   */
-  async addComment(
-    postId: string,
-    userId: string,
-    content: string,
-    parentCommentId?: string
-  ): Promise<Comments> {
-    const comment = await tablesDB.createRow<Comments>(
-      this.databaseId,
-      SOCIAL_COLLECTIONS.COMMENTS,
-      ID.unique(),
-      {
+  async addComment(postId: string, userId: string, content: string, parentCommentId?: string): Promise<Comments> {
+    const comment = await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: SOCIAL_COLLECTIONS.COMMENTS,
+      rowId: ID.unique(),
+      data: {
         postId,
         userId,
         content,
@@ -254,36 +218,32 @@ export class SocialService {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-    );
+    }) as Comments;
 
-    // Increment post comment count
-    const post = await tablesDB.getRow<Posts>(
-      this.databaseId,
-      SOCIAL_COLLECTIONS.POSTS,
-      postId
-    );
+    const post = await tablesDB.getRow({
+      databaseId: this.databaseId,
+      tableId: SOCIAL_COLLECTIONS.POSTS,
+      rowId: postId
+    }) as Posts;
 
-    await tablesDB.updateRow(
-      this.databaseId,
-      SOCIAL_COLLECTIONS.POSTS,
-      postId,
-      {
+    await tablesDB.updateRow({
+      databaseId: this.databaseId,
+      tableId: SOCIAL_COLLECTIONS.POSTS,
+      rowId: postId,
+      data: {
         commentCount: (post.commentCount || 0) + 1,
       }
-    );
+    });
 
     return comment;
   }
 
-  /**
-   * Follow a user
-   */
   async followUser(followerId: string, followingId: string): Promise<Follows> {
-    return await tablesDB.createRow<Follows>(
-      this.databaseId,
-      SOCIAL_COLLECTIONS.FOLLOWS,
-      ID.unique(),
-      {
+    return await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: SOCIAL_COLLECTIONS.FOLLOWS,
+      rowId: ID.unique(),
+      data: {
         followerId,
         followingId,
         status: 'accepted',
@@ -291,66 +251,57 @@ export class SocialService {
         notificationsEnabled: true,
         createdAt: new Date().toISOString(),
       }
-    );
+    }) as Follows;
   }
 
-  /**
-   * Unfollow a user
-   */
   async unfollowUser(followerId: string, followingId: string): Promise<void> {
-    const follows = await tablesDB.listRows<Follows>(
-      this.databaseId,
-      SOCIAL_COLLECTIONS.FOLLOWS,
-      [
+    const follows = await tablesDB.listRows({
+      databaseId: this.databaseId,
+      tableId: SOCIAL_COLLECTIONS.FOLLOWS,
+      queries: [
         Query.equal('followerId', followerId),
         Query.equal('followingId', followingId),
         Query.limit(1),
       ]
-    );
+    });
 
     if (follows.rows.length > 0) {
-      await tablesDB.deleteRow(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.FOLLOWS,
-        follows.rows[0].$id
-      );
+      await tablesDB.deleteRow({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.FOLLOWS,
+        rowId: follows.rows[0].$id
+      });
     }
   }
 
-  /**
-   * Get followers
-   */
   async getFollowers(userId: string, limit = 50): Promise<Follows[]> {
     try {
-      const response = await tablesDB.listRows<Follows>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.FOLLOWS,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.FOLLOWS,
+        queries: [
           Query.equal('followingId', userId),
           Query.limit(limit),
         ]
-      );
-      return response.rows;
+      });
+      return response.rows as Follows[];
     } catch (error) {
       console.error('Error getting followers:', error);
       return [];
     }
   }
 
-  /**
-   * Get following
-   */
   async getFollowing(userId: string, limit = 50): Promise<Follows[]> {
     try {
-      const response = await tablesDB.listRows<Follows>(
-        this.databaseId,
-        SOCIAL_COLLECTIONS.FOLLOWS,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: SOCIAL_COLLECTIONS.FOLLOWS,
+        queries: [
           Query.equal('followerId', userId),
           Query.limit(limit),
         ]
-      );
-      return response.rows;
+      });
+      return response.rows as Follows[];
     } catch (error) {
       console.error('Error getting following:', error);
       return [];
