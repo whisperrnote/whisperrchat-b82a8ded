@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/context-menu";
 import { ConversationList } from '../messaging/conversation-list';
 import { ChatInterface } from '../messaging/chat-interface';
+import { NewChatModal } from '../messaging/new-chat-modal';
+import { SearchModal } from '../messaging/search-modal';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -49,6 +51,8 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
   const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
 
   const handleSelectConversation = (conversation: Conversation) => {
@@ -83,6 +87,9 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
             currentUser={currentUser}
             onConnect={onLogin}
             onLogout={onLogout}
+            onOpenSettings={() => setShowSettings(true)}
+            onOpenNewChat={() => setShowNewChat(true)}
+            onOpenSearch={() => setShowSearch(true)}
           />
           <div className="flex-1 flex flex-col md:flex-row">
           {/* Left Sidebar - Crypto Dashboard + Conversations */}
@@ -325,6 +332,18 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
     <SettingsOverlay 
       open={showSettings} 
       onOpenChange={setShowSettings} 
+    />
+    
+    {/* New Chat Modal */}
+    <NewChatModal
+      open={showNewChat}
+      onOpenChange={setShowNewChat}
+    />
+    
+    {/* Search Modal */}
+    <SearchModal
+      open={showSearch}
+      onOpenChange={setShowSearch}
     />
     </>
   );

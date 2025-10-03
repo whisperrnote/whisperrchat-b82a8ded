@@ -5,7 +5,7 @@ import { AuthModal } from './components/auth/auth-modal';
 import { AppwriteProvider, useAppwrite } from './contexts/AppwriteContext';
 
 function AppContent() {
-  const { currentAccount, currentProfile, isAuthenticated, isLoading, forceRefreshAuth } = useAppwrite();
+  const { currentAccount, currentProfile, isAuthenticated, isLoading, forceRefreshAuth, logout } = useAppwrite();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Always show auth modal when not authenticated (persistent overlay)
@@ -26,6 +26,15 @@ function AppContent() {
     setShowAuthModal(false);
     // Force a refresh to ensure we have the latest state
     forceRefreshAuth();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setShowAuthModal(true);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   // Convert Appwrite account to legacy User type for compatibility
@@ -56,21 +65,12 @@ function AppContent() {
 
   return (
     <>
-      {/* Development debug info */}
-      {import.meta.env.DEV && (
-        <div className="fixed top-2 right-2 z-50 bg-black/80 text-white text-xs p-2 rounded border border-gray-700">
-          <div>Auth: {isAuthenticated ? '✅' : '❌'}</div>
-          <div>Loading: {isLoading ? '⏳' : '✓'}</div>
-          <div>Account: {currentAccount ? currentAccount.$id.slice(0, 8) : 'None'}</div>
-          <div>Profile: {currentProfile ? '✓' : '❌'}</div>
-        </div>
-      )}
-      
       {/* Blur and disable interaction when not authenticated */}
       <div className={!isAuthenticated ? 'blur-sm pointer-events-none' : ''}>
         <Chat 
           currentUser={legacyUser} 
           onLogin={() => setShowAuthModal(true)}
+          onLogout={handleLogout}
         />
       </div>
       
