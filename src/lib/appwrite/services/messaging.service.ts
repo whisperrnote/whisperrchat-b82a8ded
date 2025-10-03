@@ -17,7 +17,7 @@ export class MessagingService {
    * Create a new conversation
    */
   async createConversation(data: Partial<Conversations>): Promise<Conversations> {
-    return await databases.createRow<Conversations>(
+    return await databases.createDocument<Conversations>(
       this.databaseId,
       this.conversationsCollection,
       ID.unique(),
@@ -35,7 +35,7 @@ export class MessagingService {
    */
   async getConversation(conversationId: string): Promise<Conversations | null> {
     try {
-      return await databases.getRow<Conversations>(
+      return await databases.getDocument<Conversations>(
         this.databaseId,
         this.conversationsCollection,
         conversationId
@@ -51,7 +51,7 @@ export class MessagingService {
    */
   async getUserConversations(userId: string, limit = 50): Promise<Conversations[]> {
     try {
-      const response = await databases.listRows<Conversations>(
+      const response = await databases.listDocuments<Conversations>(
         this.databaseId,
         this.conversationsCollection,
         [
@@ -60,7 +60,7 @@ export class MessagingService {
           Query.limit(limit),
         ]
       );
-      return response.rows;
+      return response.documents;
     } catch (error) {
       console.error('Error getting user conversations:', error);
       return [];
@@ -74,7 +74,7 @@ export class MessagingService {
     conversationId: string,
     data: Partial<Conversations>
   ): Promise<Conversations> {
-    return await databases.updateRow<Conversations>(
+    return await databases.updateDocument<Conversations>(
       this.databaseId,
       this.conversationsCollection,
       conversationId,
@@ -89,7 +89,7 @@ export class MessagingService {
    * Send a message
    */
   async sendMessage(data: Partial<Messages>): Promise<Messages> {
-    const message = await databases.createRow<Messages>(
+    const message = await databases.createDocument<Messages>(
       this.databaseId,
       this.messagesCollection,
       ID.unique(),
@@ -122,7 +122,7 @@ export class MessagingService {
     offset = 0
   ): Promise<Messages[]> {
     try {
-      const response = await databases.listRows<Messages>(
+      const response = await databases.listDocuments<Messages>(
         this.databaseId,
         this.messagesCollection,
         [
@@ -132,7 +132,7 @@ export class MessagingService {
           Query.offset(offset),
         ]
       );
-      return response.rows;
+      return response.documents;
     } catch (error) {
       console.error('Error getting messages:', error);
       return [];
@@ -147,7 +147,7 @@ export class MessagingService {
     status: string,
     userId?: string
   ): Promise<Messages> {
-    const message = await databases.getRow<Messages>(
+    const message = await databases.getDocument<Messages>(
       this.databaseId,
       this.messagesCollection,
       messageId
@@ -163,7 +163,7 @@ export class MessagingService {
       }
     }
 
-    return await databases.updateRow<Messages>(
+    return await databases.updateDocument<Messages>(
       this.databaseId,
       this.messagesCollection,
       messageId,
@@ -175,13 +175,13 @@ export class MessagingService {
    * Delete message (soft delete)
    */
   async deleteMessage(messageId: string, userId: string): Promise<Messages> {
-    const message = await databases.getRow<Messages>(
+    const message = await databases.getDocument<Messages>(
       this.databaseId,
       this.messagesCollection,
       messageId
     );
 
-    return await databases.updateRow<Messages>(
+    return await databases.updateDocument<Messages>(
       this.databaseId,
       this.messagesCollection,
       messageId,
@@ -200,7 +200,7 @@ export class MessagingService {
     userId: string,
     emoji: string
   ): Promise<Messages> {
-    const message = await databases.getRow<Messages>(
+    const message = await databases.getDocument<Messages>(
       this.databaseId,
       this.messagesCollection,
       messageId
@@ -216,7 +216,7 @@ export class MessagingService {
       reactions[emoji].push(userId);
     }
 
-    return await databases.updateRow<Messages>(
+    return await databases.updateDocument<Messages>(
       this.databaseId,
       this.messagesCollection,
       messageId,
@@ -287,7 +287,7 @@ export class MessagingService {
     limit = 20
   ): Promise<Messages[]> {
     try {
-      const response = await databases.listRows<Messages>(
+      const response = await databases.listDocuments<Messages>(
         this.databaseId,
         this.messagesCollection,
         [
@@ -296,7 +296,7 @@ export class MessagingService {
           Query.limit(limit),
         ]
       );
-      return response.rows;
+      return response.documents;
     } catch (error) {
       console.error('Error searching messages:', error);
       return [];

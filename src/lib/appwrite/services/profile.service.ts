@@ -17,12 +17,12 @@ export class ProfileService {
    */
   async getProfile(userId: string): Promise<Profiles | null> {
     try {
-      const response = await databases.listRows<Profiles>(
+      const response = await databases.listDocuments<Profiles>(
         this.databaseId,
         this.collectionId,
         [Query.equal('userId', userId), Query.limit(1)]
       );
-      return response.rows[0] || null;
+      return response.documents[0] || null;
     } catch (error) {
       console.error('Error getting profile:', error);
       return null;
@@ -34,7 +34,7 @@ export class ProfileService {
    */
   async getProfileById(id: string): Promise<Profiles | null> {
     try {
-      return await databases.getRow<Profiles>(
+      return await databases.getDocument<Profiles>(
         this.databaseId,
         this.collectionId,
         id
@@ -49,7 +49,7 @@ export class ProfileService {
    * Create a new profile
    */
   async createProfile(userId: string, data: Partial<Profiles>): Promise<Profiles> {
-    return await databases.createRow<Profiles>(
+    return await databases.createDocument<Profiles>(
       this.databaseId,
       this.collectionId,
       ID.unique(),
@@ -66,7 +66,7 @@ export class ProfileService {
    * Update profile
    */
   async updateProfile(documentId: string, data: Partial<Profiles>): Promise<Profiles> {
-    return await databases.updateRow<Profiles>(
+    return await databases.updateDocument<Profiles>(
       this.databaseId,
       this.collectionId,
       documentId,
@@ -92,12 +92,12 @@ export class ProfileService {
    */
   async searchProfiles(username: string, limit = 10): Promise<Profiles[]> {
     try {
-      const response = await databases.listRows<Profiles>(
+      const response = await databases.listDocuments<Profiles>(
         this.databaseId,
         this.collectionId,
         [Query.search('username', username), Query.limit(limit)]
       );
-      return response.rows;
+      return response.documents;
     } catch (error) {
       console.error('Error searching profiles:', error);
       return [];
@@ -109,12 +109,12 @@ export class ProfileService {
    */
   async getOnlineUsers(limit = 50): Promise<Profiles[]> {
     try {
-      const response = await databases.listRows<Profiles>(
+      const response = await databases.listDocuments<Profiles>(
         this.databaseId,
         this.collectionId,
         [Query.equal('isOnline', true), Query.limit(limit)]
       );
-      return response.rows;
+      return response.documents;
     } catch (error) {
       console.error('Error getting online users:', error);
       return [];
@@ -144,7 +144,6 @@ export class ProfileService {
     const profile = await this.getProfileById(documentId);
     if (!profile) throw new Error('Profile not found');
 
-    // Logic for streak calculation would go here
     const newStreak = (profile.streakDays || 0) + 1;
 
     return await this.updateProfile(documentId, {
@@ -171,7 +170,7 @@ export class ProfileService {
    * Delete profile
    */
   async deleteProfile(documentId: string): Promise<void> {
-    await databases.deleteRow(
+    await databases.deleteDocument(
       this.databaseId,
       this.collectionId,
       documentId
