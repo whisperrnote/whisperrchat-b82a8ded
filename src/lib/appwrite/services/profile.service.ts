@@ -3,26 +3,26 @@
  * Handles user profile operations
  */
 
-import { ID, Query, type Models } from 'appwrite';
-import { databases } from '../config/client';
+import { ID, Query } from 'appwrite';
+import { tablesDB } from '../config/client';
 import { DATABASE_IDS, MAIN_COLLECTIONS } from '../config/constants';
 import type { Profiles } from '@/types/appwrite.d';
 
 export class ProfileService {
   private readonly databaseId = DATABASE_IDS.MAIN;
-  private readonly collectionId = MAIN_COLLECTIONS.PROFILES;
+  private readonly tableId = MAIN_COLLECTIONS.PROFILES;
 
   /**
    * Get profile by user ID
    */
   async getProfile(userId: string): Promise<Profiles | null> {
     try {
-      const response = await databases.listDocuments<Profiles>(
-        this.databaseId,
-        this.collectionId,
-        [Query.equal('userId', userId), Query.limit(1)]
-      );
-      return response.documents[0] || null;
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.tableId,
+        queries: [Query.equal('userId', userId), Query.limit(1)]
+      });
+      return (response.rows[0] as Profiles) || null;
     } catch (error) {
       console.error('Error getting profile:', error);
       return null;
@@ -34,11 +34,11 @@ export class ProfileService {
    */
   async getProfileById(id: string): Promise<Profiles | null> {
     try {
-      return await databases.getDocument<Profiles>(
-        this.databaseId,
-        this.collectionId,
-        id
-      );
+      return await tablesDB.getRow({
+        databaseId: this.databaseId,
+        tableId: this.tableId,
+        rowId: id
+      }) as Profiles;
     } catch (error) {
       console.error('Error getting profile by ID:', error);
       return null;
@@ -49,39 +49,39 @@ export class ProfileService {
    * Create a new profile
    */
   async createProfile(userId: string, data: Partial<Profiles>): Promise<Profiles> {
-    return await databases.createDocument<Profiles>(
-      this.databaseId,
-      this.collectionId,
-      ID.unique(),
-      {
+    return await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: this.tableId,
+      rowId: ID.unique(),
+      data: {
         userId,
         ...data,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-    );
+    }) as Profiles;
   }
 
   /**
    * Update profile
    */
-  async updateProfile(documentId: string, data: Partial<Profiles>): Promise<Profiles> {
-    return await databases.updateDocument<Profiles>(
-      this.databaseId,
-      this.collectionId,
-      documentId,
-      {
+  async updateProfile(rowId: string, data: Partial<Profiles>): Promise<Profiles> {
+    return await tablesDB.updateRow({
+      databaseId: this.databaseId,
+      tableId: this.tableId,
+      rowId,
+      data: {
         ...data,
         updatedAt: new Date().toISOString(),
       }
-    );
+    }) as Profiles;
   }
 
   /**
    * Update online status
    */
-  async updateOnlineStatus(documentId: string, isOnline: boolean): Promise<Profiles> {
-    return await this.updateProfile(documentId, {
+  async updateOnlineStatus(rowId: string, isOnline: boolean): Promise<Profiles> {
+    return await this.updateProfile(rowId, {
       isOnline,
       lastSeen: new Date().toISOString(),
     });
@@ -92,12 +92,12 @@ export class ProfileService {
    */
   async searchProfiles(username: string, limit = 10): Promise<Profiles[]> {
     try {
-      const response = await databases.listDocuments<Profiles>(
-        this.databaseId,
-        this.collectionId,
-        [Query.search('username', username), Query.limit(limit)]
-      );
-      return response.documents;
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.tableId,
+        queries: [Query.search('username', username), Query.limit(limit)]
+      });
+      return response.rows as Profiles[];
     } catch (error) {
       console.error('Error searching profiles:', error);
       return [];
@@ -109,12 +109,12 @@ export class ProfileService {
    */
   async getOnlineUsers(limit = 50): Promise<Profiles[]> {
     try {
-      const response = await databases.listDocuments<Profiles>(
-        this.databaseId,
-        this.collectionId,
-        [Query.equal('isOnline', true), Query.limit(limit)]
-      );
-      return response.documents;
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.tableId,
+        queries: [Query.equal('isOnline', true), Query.limit(limit)]
+      });
+      return response.rows as Profiles[];
     } catch (error) {
       console.error('Error getting online users:', error);
       return [];
@@ -124,14 +124,14 @@ export class ProfileService {
   /**
    * Update user XP and level
    */
-  async addXP(documentId: string, xpToAdd: number): Promise<Profiles> {
-    const profile = await this.getProfileById(documentId);
+  async addXP(rowId: string, xpToAdd: number): Promise<Profiles> {
+    const profile = await this.getProfileById(rowId);
     if (!profile) throw new Error('Profile not found');
 
     const newXP = (profile.xp || 0) + xpToAdd;
-    const newLevel = Math.floor(newXP / 1000) + 1; // Simple leveling: 1000 XP per level
+    const newLevel = Math.floor(newXP / 1000) + 1;
 
-    return await this.updateProfile(documentId, {
+    return await this.updateProfile(rowId, {
       xp: newXP,
       level: newLevel,
     });
@@ -140,13 +140,13 @@ export class ProfileService {
   /**
    * Update streak
    */
-  async updateStreak(documentId: string): Promise<Profiles> {
-    const profile = await this.getProfileById(documentId);
+  async updateStreak(rowId: string): Promise<Profiles> {
+    const profile = await this.getProfileById(rowId);
     if (!profile) throw new Error('Profile not found');
 
     const newStreak = (profile.streakDays || 0) + 1;
 
-    return await this.updateProfile(documentId, {
+    return await this.updateProfile(rowId, {
       streakDays: newStreak,
     });
   }
@@ -154,14 +154,14 @@ export class ProfileService {
   /**
    * Add badge to user
    */
-  async addBadge(documentId: string, badgeId: string): Promise<Profiles> {
-    const profile = await this.getProfileById(documentId);
+  async addBadge(rowId: string, badgeId: string): Promise<Profiles> {
+    const profile = await this.getProfileById(rowId);
     if (!profile) throw new Error('Profile not found');
 
     const badges = profile.badges || [];
     if (badges.includes(badgeId)) return profile;
 
-    return await this.updateProfile(documentId, {
+    return await this.updateProfile(rowId, {
       badges: [...badges, badgeId],
     });
   }
@@ -169,12 +169,12 @@ export class ProfileService {
   /**
    * Delete profile
    */
-  async deleteProfile(documentId: string): Promise<void> {
-    await databases.deleteDocument(
-      this.databaseId,
-      this.collectionId,
-      documentId
-    );
+  async deleteProfile(rowId: string): Promise<void> {
+    await tablesDB.deleteRow({
+      databaseId: this.databaseId,
+      tableId: this.tableId,
+      rowId
+    });
   }
 }
 
