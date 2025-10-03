@@ -3,16 +3,15 @@
  * Handles real-time subscriptions
  */
 
-import { realtime } from '../config/client';
+import { client } from '../config/client';
 import { DATABASE_IDS, MAIN_COLLECTIONS } from '../config/constants';
-import type { RealtimeResponseEvent } from 'appwrite';
 
 export class RealtimeService {
   /**
    * Subscribe to messages in a conversation
    */
-  subscribeToMessages(conversationId: string, callback: (event: RealtimeResponseEvent<any>) => void) {
-    return realtime.subscribe(
+  subscribeToMessages(conversationId: string, callback: (event: any) => void) {
+    return client.subscribe(
       `databases.${DATABASE_IDS.MAIN}.collections.${MAIN_COLLECTIONS.MESSAGES}.documents`,
       (response) => {
         const message = response.payload;
@@ -26,8 +25,8 @@ export class RealtimeService {
   /**
    * Subscribe to typing indicators
    */
-  subscribeToTyping(conversationId: string, callback: (event: RealtimeResponseEvent<any>) => void) {
-    return realtime.subscribe(
+  subscribeToTyping(conversationId: string, callback: (event: any) => void) {
+    return client.subscribe(
       `databases.${DATABASE_IDS.MAIN}.collections.${MAIN_COLLECTIONS.TYPING_INDICATORS}.documents`,
       (response) => {
         const indicator = response.payload;
@@ -41,8 +40,8 @@ export class RealtimeService {
   /**
    * Subscribe to presence updates
    */
-  subscribeToPresence(callback: (event: RealtimeResponseEvent<any>) => void) {
-    return realtime.subscribe(
+  subscribeToPresence(callback: (event: any) => void) {
+    return client.subscribe(
       `databases.${DATABASE_IDS.MAIN}.collections.${MAIN_COLLECTIONS.PRESENCE}.documents`,
       callback
     );
@@ -51,8 +50,8 @@ export class RealtimeService {
   /**
    * Subscribe to user's conversations
    */
-  subscribeToConversations(callback: (event: RealtimeResponseEvent<any>) => void) {
-    return realtime.subscribe(
+  subscribeToConversations(callback: (event: any) => void) {
+    return client.subscribe(
       `databases.${DATABASE_IDS.MAIN}.collections.${MAIN_COLLECTIONS.CONVERSATIONS}.documents`,
       callback
     );
@@ -61,8 +60,8 @@ export class RealtimeService {
   /**
    * Subscribe to stories
    */
-  subscribeToStories(userId: string, callback: (event: RealtimeResponseEvent<any>) => void) {
-    return realtime.subscribe(
+  subscribeToStories(userId: string, callback: (event: any) => void) {
+    return client.subscribe(
       `databases.${DATABASE_IDS.SOCIAL}.collections.stories.documents`,
       (response) => {
         const story = response.payload;
@@ -76,8 +75,8 @@ export class RealtimeService {
   /**
    * Subscribe to notifications
    */
-  subscribeToNotifications(userId: string, callback: (event: RealtimeResponseEvent<any>) => void) {
-    return realtime.subscribe(
+  subscribeToNotifications(userId: string, callback: (event: any) => void) {
+    return client.subscribe(
       `databases.${DATABASE_IDS.ANALYTICS}.collections.notifications.documents`,
       (response) => {
         const notification = response.payload;
