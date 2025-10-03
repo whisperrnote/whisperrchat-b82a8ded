@@ -2,11 +2,15 @@
  * Appwrite Client Configuration
  */
 
-import { Client, Account, TablesDB, Storage, Functions, Realtime } from 'appwrite';
+import { Client, Account, TablesDB, Storage, Functions } from 'appwrite';
 
 // Get environment variables
 const ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1';
-const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID || 'tenchat';
+const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID || '';
+
+if (!PROJECT_ID) {
+  console.warn('VITE_APPWRITE_PROJECT_ID is not set. Please configure your environment variables.');
+}
 
 // Initialize Appwrite Client
 export const client = new Client()
@@ -18,7 +22,6 @@ export const account = new Account(client);
 export const tablesDB = new TablesDB(client);
 export const storage = new Storage(client);
 export const functions = new Functions(client);
-export const realtime = new Realtime(client);
 
 // Export client for advanced usage
 export { Client };

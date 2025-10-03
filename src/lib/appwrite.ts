@@ -1,14 +1,45 @@
-import { Client, Account, Databases, Storage, Functions } from 'appwrite';
+/**
+ * Appwrite Integration
+ * Central export for all Appwrite functionality
+ */
 
-const client = new Client();
+// Export client and core services
+export { client, account, tablesDB, storage, functions } from './appwrite/config/client';
 
-client
-  .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1')
-  .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID || 'tenchat');
+// Export constants
+export * from './appwrite/config/constants';
 
-export const account = new Account(client);
-export const databases = new Databases(client);
-export const storage = new Storage(client);
-export const functions = new Functions(client);
+// Export service instances
+export {
+  profileService,
+  messagingService,
+  socialService,
+  web3Service,
+  storageService,
+  realtimeService,
+} from './appwrite/services';
 
-export { client };
+// Export service classes
+export {
+  ProfileService,
+  MessagingService,
+  SocialService,
+  Web3Service,
+  StorageService,
+  RealtimeService,
+} from './appwrite/services';
+
+// Export types
+export type {
+  Profiles,
+  Conversations,
+  Messages,
+  Stories,
+  Posts,
+  Wallets,
+  NfTs,
+  TokenGifts,
+} from '@/types/appwrite.d';
+
+// Legacy alias
+export { tablesDB as databases } from './appwrite/config/client';
