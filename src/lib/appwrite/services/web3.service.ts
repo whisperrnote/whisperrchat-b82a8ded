@@ -6,7 +6,7 @@
 import { ID, Query } from 'appwrite';
 import { databases } from '../config/client';
 import { DATABASE_IDS, WEB3_COLLECTIONS } from '../config/constants';
-import type { Wallets, Nfts, CryptoTransactions, TokenGifts, TokenHoldings } from '@/types/appwrite';
+import type { Wallets, Nfts, CryptoTransactions, TokenGifts, TokenHoldings } from '@/types/appwrite.d';
 
 export class Web3Service {
   private readonly databaseId = DATABASE_IDS.WEB3;

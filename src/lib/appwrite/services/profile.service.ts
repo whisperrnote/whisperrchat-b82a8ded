@@ -6,7 +6,7 @@
 import { ID, Query, type Models } from 'appwrite';
 import { databases } from '../config/client';
 import { DATABASE_IDS, MAIN_COLLECTIONS } from '../config/constants';
-import type { Profiles } from '@/types/appwrite';
+import type { Profiles } from '@/types/appwrite.d';
 
 export class ProfileService {
   private readonly databaseId = DATABASE_IDS.MAIN;

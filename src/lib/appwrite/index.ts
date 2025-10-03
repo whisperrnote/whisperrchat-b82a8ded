@@ -19,4 +19,4 @@ export type {
   Wallets,
   Nfts,
   TokenGifts,
-} from '@/types/appwrite';
+} from '@/types/appwrite.d';
