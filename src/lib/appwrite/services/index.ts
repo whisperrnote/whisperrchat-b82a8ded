@@ -2,6 +2,7 @@
  * Export all services
  */
 
+export * from './auth.service';
 export * from './profile.service';
 export * from './messaging.service';
 export * from './contacts.service';
