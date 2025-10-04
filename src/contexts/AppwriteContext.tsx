@@ -30,20 +30,71 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
   const [currentProfile, setCurrentProfile] = useState<Profiles | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
+  // Check auth on mount - runs only once
   useEffect(() => {
-    // Only check auth once on mount
-    if (!authCheckComplete) {
-      checkAuth();
-    }
-  }, [authCheckComplete]);
+    let mounted = true;
+    
+    const initAuth = async () => {
+      try {
+        console.log('[Auth] Checking authentication...');
+        const user = await account.get();
+        
+        if (!mounted) return;
+        
+        console.log('[Auth] User found:', user.$id);
+        setCurrentAccount(user);
+        setIsAuthenticated(true);
+        
+        // Load or create profile
+        try {
+          let profile = await profileService.getProfile(user.$id);
+          
+          if (!profile) {
+            console.log('[Auth] Creating new profile...');
+            const walletAddress = (user.prefs?.walletEth as string) || user.email.split('@')[0];
+            profile = await profileService.createProfile(user.$id, {
+              username: walletAddress.substring(0, 12),
+              displayName: `User ${walletAddress.substring(2, 8)}`,
+              email: user.email,
+              walletAddress: user.prefs?.walletEth as string,
+            });
+          }
+          
+          if (mounted) {
+            console.log('[Auth] Profile loaded:', profile.$id);
+            setCurrentProfile(profile);
+          }
+        } catch (profileError) {
+          console.error('[Auth] Profile error:', profileError);
+        }
+      } catch (error: any) {
+        if (mounted) {
+          console.log('[Auth] Not authenticated');
+          setIsAuthenticated(false);
+          setCurrentAccount(null);
+          setCurrentProfile(null);
+        }
+      } finally {
+        if (mounted) {
+          console.log('[Auth] Auth check complete');
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initAuth();
+    
+    return () => {
+      mounted = false;
+    };
+  }, []); // Empty dependency array - runs once on mount
 
   const checkAuth = async () => {
     try {
-      console.log('Checking authentication...');
+      console.log('[Auth] Re-checking authentication...');
       const user = await account.get();
-      console.log('User found:', user.$id);
+      console.log('[Auth] User found:', user.$id);
       
       setCurrentAccount(user);
       setIsAuthenticated(true);
@@ -52,33 +103,28 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
       try {
         const profile = await profileService.getProfile(user.$id);
         if (profile) {
-          console.log('Profile loaded:', profile.$id);
+          console.log('[Auth] Profile loaded:', profile.$id);
           setCurrentProfile(profile);
         } else {
-          console.log('Creating new profile...');
-          // Create profile if it doesn't exist - use wallet address as username
-          const walletAddress = user.prefs?.walletEth || user.email.split('@')[0];
+          console.log('[Auth] Creating new profile...');
+          const walletAddress = (user.prefs?.walletEth as string) || user.email.split('@')[0];
           const newProfile = await profileService.createProfile(user.$id, {
             username: walletAddress.substring(0, 12),
             displayName: `User ${walletAddress.substring(2, 8)}`,
             email: user.email,
-            walletAddress: user.prefs?.walletEth,
+            walletAddress: user.prefs?.walletEth as string,
           });
-          console.log('Profile created:', newProfile.$id);
+          console.log('[Auth] Profile created:', newProfile.$id);
           setCurrentProfile(newProfile);
         }
       } catch (profileError) {
-        console.error('Profile error:', profileError);
-        // Continue even if profile fails
+        console.error('[Auth] Profile error:', profileError);
       }
     } catch (error: any) {
-      console.log('Not authenticated:', error?.message || error);
+      console.log('[Auth] Not authenticated:', error?.message || error);
       setIsAuthenticated(false);
       setCurrentAccount(null);
       setCurrentProfile(null);
-    } finally {
-      setIsLoading(false);
-      setAuthCheckComplete(true);
     }
   };
 
@@ -161,9 +207,13 @@ export function AppwriteProvider({ children }: { children: React.ReactNode }) {
   };
 
   const forceRefreshAuth = async () => {
-    console.log('Force refreshing authentication state...');
+    console.log('[Auth] Force refreshing authentication state...');
     setIsLoading(true);
-    await checkAuth();
+    try {
+      await checkAuth();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Update online status on mount/unmount
