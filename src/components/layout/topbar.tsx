@@ -38,7 +38,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpenNewChat, onOpenSearch }: TopbarProps) {
-  const { currentAccount } = useAppwrite();
+  const { currentAccount, currentProfile, isAuthenticated } = useAppwrite();
   const [copied, setCopied] = useState(false);
 
   const getInitials = (name: string): string => {
@@ -51,11 +51,17 @@ export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpe
   };
 
   const walletAddress = currentAccount?.prefs?.walletEth as string | undefined;
+  
+  // Display name priority: profile username > profile displayName > shortened wallet address > account name
+  const displayName = currentProfile?.username 
+    || currentProfile?.displayName 
+    || (walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : null)
+    || currentAccount?.name 
+    || 'User';
+  
   const shortWallet = walletAddress 
     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-    : currentAccount?.name 
-      ? currentAccount.name.slice(0, 10)
-      : 'User';
+    : displayName.slice(0, 10);
 
   const handleCopyWallet = () => {
     if (walletAddress) {
@@ -87,7 +93,7 @@ export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpe
         </div>
 
         {/* Center - Search Bar (when authenticated) */}
-        {currentUser && (
+        {isAuthenticated && (
           <div className="hidden md:flex flex-1 max-w-md mx-4">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -102,7 +108,7 @@ export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpe
         )}
 
         {/* Right Side */}
-        {!currentUser ? (
+        {!isAuthenticated ? (
           <Button
             onClick={onConnect}
             className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0 text-sm md:text-base h-9 md:h-10 px-4 md:px-6"
@@ -140,11 +146,11 @@ export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpe
                 >
                   <Avatar className="h-7 w-7 border border-violet-500/40">
                     <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-600 text-white text-xs">
-                      {getInitials(currentUser.displayName)}
+                      {getInitials(displayName)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden sm:flex items-center gap-1">
-                    <span className="text-sm font-medium">{shortWallet}</span>
+                    <span className="text-sm font-medium">{displayName}</span>
                     <ChevronDown className="w-3 h-3 text-gray-400" />
                   </div>
                 </Button>
@@ -153,7 +159,7 @@ export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpe
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {currentUser.displayName}
+                      {displayName}
                     </p>
                     {walletAddress && (
                       <p className="text-xs leading-none text-gray-400 font-mono">
