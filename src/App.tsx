@@ -58,7 +58,7 @@ function AppContent() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
-          <p className="text-gray-400">Loading WhisperChat...</p>
+          <p className="text-gray-400">loading Tenchat...</p>
         </div>
       </div>
     );

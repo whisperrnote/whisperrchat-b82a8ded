@@ -11,7 +11,7 @@
 1. **Fixed type errors** - Proper EncryptedMessage format
 2. **Added demo conversations** - 3 chats always show:
    - **You (Me)** - Self-chat for testing features
-   - **Alice (Demo User)** - NFT enthusiast 
+   - **Alice ** - NFT enthusiast 
    - **Bob.eth (Demo)** - Gift recipient
 3. **Auto-selects self-chat** - Chat UI appears immediately
 
@@ -19,7 +19,7 @@
 
 When you login, the chat list shows:
 1. **You (Me) - Try Features Here!** ⭐ (auto-selected)
-2. **Alice (Demo User)** - "Hey! Check out the new NFT..."
+2. **Alice ** - "Hey! Check out the new NFT..."
 3. **Bob.eth (Demo)** - "Thanks for the gift! 🎁"
 
 Plus any real conversations you create!
@@ -32,7 +32,7 @@ Plus any real conversations you create!
 - Perfect for testing gifts, crypto, QR codes
 - Shows all features in action
 
-### Alice (Demo User)
+### Alice 
 - Shows 1 hour ago timestamp
 - Has unread indicator
 - Blockchain anchoring enabled

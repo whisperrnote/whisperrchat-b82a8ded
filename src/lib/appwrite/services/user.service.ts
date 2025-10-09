@@ -57,17 +57,44 @@ export class UserService {
   }
 
   /**
-   * Get user by username (name field in Appwrite account)
+   * Get user by username (name field in Appwrite account) - robust search
    */
   async getUserByUsername(username: string): Promise<User | null> {
     try {
-      // Search for exact username match (case-insensitive)
-      const response = await databases.listDocuments(
+      // Try exact match first
+      let response = await databases.listDocuments(
         this.databaseId,
         this.usersCollection,
         [Query.equal('name', username), Query.limit(1)]
       );
-      return (response.documents[0] as User) || null;
+      
+      if (response.documents.length > 0) {
+        return response.documents[0] as User;
+      }
+      
+      // Try case-insensitive search
+      response = await databases.listDocuments(
+        this.databaseId,
+        this.usersCollection,
+        [Query.search('name', username), Query.limit(1)]
+      );
+      
+      if (response.documents.length > 0) {
+        return response.documents[0] as User;
+      }
+      
+      // Last resort: get all and filter
+      response = await databases.listDocuments(
+        this.databaseId,
+        this.usersCollection,
+        [Query.limit(100)]
+      );
+      
+      const found = response.documents.find((doc: any) => 
+        doc.name?.toLowerCase() === username.toLowerCase()
+      );
+      
+      return (found as User) || null;
     } catch (error) {
       console.error('Error getting user by username:', error);
       return null;
@@ -92,11 +119,12 @@ export class UserService {
   }
 
   /**
-   * Search users by username (partial match)
+   * Search users by username (partial match) - robust with fallbacks
    */
   async searchUsers(searchTerm: string, limit = 20): Promise<User[]> {
     try {
-      const response = await databases.listDocuments(
+      // Try search first
+      let response = await databases.listDocuments(
         this.databaseId,
         this.usersCollection,
         [
@@ -104,6 +132,37 @@ export class UserService {
           Query.limit(limit),
         ]
       );
+      
+      // If search returns nothing, try startsWith
+      if (response.documents.length === 0) {
+        response = await databases.listDocuments(
+          this.databaseId,
+          this.usersCollection,
+          [
+            Query.startsWith('name', searchTerm),
+            Query.limit(limit),
+          ]
+        );
+      }
+      
+      // If still nothing, try contains (case-insensitive)
+      if (response.documents.length === 0) {
+        response = await databases.listDocuments(
+          this.databaseId,
+          this.usersCollection,
+          [
+            Query.limit(100), // Get more to filter manually
+          ]
+        );
+        
+        // Filter manually for case-insensitive contains
+        const filtered = response.documents.filter((doc: any) => 
+          doc.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        
+        return filtered.slice(0, limit) as User[];
+      }
+      
       return response.documents as User[];
     } catch (error) {
       console.error('Error searching users:', error);

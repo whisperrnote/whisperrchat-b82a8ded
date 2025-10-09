@@ -107,17 +107,17 @@ export function ConversationList({
   };
 
   const createDemoConversations = (): Conversation[] => {
-    // Add 2-3 demo conversations to make the list look populated
+    // Add demo conversations to make the list look populated
     return [
       {
-        id: `demo-alice-${currentUser.id}`,
-        participants: [currentUser.id, 'demo-alice'],
+        id: `demo-bhav-${currentUser.id}`,
+        participants: [currentUser.id, 'demo-bhav'],
         type: 'direct',
         lastMessage: {
-          id: 'demo-alice-last',
-          senderId: 'demo-alice',
+          id: 'demo-bhav-last',
+          senderId: 'demo-bhav',
           recipientId: currentUser.id,
-          ciphertext: 'Hey! Check out the new NFT I just minted 🎨',
+          ciphertext: 'Just sent you some ETH, check it out! 💰',
           nonce: '',
           timestamp: new Date(Date.now() - 3600000),
           ratchetHeader: '',
@@ -126,7 +126,7 @@ export function ConversationList({
         createdAt: new Date(Date.now() - 86400000),
         updatedAt: new Date(Date.now() - 3600000),
         metadata: {
-          name: 'Alice (Demo User)',
+          name: 'Bhav',
           settings: {
             ephemeralEnabled: false,
             notificationsEnabled: true,
@@ -135,23 +135,48 @@ export function ConversationList({
         },
       },
       {
-        id: `demo-bob-${currentUser.id}`,
-        participants: [currentUser.id, 'demo-bob'],
+        id: `demo-liam-${currentUser.id}`,
+        participants: [currentUser.id, 'demo-liam'],
         type: 'direct',
         lastMessage: {
-          id: 'demo-bob-last',
-          senderId: currentUser.id,
-          recipientId: 'demo-bob',
-          ciphertext: 'Thanks for the gift! 🎁',
+          id: 'demo-liam-last',
+          senderId: 'demo-liam',
+          recipientId: currentUser.id,
+          ciphertext: 'The new NFT drop is live! 🎨',
           nonce: '',
-          timestamp: new Date(Date.now() - 7200000),
+          timestamp: new Date(Date.now() - 5400000),
           ratchetHeader: '',
           messageNumber: 2,
         },
         createdAt: new Date(Date.now() - 172800000),
+        updatedAt: new Date(Date.now() - 5400000),
+        metadata: {
+          name: 'Liam',
+          settings: {
+            ephemeralEnabled: false,
+            notificationsEnabled: true,
+            blockchainAnchoringEnabled: true,
+          },
+        },
+      },
+      {
+        id: `demo-jobin-${currentUser.id}`,
+        participants: [currentUser.id, 'demo-jobin'],
+        type: 'direct',
+        lastMessage: {
+          id: 'demo-jobin-last',
+          senderId: currentUser.id,
+          recipientId: 'demo-jobin',
+          ciphertext: 'Thanks for the legendary gift! 🦄✨',
+          nonce: '',
+          timestamp: new Date(Date.now() - 7200000),
+          ratchetHeader: '',
+          messageNumber: 3,
+        },
+        createdAt: new Date(Date.now() - 259200000),
         updatedAt: new Date(Date.now() - 7200000),
         metadata: {
-          name: 'Bob.eth (Demo)',
+          name: 'Jobin',
           settings: {
             ephemeralEnabled: false,
             notificationsEnabled: true,
