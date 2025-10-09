@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Lock, Users, X, Zap, Gift, Coins } from 'lucide-react';
+import { Plus, Search, Lock, Users, X, Zap, Gift, Coins, User as UserIcon } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent } from '../ui/card';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import type { Conversation, User } from '../../types';
-import { messagingService } from '../../services';
+import { messagingService, userService } from '@/lib/appwrite/services';
+import type { Conversation as AppwriteConversation } from '@/lib/appwrite/services/messaging.service';
 
 interface ConversationListProps {
   currentUser: User;
@@ -24,40 +25,76 @@ export function ConversationList({
   const [isLoading, setIsLoading] = useState(true);
   const [showNewConversationForm, setShowNewConversationForm] = useState(false);
   const [newConversationRecipient, setNewConversationRecipient] = useState('');
+  const [selfConversation, setSelfConversation] = useState<Conversation | null>(null);
 
   useEffect(() => {
     loadConversations();
-
-    // Listen for conversation updates
-    const handleConversationCreated = (conversation: Conversation) => {
-      setConversations(prev => [conversation, ...prev]);
-    };
-
-    const handleConversationUpdated = (conversation: Conversation) => {
-      setConversations(prev => 
-        prev.map(c => c.id === conversation.id ? conversation : c)
-      );
-    };
-
-    messagingService.on('conversation:created', handleConversationCreated);
-    messagingService.on('conversation:updated', handleConversationUpdated);
-
-    return () => {
-      messagingService.off('conversation:created', handleConversationCreated);
-      messagingService.off('conversation:updated', handleConversationUpdated);
-    };
-  }, []);
+    createSelfConversation();
+  }, [currentUser.id]);
 
   const loadConversations = async () => {
     try {
       setIsLoading(true);
-      const convs = await messagingService.getConversations();
-      setConversations(convs);
+      const appwriteConvs = await messagingService.getUserConversations(currentUser.id);
+      
+      // Convert Appwrite conversations to legacy format
+      const legacyConvs = appwriteConvs.map(convertToLegacyConversation);
+      setConversations(legacyConvs);
     } catch (error) {
       console.error('Failed to load conversations:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const createSelfConversation = async () => {
+    // Create a self-chat conversation for experimenting
+    const selfConv: Conversation = {
+      id: `self-${currentUser.id}`,
+      participants: [currentUser.id],
+      encryptionType: 'e2e',
+      lastMessage: {
+        id: 'self-last',
+        senderId: currentUser.id,
+        recipientId: currentUser.id,
+        encryptedContent: '',
+        timestamp: new Date(),
+        iv: '',
+        status: 'read',
+      },
+      unreadCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      metadata: {
+        name: `${currentUser.displayName} (Me)`,
+        isSelfChat: true,
+      },
+    };
+    setSelfConversation(selfConv);
+  };
+
+  const convertToLegacyConversation = (appwriteConv: AppwriteConversation): Conversation => {
+    return {
+      id: appwriteConv.$id,
+      participants: appwriteConv.participantIds,
+      encryptionType: 'e2e',
+      lastMessage: {
+        id: 'last-msg',
+        senderId: appwriteConv.creatorId,
+        recipientId: appwriteConv.participantIds[0],
+        encryptedContent: appwriteConv.lastMessageText || '',
+        timestamp: new Date(appwriteConv.lastMessageAt || appwriteConv.createdAt || ''),
+        iv: '',
+        status: 'read',
+      },
+      unreadCount: 0,
+      createdAt: new Date(appwriteConv.createdAt || ''),
+      updatedAt: new Date(appwriteConv.updatedAt || ''),
+      metadata: {
+        name: appwriteConv.name,
+        type: appwriteConv.type,
+      },
+    };
   };
 
   const handleNewConversationClick = () => {
@@ -71,29 +108,39 @@ export function ConversationList({
     try {
       const recipientId = newConversationRecipient.trim();
 
-      const conversation = await messagingService.createConversation([
+      const appwriteConv = await messagingService.getOrCreateDirectConversation(
         currentUser.id,
         recipientId
-      ]);
+      );
 
-      onSelectConversation(conversation);
+      const legacyConv = convertToLegacyConversation(appwriteConv);
+      onSelectConversation(legacyConv);
       setShowNewConversationForm(false);
       setNewConversationRecipient('');
+      loadConversations(); // Refresh list
     } catch (error) {
       console.error('Failed to create conversation:', error);
     }
   };
 
-  const filteredConversations = conversations.filter(conversation => {
+  // Combine self conversation with regular conversations
+  const allConversations = selfConversation 
+    ? [selfConversation, ...conversations] 
+    : conversations;
+
+  const filteredConversations = allConversations.filter(conversation => {
     if (!searchQuery) return true;
     
-    const name = conversation.metadata.name || 
+    const name = conversation.metadata?.name || 
                  getOtherParticipantName(conversation);
     
     return name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const getOtherParticipantName = (conversation: Conversation): string => {
+    if (conversation.metadata?.isSelfChat) {
+      return `${currentUser.displayName} (Me)`;
+    }
     const otherParticipantId = conversation.participants.find(p => p !== currentUser.id);
     return otherParticipantId || 'Unknown';
   };

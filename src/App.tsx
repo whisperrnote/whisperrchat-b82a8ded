@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 import Chat from './pages/Chat';
 import { AuthModal } from './components/auth/auth-modal';
@@ -92,9 +93,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AppwriteProvider>
-      <AppContent />
-    </AppwriteProvider>
+    <BrowserRouter>
+      <AppwriteProvider>
+        <AppContent />
+      </AppwriteProvider>
+    </BrowserRouter>
   );
 }
 
