@@ -64,6 +64,7 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
   const [activeRightTab, setActiveRightTab] = useState('profile');
   const [showNewChat, setShowNewChat] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [hasSelfChat, setHasSelfChat] = useState(false);
 
   const getInitials = (name?: string) => {
     if (!name) return 'U';
@@ -319,9 +320,30 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
         currentUserId={user?.id || ''}
         currentUsername={currentProfile?.username || currentProfile?.displayName}
         onChatCreated={(conversationId) => {
-          // Refresh conversations and select the new one
-          // The conversation list will auto-update
-          console.log('New chat created:', conversationId);
+          // Create and select a demo conversation immediately
+          const demoConv: Conversation = {
+            id: conversationId,
+            participants: [user?.id || '', 'demo-user'],
+            encryptionType: 'e2e',
+            lastMessage: {
+              id: 'demo-last',
+              senderId: user?.id || '',
+              recipientId: 'demo-user',
+              encryptedContent: '🚀 Demo chat ready! Try sending gifts, crypto, or NFTs!',
+              timestamp: new Date(),
+              iv: '',
+              status: 'read',
+            },
+            unreadCount: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            metadata: {
+              name: `Demo Chat - ${conversationId.split('-')[1] || 'User'}`,
+              isDemo: true,
+            },
+          };
+          setSelectedConversation(demoConv);
+          setShowNewChat(false);
         }}
       />
       

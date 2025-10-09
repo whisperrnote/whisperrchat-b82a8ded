@@ -30,7 +30,23 @@ export function ConversationList({
   useEffect(() => {
     loadConversations();
     createSelfConversation();
+    
+    // Auto-select self conversation on first load for instant demo
+    const timer = setTimeout(() => {
+      if (selfConversation && !selectedConversationId) {
+        onSelectConversation(selfConversation);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, [currentUser.id]);
+  
+  useEffect(() => {
+    // Auto-select self conversation when it's created
+    if (selfConversation && !selectedConversationId) {
+      onSelectConversation(selfConversation);
+    }
+  }, [selfConversation]);
 
   const loadConversations = async () => {
     try {
@@ -47,7 +63,7 @@ export function ConversationList({
     }
   };
 
-  const createSelfConversation = async () => {
+  const createSelfConversation = () => {
     // Create a self-chat conversation with impressive demo messages
     const selfConv: Conversation = {
       id: `self-${currentUser.id}`,

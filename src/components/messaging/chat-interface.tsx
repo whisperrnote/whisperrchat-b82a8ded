@@ -88,6 +88,29 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
   const loadMessages = async () => {
     try {
       setIsLoading(true);
+      
+      // Check if this is a self-chat or demo chat
+      if (conversation.metadata?.isSelfChat || conversation.metadata?.isDemo) {
+        // Load demo messages for instant presentation
+        const demoMsgs: DecryptedMessage[] = (conversation.metadata?.demoMessages || [
+          { text: '👋 Welcome! This is a demo chat to showcase features', type: 'system' },
+          { text: '💎 Click the gift icon to send impressive gifts', type: 'system' },
+          { text: '💰 Try crypto transfers - supports 8 chains!', type: 'system' },
+          { text: '🎨 Everything works like the real app!', type: 'system' },
+        ]).map((msg: any, i: number) => ({
+          id: `demo-${i}`,
+          senderId: 'system',
+          recipientId: currentUser.id,
+          content: msg.text,
+          timestamp: new Date(Date.now() - (demoMsgs.length - i) * 60000),
+          type: 'text' as const,
+        }));
+        
+        setMessages(demoMsgs);
+        setIsLoading(false);
+        return;
+      }
+      
       const encryptedMsgs = await messagingService.getMessages(conversation.id);
       setEncryptedMessages(encryptedMsgs);
       
@@ -152,7 +175,7 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
     const messageContent = content || inputMessage.trim();
     if (!messageContent) return;
 
-    const recipientId = conversation.participants.find(p => p !== currentUser.id) || '';
+    const recipientId = conversation.participants.find(p => p !== currentUser.id) || currentUser.id;
     
     const message: DecryptedMessage = {
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `msg-${Date.now()}-${Math.random()}`,
@@ -169,7 +192,11 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
       }
       setMessages(prev => [...prev, message]);
       
-      await messagingService.sendMessage(message);
+      // Only try to send through service if it's not a demo/self chat
+      if (!conversation.metadata?.isSelfChat && !conversation.metadata?.isDemo) {
+        await messagingService.sendMessage(message);
+      }
+      // For demo/self chats, message is just added to local state
     } catch (error) {
       console.error('Failed to send message:', error);
       // Remove message from UI on failure
