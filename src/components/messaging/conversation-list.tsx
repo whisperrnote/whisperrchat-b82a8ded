@@ -68,21 +68,26 @@ export function ConversationList({
     const selfConv: Conversation = {
       id: `self-${currentUser.id}`,
       participants: [currentUser.id],
-      encryptionType: 'e2e',
+      type: 'direct',
       lastMessage: {
         id: 'self-last',
         senderId: currentUser.id,
         recipientId: currentUser.id,
-        encryptedContent: '🎁 Try sending gifts, crypto, or NFTs! Perfect for demos! 🚀',
+        ciphertext: '🎁 Try sending gifts, crypto, or NFTs! Perfect for demos! 🚀',
+        nonce: '',
         timestamp: new Date(),
-        iv: '',
-        status: 'read',
+        ratchetHeader: '',
+        messageNumber: 0,
       },
-      unreadCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
       metadata: {
         name: `${currentUser.displayName} (Me) - Try Features Here!`,
+        settings: {
+          ephemeralEnabled: false,
+          notificationsEnabled: true,
+          blockchainAnchoringEnabled: false,
+        },
         isSelfChat: true,
         demoMessages: [
           { text: '👋 Welcome! This is your personal testing space', type: 'system' },
@@ -92,9 +97,66 @@ export function ConversationList({
           { text: '📱 Generate QR codes for quick sharing', type: 'system' },
           { text: '🎨 Everything works exactly like real chats!', type: 'system' },
         ],
-      },
+      } as any, // Use any to allow extra properties
     };
     setSelfConversation(selfConv);
+    console.log('Self-chat created:', selfConv);
+  };
+
+  const createDemoConversations = (): Conversation[] => {
+    // Add 2-3 demo conversations to make the list look populated
+    return [
+      {
+        id: `demo-alice-${currentUser.id}`,
+        participants: [currentUser.id, 'demo-alice'],
+        type: 'direct',
+        lastMessage: {
+          id: 'demo-alice-last',
+          senderId: 'demo-alice',
+          recipientId: currentUser.id,
+          ciphertext: 'Hey! Check out the new NFT I just minted 🎨',
+          nonce: '',
+          timestamp: new Date(Date.now() - 3600000),
+          ratchetHeader: '',
+          messageNumber: 1,
+        },
+        createdAt: new Date(Date.now() - 86400000),
+        updatedAt: new Date(Date.now() - 3600000),
+        metadata: {
+          name: 'Alice (Demo User)',
+          settings: {
+            ephemeralEnabled: false,
+            notificationsEnabled: true,
+            blockchainAnchoringEnabled: true,
+          },
+        },
+      },
+      {
+        id: `demo-bob-${currentUser.id}`,
+        participants: [currentUser.id, 'demo-bob'],
+        type: 'direct',
+        lastMessage: {
+          id: 'demo-bob-last',
+          senderId: currentUser.id,
+          recipientId: 'demo-bob',
+          ciphertext: 'Thanks for the gift! 🎁',
+          nonce: '',
+          timestamp: new Date(Date.now() - 7200000),
+          ratchetHeader: '',
+          messageNumber: 2,
+        },
+        createdAt: new Date(Date.now() - 172800000),
+        updatedAt: new Date(Date.now() - 7200000),
+        metadata: {
+          name: 'Bob.eth (Demo)',
+          settings: {
+            ephemeralEnabled: false,
+            notificationsEnabled: true,
+            blockchainAnchoringEnabled: true,
+          },
+        },
+      },
+    ];
   };
 
   const convertToLegacyConversation = (appwriteConv: AppwriteConversation): Conversation => {
@@ -147,10 +209,11 @@ export function ConversationList({
     }
   };
 
-  // Combine self conversation with regular conversations
+  // Combine self conversation with demo conversations and regular conversations
+  const demoConvs = conversations.length === 0 ? createDemoConversations() : [];
   const allConversations = selfConversation 
-    ? [selfConversation, ...conversations] 
-    : conversations;
+    ? [selfConversation, ...demoConvs, ...conversations] 
+    : [...demoConvs, ...conversations];
 
   const filteredConversations = allConversations.filter(conversation => {
     if (!searchQuery) return true;
@@ -352,7 +415,7 @@ function ConversationItem({
             </div>
 
             {/* Crypto features badges */}
-            {conversation.metadata.settings.blockchainAnchoringEnabled && (
+            {conversation.metadata?.settings?.blockchainAnchoringEnabled && (
               <div className="flex items-center gap-1 bg-violet-900/30 px-1.5 py-0.5 rounded text-xs border border-violet-700/30">
                 <Coins className="h-2.5 w-2.5 text-violet-400" />
               </div>
