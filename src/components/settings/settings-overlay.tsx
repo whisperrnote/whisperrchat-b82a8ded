@@ -33,6 +33,9 @@ export function SettingsOverlay({ open, onOpenChange }: SettingsOverlayProps) {
   const { currentAccount, currentProfile, logout } = useAppwrite();
   const [copied, setCopied] = useState(false);
   const [verificationLoading, setVerificationLoading] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [savingUsername, setSavingUsername] = useState(false);
 
   const walletAddress = currentAccount?.prefs?.walletEth || '0x...';
   const email = currentAccount?.email || '';
@@ -73,6 +76,40 @@ export function SettingsOverlay({ open, onOpenChange }: SettingsOverlayProps) {
     }
   };
 
+  const handleEditUsername = () => {
+    setNewUsername(currentAccount?.name || '');
+    setEditingUsername(true);
+  };
+
+  const handleSaveUsername = async () => {
+    if (!newUsername.trim()) {
+      toast.error('Username cannot be empty');
+      return;
+    }
+
+    setSavingUsername(true);
+    try {
+      const { account } = await import('@/lib/appwrite/config/client');
+      await account.updateName(newUsername.trim());
+      
+      toast.success('Username updated successfully!');
+      setEditingUsername(false);
+      
+      // Refresh the page to show updated username everywhere
+      setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+      const error = err as { message?: string };
+      toast.error(error?.message || 'Failed to update username');
+    } finally {
+      setSavingUsername(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUsername(false);
+    setNewUsername('');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl bg-gray-900/95 backdrop-blur-xl border-gray-800 max-h-[85vh] overflow-y-auto">
@@ -105,21 +142,75 @@ export function SettingsOverlay({ open, onOpenChange }: SettingsOverlayProps) {
                 </h3>
                 
                 <div className="space-y-2">
-                  <Label className="text-gray-400">Display Name</Label>
-                  <Input
-                    value={currentProfile?.displayName || ''}
-                    disabled
-                    className="bg-gray-800/50 border-gray-700 text-white"
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-gray-400">Username (Account Name)</Label>
+                    {!editingUsername && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleEditUsername}
+                        className="h-6 text-xs text-purple-400 hover:text-purple-300"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                  {editingUsername ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        placeholder="Enter username"
+                        className="bg-gray-800 border-gray-700 text-white"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleSaveUsername}
+                          disabled={savingUsername}
+                          className="bg-purple-600 hover:bg-purple-700 flex-1"
+                        >
+                          {savingUsername ? 'Saving...' : 'Save'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                          disabled={savingUsername}
+                          className="border-gray-700"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        This will be your display name and used for user discovery
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={currentAccount?.name || 'Not set'}
+                        disabled
+                        className="bg-gray-800/50 border-gray-700 text-white flex-1"
+                      />
+                      <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400">
+                        @{currentAccount?.name || 'unnamed'}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-gray-400">Username</Label>
+                  <Label className="text-gray-400">Display Name</Label>
                   <Input
-                    value={currentProfile?.username || ''}
+                    value={currentProfile?.displayName || currentAccount?.name || ''}
                     disabled
                     className="bg-gray-800/50 border-gray-700 text-white"
                   />
+                  <p className="text-xs text-gray-500">
+                    Your display name is synced with your username
+                  </p>
                 </div>
               </div>
 
