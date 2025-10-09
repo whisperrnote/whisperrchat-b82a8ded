@@ -110,12 +110,12 @@ export function ConversationList({
     // Add demo conversations to make the list look populated
     return [
       {
-        id: `demo-bhav-${currentUser.id}`,
-        participants: [currentUser.id, 'demo-bhav'],
+        id: `bhav-${currentUser.id}`,
+        participants: [currentUser.id, 'bhav'],
         type: 'direct',
         lastMessage: {
-          id: 'demo-bhav-last',
-          senderId: 'demo-bhav',
+          id: 'bhav-last',
+          senderId: 'bhav',
           recipientId: currentUser.id,
           ciphertext: 'Just sent you some ETH, check it out! 💰',
           nonce: '',
