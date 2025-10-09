@@ -153,6 +153,7 @@ export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpe
                     <span className="text-sm font-medium">{displayName}</span>
                     <ChevronDown className="w-3 h-3 text-gray-400" />
                   </div>
+                  <ChevronDown className="sm:hidden w-4 h-4 text-gray-400" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-gray-900 border-gray-800 text-white">
@@ -169,6 +170,27 @@ export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpe
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-800" />
+                
+                {/* Mobile-only Quick Actions */}
+                <div className="md:hidden">
+                  <DropdownMenuItem 
+                    onClick={onOpenNewChat}
+                    className="hover:bg-gray-800 cursor-pointer"
+                  >
+                    <MessageSquarePlus className="mr-2 h-4 w-4" />
+                    <span>New Chat</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem 
+                    onClick={onOpenSearch}
+                    className="hover:bg-gray-800 cursor-pointer"
+                  >
+                    <Search className="mr-2 h-4 w-4" />
+                    <span>Search</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator className="bg-gray-800" />
+                </div>
                 
                 {walletAddress && (
                   <DropdownMenuItem 
