@@ -52,12 +52,11 @@ export function Topbar({ currentUser, onConnect, onLogout, onOpenSettings, onOpe
 
   const walletAddress = currentAccount?.prefs?.walletEth as string | undefined;
   
-  // Display name priority: profile username > profile displayName > shortened wallet address > account name
-  const displayName = currentProfile?.username 
+  // Display name priority: account name (username) > profile displayName > shortened wallet address
+  const displayName = currentAccount?.name 
     || currentProfile?.displayName 
-    || (walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : null)
-    || currentAccount?.name 
-    || 'User';
+    || currentProfile?.username 
+    || (walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'User');
   
   const shortWallet = walletAddress 
     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`

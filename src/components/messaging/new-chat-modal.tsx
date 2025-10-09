@@ -63,6 +63,7 @@ export function NewChatModal({
       setSearching(true);
       try {
         if (activeTab === 'username') {
+          // Search by Appwrite account name
           const results = await userService.searchUsers(searchQuery);
           setSearchResults(results);
         } else if (activeTab === 'wallet') {
@@ -110,10 +111,11 @@ export function NewChatModal({
 
     setLoading(true);
     try {
-      // Try to find user
+      // Try to find user by Appwrite account name
       let targetUser: User | null = null;
       
       if (activeTab === 'username') {
+        // Search by account name
         targetUser = await userService.getUserByUsername(searchQuery.trim());
       } else {
         targetUser = await userService.getUserByWallet(searchQuery.trim());
@@ -208,13 +210,13 @@ export function NewChatModal({
             <TabsContent value="username" className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-gray-300">
-                  Search by Username
+                  Search by Username (Account Name)
                 </Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <Input
                     id="username"
-                    placeholder="@username"
+                    placeholder="@username or account name"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 bg-gray-800 border-gray-700 text-white"
@@ -223,6 +225,9 @@ export function NewChatModal({
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-gray-500" />
                   )}
                 </div>
+                <p className="text-xs text-gray-500">
+                  Search by the username they set in their account settings
+                </p>
               </div>
 
               {searchResults.length > 0 && (
