@@ -28,12 +28,14 @@ export function ConversationList({
   const [selfConversation, setSelfConversation] = useState<Conversation | null>(null);
 
   useEffect(() => {
+    console.log('[ConversationList] Loading conversations for user:', currentUser.id);
     loadConversations();
     createSelfConversation();
     
     // Auto-select self conversation on first load for instant demo
     const timer = setTimeout(() => {
       if (selfConversation && !selectedConversationId) {
+        console.log('[ConversationList] Auto-selecting self conversation');
         onSelectConversation(selfConversation);
       }
     }, 500);
@@ -44,6 +46,7 @@ export function ConversationList({
   useEffect(() => {
     // Auto-select self conversation when it's created
     if (selfConversation && !selectedConversationId) {
+      console.log('[ConversationList] Self conversation created, auto-selecting');
       onSelectConversation(selfConversation);
     }
   }, [selfConversation]);
@@ -214,6 +217,11 @@ export function ConversationList({
   const allConversations = selfConversation 
     ? [selfConversation, ...demoConvs, ...conversations] 
     : [...demoConvs, ...conversations];
+
+  console.log('[ConversationList] All conversations:', allConversations.length);
+  console.log('[ConversationList] Self conversation:', selfConversation ? 'exists' : 'null');
+  console.log('[ConversationList] Demo conversations:', demoConvs.length);
+  console.log('[ConversationList] Regular conversations:', conversations.length);
 
   const filteredConversations = allConversations.filter(conversation => {
     if (!searchQuery) return true;

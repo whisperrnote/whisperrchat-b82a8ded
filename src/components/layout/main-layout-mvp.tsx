@@ -56,7 +56,7 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) {
-  const { currentProfile, isAuthenticated } = useAppwrite();
+  const { currentAccount, currentUser: appwriteUser, isAuthenticated } = useAppwrite();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
@@ -86,20 +86,23 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
     }
   };
 
-  // Create user object for legacy components
-  const user = currentProfile ? {
-    id: currentProfile.$id,
-    displayName: currentProfile.displayName || currentProfile.username || 'User',
+  // Create user object for legacy components - use currentAccount OR appwriteUser
+  const user = currentAccount || appwriteUser ? {
+    id: (currentAccount?.$id || appwriteUser?.id) as string,
+    displayName: currentAccount?.name || appwriteUser?.name || 'User',
     identity: {
-      id: currentProfile.$id,
+      id: (currentAccount?.$id || appwriteUser?.id) as string,
       publicKey: '',
       identityKey: '',
       signedPreKey: '',
       oneTimePreKeys: [],
     },
-    createdAt: new Date(currentProfile.$createdAt),
-    lastSeen: new Date(currentProfile.lastSeen || currentProfile.$createdAt),
+    createdAt: currentAccount?.$createdAt ? new Date(currentAccount.$createdAt) : new Date(),
+    lastSeen: currentAccount?.$createdAt ? new Date(currentAccount.$createdAt) : new Date(),
   } : null;
+
+  console.log('[MainLayout] User object:', user);
+  console.log('[MainLayout] isAuthenticated:', isAuthenticated);
 
   return (
     <div className="h-screen bg-black text-white flex flex-col overflow-hidden">
@@ -242,28 +245,21 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-              {activeRightTab === 'profile' && currentProfile && (
+              {activeRightTab === 'profile' && (currentAccount || appwriteUser) && (
                 <div className="space-y-4">
                   <div className="text-center">
                     <Avatar className="w-24 h-24 mx-auto mb-4">
                       <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-600 text-white text-2xl">
-                        {getInitials(currentProfile.displayName || currentProfile.username)}
+                        {getInitials(currentAccount?.name || appwriteUser?.name || 'User')}
                       </AvatarFallback>
                     </Avatar>
                     <h3 className="text-xl font-semibold text-white">
-                      {currentProfile.displayName || currentProfile.username}
+                      {currentAccount?.name || appwriteUser?.name || 'User'}
                     </h3>
-                    {currentProfile.username && (
-                      <p className="text-gray-400">@{currentProfile.username}</p>
+                    {currentAccount?.email && (
+                      <p className="text-gray-400">{currentAccount.email}</p>
                     )}
                   </div>
-                  
-                  {currentProfile.bio && (
-                    <div>
-                      <label className="text-sm text-gray-400">Bio</label>
-                      <p className="text-white mt-1">{currentProfile.bio}</p>
-                    </div>
-                  )}
                   
                   <Button
                     onClick={() => setShowSettings(true)}
@@ -318,30 +314,36 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
         open={showNewChat}
         onOpenChange={setShowNewChat}
         currentUserId={user?.id || ''}
-        currentUsername={currentProfile?.username || currentProfile?.displayName}
+        currentUsername={currentAccount?.name || appwriteUser?.name}
         onChatCreated={(conversationId) => {
           // Create and select a demo conversation immediately
           const demoConv: Conversation = {
             id: conversationId,
             participants: [user?.id || '', 'demo-user'],
-            encryptionType: 'e2e',
+            type: 'direct',
             lastMessage: {
               id: 'demo-last',
               senderId: user?.id || '',
               recipientId: 'demo-user',
-              encryptedContent: '🚀 Demo chat ready! Try sending gifts, crypto, or NFTs!',
+              ciphertext: '🚀 Demo chat ready! Try sending gifts, crypto, or NFTs!',
+              nonce: '',
               timestamp: new Date(),
-              iv: '',
-              status: 'read',
+              ratchetHeader: '',
+              messageNumber: 0,
             },
-            unreadCount: 0,
             createdAt: new Date(),
             updatedAt: new Date(),
             metadata: {
               name: `Demo Chat - ${conversationId.split('-')[1] || 'User'}`,
+              settings: {
+                ephemeralEnabled: false,
+                notificationsEnabled: true,
+                blockchainAnchoringEnabled: false,
+              },
               isDemo: true,
-            },
+            } as any,
           };
+          console.log('[MainLayout] Creating demo conversation:', demoConv);
           setSelectedConversation(demoConv);
           setShowNewChat(false);
         }}
