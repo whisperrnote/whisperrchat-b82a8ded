@@ -316,7 +316,13 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
       <NewChatModal
         open={showNewChat}
         onOpenChange={setShowNewChat}
-        currentUser={user}
+        currentUserId={user?.id || ''}
+        currentUsername={currentProfile?.username || currentProfile?.displayName}
+        onChatCreated={(conversationId) => {
+          // Refresh conversations and select the new one
+          // The conversation list will auto-update
+          console.log('New chat created:', conversationId);
+        }}
       />
       
       <SettingsOverlay
