@@ -11,6 +11,7 @@ export * from './storage.service';
 export * from './web3.service';
 export * from './social.service';
 export * from './realtime.service';
+export * from './gifting.service';
 
 // Export service instances for direct use
 export { authService } from './auth.service';
@@ -21,3 +22,4 @@ export { storageService } from './storage.service';
 export { web3Service } from './web3.service';
 export { socialService } from './social.service';
 export { realtimeService } from './realtime.service';
+export { giftingService } from './gifting.service';
