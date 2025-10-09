@@ -1,93 +1,129 @@
 /**
  * Appwrite Configuration Constants
  * Loaded from environment variables
+ * 
+ * Architecture:
+ * - WHISPERRNOTE Database: User management (shared with base app)
+ * - CHAT Database: All chat-specific features
  */
 
-// Database IDs
+// Validate required env vars
+const requiredEnvVars = [
+  'VITE_APPWRITE_ENDPOINT',
+  'VITE_APPWRITE_PROJECT_ID',
+  'VITE_DATABASE_WHISPERRNOTE',
+  'VITE_DATABASE_CHAT',
+] as const;
+
+requiredEnvVars.forEach((envVar) => {
+  if (!import.meta.env[envVar]) {
+    console.warn(`Missing required environment variable: ${envVar}`);
+  }
+});
+
+// ============================================
+// DATABASE IDS
+// ============================================
 export const DATABASE_IDS = {
-  MAIN: import.meta.env.VITE_DATABASE_MAIN || 'mainDB',
-  SOCIAL: import.meta.env.VITE_DATABASE_SOCIAL || 'socialDB',
-  WEB3: import.meta.env.VITE_DATABASE_WEB3 || 'web3DB',
-  CONTENT: import.meta.env.VITE_DATABASE_CONTENT || 'contentDB',
-  ANALYTICS: import.meta.env.VITE_DATABASE_ANALYTICS || 'analyticsDB',
+  WHISPERRNOTE: import.meta.env.VITE_DATABASE_WHISPERRNOTE as string,
+  CHAT: import.meta.env.VITE_DATABASE_CHAT as string,
 } as const;
 
-// Collection IDs - Main Database
-export const MAIN_COLLECTIONS = {
-  PROFILES: import.meta.env.VITE_COLLECTION_PROFILES || 'profiles',
-  CONVERSATIONS: import.meta.env.VITE_COLLECTION_CONVERSATIONS || 'conversations',
-  MESSAGES: import.meta.env.VITE_COLLECTION_MESSAGES || 'messages',
-  MESSAGE_QUEUE: import.meta.env.VITE_COLLECTION_MESSAGE_QUEUE || 'messageQueue',
-  CONTACTS: import.meta.env.VITE_COLLECTION_CONTACTS || 'contacts',
-  TYPING_INDICATORS: import.meta.env.VITE_COLLECTION_TYPING_INDICATORS || 'typingIndicators',
-  PRESENCE: import.meta.env.VITE_COLLECTION_PRESENCE || 'presence',
+// ============================================
+// COLLECTION IDS - WHISPERRNOTE DATABASE
+// ============================================
+export const WHISPERRNOTE_COLLECTIONS = {
+  USERS: import.meta.env.VITE_COLLECTION_USERS as string,
 } as const;
 
-// Collection IDs - Social Database
-export const SOCIAL_COLLECTIONS = {
-  STORIES: import.meta.env.VITE_COLLECTION_STORIES || 'stories',
-  STORY_VIEWS: import.meta.env.VITE_COLLECTION_STORY_VIEWS || 'storyViews',
-  POSTS: import.meta.env.VITE_COLLECTION_POSTS || 'posts',
-  POST_REACTIONS: import.meta.env.VITE_COLLECTION_POST_REACTIONS || 'postReactions',
-  COMMENTS: import.meta.env.VITE_COLLECTION_COMMENTS || 'comments',
-  FOLLOWS: import.meta.env.VITE_COLLECTION_FOLLOWS || 'follows',
+// ============================================
+// COLLECTION IDS - CHAT DATABASE
+// ============================================
+export const CHAT_COLLECTIONS = {
+  // Core Chat
+  CONVERSATIONS: import.meta.env.VITE_COLLECTION_CONVERSATIONS as string,
+  MESSAGES: import.meta.env.VITE_COLLECTION_MESSAGES as string,
+  MESSAGE_QUEUE: import.meta.env.VITE_COLLECTION_MESSAGE_QUEUE as string,
+  CONTACTS: import.meta.env.VITE_COLLECTION_CONTACTS as string,
+  TYPING_INDICATORS: import.meta.env.VITE_COLLECTION_TYPING_INDICATORS as string,
+  PRESENCE: import.meta.env.VITE_COLLECTION_PRESENCE as string,
+  
+  // Social Features
+  STORIES: import.meta.env.VITE_COLLECTION_STORIES as string,
+  STORY_VIEWS: import.meta.env.VITE_COLLECTION_STORY_VIEWS as string,
+  POSTS: import.meta.env.VITE_COLLECTION_POSTS as string,
+  FOLLOWS: import.meta.env.VITE_COLLECTION_FOLLOWS as string,
+  
+  // Web3 Features
+  WALLETS: import.meta.env.VITE_COLLECTION_WALLETS as string,
+  TOKEN_HOLDINGS: import.meta.env.VITE_COLLECTION_TOKEN_HOLDINGS as string,
+  
+  // Content Features
+  STICKERS: import.meta.env.VITE_COLLECTION_STICKERS as string,
+  STICKER_PACKS: import.meta.env.VITE_COLLECTION_STICKER_PACKS as string,
+  USER_STICKERS: import.meta.env.VITE_COLLECTION_USER_STICKERS as string,
+  GIFS: import.meta.env.VITE_COLLECTION_GIFS as string,
+  POLLS: import.meta.env.VITE_COLLECTION_POLLS as string,
+  AR_FILTERS: import.meta.env.VITE_COLLECTION_AR_FILTERS as string,
+  MEDIA_LIBRARY: import.meta.env.VITE_COLLECTION_MEDIA_LIBRARY as string,
 } as const;
 
-// Collection IDs - Web3 Database
-export const WEB3_COLLECTIONS = {
-  WALLETS: import.meta.env.VITE_COLLECTION_WALLETS || 'wallets',
-  NFTS: import.meta.env.VITE_COLLECTION_NFTS || 'nfts',
-  CRYPTO_TRANSACTIONS: import.meta.env.VITE_COLLECTION_CRYPTO_TRANSACTIONS || 'cryptoTransactions',
-  TOKEN_GIFTS: import.meta.env.VITE_COLLECTION_TOKEN_GIFTS || 'tokenGifts',
-  CONTRACT_HOOKS: import.meta.env.VITE_COLLECTION_CONTRACT_HOOKS || 'contractHooks',
-  TOKEN_HOLDINGS: import.meta.env.VITE_COLLECTION_TOKEN_HOLDINGS || 'tokenHoldings',
-} as const;
-
-// Collection IDs - Content Database
-export const CONTENT_COLLECTIONS = {
-  STICKERS: import.meta.env.VITE_COLLECTION_STICKERS || 'stickers',
-  STICKER_PACKS: import.meta.env.VITE_COLLECTION_STICKER_PACKS || 'stickerPacks',
-  USER_STICKERS: import.meta.env.VITE_COLLECTION_USER_STICKERS || 'userStickers',
-  GIFS: import.meta.env.VITE_COLLECTION_GIFS || 'gifs',
-  POLLS: import.meta.env.VITE_COLLECTION_POLLS || 'polls',
-  AR_FILTERS: import.meta.env.VITE_COLLECTION_AR_FILTERS || 'arFilters',
-  MEDIA_LIBRARY: import.meta.env.VITE_COLLECTION_MEDIA_LIBRARY || 'mediaLibrary',
-} as const;
-
-// Collection IDs - Analytics Database
-export const ANALYTICS_COLLECTIONS = {
-  USER_ACTIVITY: import.meta.env.VITE_COLLECTION_USER_ACTIVITY || 'userActivity',
-  NOTIFICATIONS: import.meta.env.VITE_COLLECTION_NOTIFICATIONS || 'notifications',
-  APP_ANALYTICS: import.meta.env.VITE_COLLECTION_APP_ANALYTICS || 'appAnalytics',
-  ERROR_LOGS: import.meta.env.VITE_COLLECTION_ERROR_LOGS || 'errorLogs',
-} as const;
-
-// Storage Bucket IDs
+// ============================================
+// STORAGE BUCKET IDS
+// ============================================
 export const BUCKET_IDS = {
-  AVATARS: import.meta.env.VITE_BUCKET_AVATARS || 'avatars',
-  COVERS: import.meta.env.VITE_BUCKET_COVERS || 'covers',
-  MESSAGES: import.meta.env.VITE_BUCKET_MESSAGES || 'messages',
-  STORIES: import.meta.env.VITE_BUCKET_STORIES || 'stories',
-  POSTS: import.meta.env.VITE_BUCKET_POSTS || 'posts',
-  NFTS: import.meta.env.VITE_BUCKET_NFTS || 'nfts',
-  STICKERS: import.meta.env.VITE_BUCKET_STICKERS || 'stickers',
-  FILTERS: import.meta.env.VITE_BUCKET_FILTERS || 'filters',
-  GIFS: import.meta.env.VITE_BUCKET_GIFS || 'gifs',
-  VOICE: import.meta.env.VITE_BUCKET_VOICE || 'voice',
-  VIDEO: import.meta.env.VITE_BUCKET_VIDEO || 'video',
-  DOCUMENTS: import.meta.env.VITE_BUCKET_DOCUMENTS || 'documents',
+  COVERS: import.meta.env.VITE_BUCKET_COVERS as string,
+  MESSAGES: import.meta.env.VITE_BUCKET_MESSAGES as string,
+  STORIES: import.meta.env.VITE_BUCKET_STORIES as string,
+  POSTS: import.meta.env.VITE_BUCKET_POSTS as string,
+  NFTS: import.meta.env.VITE_BUCKET_NFTS as string,
+  STICKERS: import.meta.env.VITE_BUCKET_STICKERS as string,
+  FILTERS: import.meta.env.VITE_BUCKET_FILTERS as string,
+  GIFS: import.meta.env.VITE_BUCKET_GIFS as string,
+  VOICE: import.meta.env.VITE_BUCKET_VOICE as string,
+  VIDEO: import.meta.env.VITE_BUCKET_VIDEO as string,
+  DOCUMENTS: import.meta.env.VITE_BUCKET_DOCUMENTS as string,
 } as const;
 
-// All Collections (for convenience)
+// ============================================
+// UNIFIED COLLECTIONS (for convenience)
+// ============================================
 export const COLLECTIONS = {
-  ...MAIN_COLLECTIONS,
-  ...SOCIAL_COLLECTIONS,
-  ...WEB3_COLLECTIONS,
-  ...CONTENT_COLLECTIONS,
-  ...ANALYTICS_COLLECTIONS,
+  ...WHISPERRNOTE_COLLECTIONS,
+  ...CHAT_COLLECTIONS,
 } as const;
 
-// Type exports for type safety
+// ============================================
+// TYPE EXPORTS
+// ============================================
 export type DatabaseId = typeof DATABASE_IDS[keyof typeof DATABASE_IDS];
 export type CollectionId = typeof COLLECTIONS[keyof typeof COLLECTIONS];
 export type BucketId = typeof BUCKET_IDS[keyof typeof BUCKET_IDS];
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Get database ID for a collection
+ */
+export const getDatabaseForCollection = (collectionId: string): DatabaseId => {
+  if (Object.values(WHISPERRNOTE_COLLECTIONS).includes(collectionId as any)) {
+    return DATABASE_IDS.WHISPERRNOTE;
+  }
+  return DATABASE_IDS.CHAT;
+};
+
+/**
+ * Check if configuration is valid
+ */
+export const isConfigurationValid = (): boolean => {
+  return requiredEnvVars.every((envVar) => Boolean(import.meta.env[envVar]));
+};
+
+/**
+ * Get all missing environment variables
+ */
+export const getMissingEnvVars = (): string[] => {
+  return requiredEnvVars.filter((envVar) => !import.meta.env[envVar]);
+};

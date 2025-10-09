@@ -1,38 +1,55 @@
 /**
  * Appwrite Client Configuration
+ * Initialized with environment variables
  */
 
-import { Client, Account, TablesDB, Storage, Functions } from 'appwrite';
+import { Client, Account, Databases, Storage, Functions } from 'appwrite';
 
 // Get environment variables
-const ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1';
-const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID || '';
+const ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT as string;
+const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID as string;
 
-if (!PROJECT_ID) {
-  console.warn('VITE_APPWRITE_PROJECT_ID is not set. Please configure your environment variables.');
+// Validate configuration
+if (!ENDPOINT) {
+  console.error('VITE_APPWRITE_ENDPOINT is not set. Please configure your environment variables.');
 }
 
-// Initialize Appwrite Client
+if (!PROJECT_ID) {
+  console.error('VITE_APPWRITE_PROJECT_ID is not set. Please configure your environment variables.');
+}
+
+/**
+ * Initialize Appwrite Client
+ */
 export const client = new Client()
   .setEndpoint(ENDPOINT)
   .setProject(PROJECT_ID);
 
-// Export service instances
+/**
+ * Service Instances
+ */
 export const account = new Account(client);
-export const tablesDB = new TablesDB(client);
+export const databases = new Databases(client);
 export const storage = new Storage(client);
 export const functions = new Functions(client);
 
-// Export client for advanced usage
+/**
+ * Export client for advanced usage
+ */
 export { Client };
 
-// Helper to check if Appwrite is configured
-export const isConfigured = () => {
+/**
+ * Helper to check if Appwrite is configured
+ */
+export const isConfigured = (): boolean => {
   return Boolean(ENDPOINT && PROJECT_ID);
 };
 
-// Helper to get current configuration
+/**
+ * Helper to get current configuration (without sensitive data)
+ */
 export const getConfig = () => ({
   endpoint: ENDPOINT,
-  projectId: PROJECT_ID,
+  projectId: PROJECT_ID ? `${PROJECT_ID.substring(0, 8)}...` : 'NOT_SET',
+  configured: isConfigured(),
 });

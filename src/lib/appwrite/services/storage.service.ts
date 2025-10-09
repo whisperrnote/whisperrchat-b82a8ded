@@ -1,45 +1,101 @@
 /**
  * Storage Service
- * Handles file uploads and downloads
+ * Handles file uploads and management
  */
 
 import { ID } from 'appwrite';
 import { storage } from '../config/client';
 import { BUCKET_IDS } from '../config/constants';
+import type { Models } from 'appwrite';
 
 export class StorageService {
-  async uploadFile(bucketId: string, file: File, permissions?: string[]): Promise<{ $id: string; url: string }> {
-    const response = await storage.createFile(bucketId, ID.unique(), file, permissions);
-    const url = storage.getFileView(bucketId, response.$id);
-    return { $id: response.$id, url: url.toString() };
-  }
-
-  async uploadAvatar(file: File, userId: string): Promise<{ $id: string; url: string }> {
-    return this.uploadFile(BUCKET_IDS.AVATARS, file, [`read("user:${userId}")`]);
-  }
-
-  async uploadMessage(file: File): Promise<{ $id: string; url: string }> {
-    return this.uploadFile(BUCKET_IDS.MESSAGES, file);
-  }
-
-  async uploadStory(file: File, userId: string): Promise<{ $id: string; url: string }> {
-    return this.uploadFile(BUCKET_IDS.STORIES, file, [`read("user:${userId}")`]);
-  }
-
-  async uploadPost(file: File): Promise<{ $id: string; url: string }> {
-    return this.uploadFile(BUCKET_IDS.POSTS, file);
+  
+  async uploadFile(bucketId: string, file: File, fileId?: string): Promise<Models.File> {
+    try {
+      return await storage.createFile(
+        bucketId,
+        fileId || ID.unique(),
+        file
+      );
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
   }
 
   async deleteFile(bucketId: string, fileId: string): Promise<void> {
-    await storage.deleteFile(bucketId, fileId);
+    try {
+      await storage.deleteFile(bucketId, fileId);
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      throw error;
+    }
   }
 
-  getFileUrl(bucketId: string, fileId: string): string {
-    return storage.getFileView(bucketId, fileId).toString();
+  async getFilePreview(
+    bucketId: string,
+    fileId: string,
+    width?: number,
+    height?: number
+  ): Promise<URL> {
+    try {
+      return storage.getFilePreview(
+        bucketId,
+        fileId,
+        width,
+        height
+      );
+    } catch (error) {
+      console.error('Error getting file preview:', error);
+      throw error;
+    }
   }
 
-  getFileDownloadUrl(bucketId: string, fileId: string): string {
-    return storage.getFileDownload(bucketId, fileId).toString();
+  async getFileView(bucketId: string, fileId: string): Promise<URL> {
+    try {
+      return storage.getFileView(bucketId, fileId);
+    } catch (error) {
+      console.error('Error getting file view:', error);
+      throw error;
+    }
+  }
+
+  async getFileDownload(bucketId: string, fileId: string): Promise<URL> {
+    try {
+      return storage.getFileDownload(bucketId, fileId);
+    } catch (error) {
+      console.error('Error getting file download:', error);
+      throw error;
+    }
+  }
+
+  // Bucket-specific helpers
+  async uploadMessageAttachment(file: File): Promise<Models.File> {
+    return this.uploadFile(BUCKET_IDS.MESSAGES, file);
+  }
+
+  async uploadStoryMedia(file: File): Promise<Models.File> {
+    return this.uploadFile(BUCKET_IDS.STORIES, file);
+  }
+
+  async uploadPostMedia(file: File): Promise<Models.File> {
+    return this.uploadFile(BUCKET_IDS.POSTS, file);
+  }
+
+  async uploadVoiceMessage(file: File): Promise<Models.File> {
+    return this.uploadFile(BUCKET_IDS.VOICE, file);
+  }
+
+  async uploadVideo(file: File): Promise<Models.File> {
+    return this.uploadFile(BUCKET_IDS.VIDEO, file);
+  }
+
+  async uploadDocument(file: File): Promise<Models.File> {
+    return this.uploadFile(BUCKET_IDS.DOCUMENTS, file);
+  }
+
+  async uploadCoverImage(file: File): Promise<Models.File> {
+    return this.uploadFile(BUCKET_IDS.COVERS, file);
   }
 }
 
