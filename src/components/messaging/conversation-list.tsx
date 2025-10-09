@@ -48,7 +48,7 @@ export function ConversationList({
   };
 
   const createSelfConversation = async () => {
-    // Create a self-chat conversation for experimenting
+    // Create a self-chat conversation with impressive demo messages
     const selfConv: Conversation = {
       id: `self-${currentUser.id}`,
       participants: [currentUser.id],
@@ -57,7 +57,7 @@ export function ConversationList({
         id: 'self-last',
         senderId: currentUser.id,
         recipientId: currentUser.id,
-        encryptedContent: '',
+        encryptedContent: '🎁 Try sending gifts, crypto, or NFTs! Perfect for demos! 🚀',
         timestamp: new Date(),
         iv: '',
         status: 'read',
@@ -66,8 +66,16 @@ export function ConversationList({
       createdAt: new Date(),
       updatedAt: new Date(),
       metadata: {
-        name: `${currentUser.displayName} (Me)`,
+        name: `${currentUser.displayName} (Me) - Try Features Here!`,
         isSelfChat: true,
+        demoMessages: [
+          { text: '👋 Welcome! This is your personal testing space', type: 'system' },
+          { text: '💎 Send yourself gifts to see the UI', type: 'system' },
+          { text: '💰 Test crypto transfers across 8 chains', type: 'system' },
+          { text: '🦄 Try Epic & Legendary gifts - they\'re amazing!', type: 'system' },
+          { text: '📱 Generate QR codes for quick sharing', type: 'system' },
+          { text: '🎨 Everything works exactly like real chats!', type: 'system' },
+        ],
       },
     };
     setSelfConversation(selfConv);
