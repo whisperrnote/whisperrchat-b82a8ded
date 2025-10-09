@@ -44,6 +44,11 @@
       "$id": "67ff05a9000296822396",
       "name": "whisperrnote",
       "enabled": true
+    },
+    {
+      "$id": "chat",
+      "name": "chat",
+      "enabled": true
     }
   ],
   "tables": [
@@ -1620,7 +1625,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Conversations",
       "enabled": true,
       "rowSecurity": false,
@@ -1932,7 +1937,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Messages",
       "enabled": true,
       "rowSecurity": false,
@@ -2257,7 +2262,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "MessageQueue",
       "enabled": true,
       "rowSecurity": false,
@@ -2411,7 +2416,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Contacts",
       "enabled": true,
       "rowSecurity": false,
@@ -2556,7 +2561,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "TypingIndicators",
       "enabled": true,
       "rowSecurity": false,
@@ -2630,7 +2635,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Presence",
       "enabled": true,
       "rowSecurity": false,
@@ -2720,7 +2725,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Stories",
       "enabled": true,
       "rowSecurity": false,
@@ -2970,7 +2975,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "StoryViews",
       "enabled": true,
       "rowSecurity": false,
@@ -3054,7 +3059,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Posts",
       "enabled": true,
       "rowSecurity": false,
@@ -3282,7 +3287,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Follows",
       "enabled": true,
       "rowSecurity": false,
@@ -3379,7 +3384,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Wallets",
       "enabled": true,
       "rowSecurity": false,
@@ -3544,7 +3549,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "TokenHoldings",
       "enabled": true,
       "rowSecurity": false,
@@ -3686,7 +3691,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Stickers",
       "enabled": true,
       "rowSecurity": false,
@@ -3865,7 +3870,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "StickerPacks",
       "enabled": true,
       "rowSecurity": false,
@@ -4025,7 +4030,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "UserStickers",
       "enabled": true,
       "rowSecurity": false,
@@ -4107,7 +4112,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "GIFs",
       "enabled": true,
       "rowSecurity": false,
@@ -4254,7 +4259,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "Polls",
       "enabled": true,
       "rowSecurity": false,
@@ -4387,7 +4392,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "ARFilters",
       "enabled": true,
       "rowSecurity": false,
@@ -4547,7 +4552,7 @@
         "delete(\"users\")",
         "read(\"any\")"
       ],
-      "databaseId": "67ff05a9000296822396",
+      "databaseId": "chat",
       "name": "MediaLibrary",
       "enabled": true,
       "rowSecurity": false,
