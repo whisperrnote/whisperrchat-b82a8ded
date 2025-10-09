@@ -4,18 +4,38 @@ import type { Models } from 'appwrite';
 // You can regenerate it by running `appwrite types src/types`.
 
 export enum Status {
-    ACTIVE = "active",
-    AWAY = "away",
-    BUSY = "busy",
-    OFFLINE = "offline",
-    INVISIBLE = "invisible"
+    DRAFT = "draft",
+    PUBLISHED = "published",
+    ARCHIVED = "archived"
 }
 
-export enum Theme {
-    LIGHT = "light",
-    DARK = "dark",
-    AUTO = "auto",
-    AMOLED = "amoled"
+export enum TargetType {
+    NOTE = "note",
+    COMMENT = "comment"
+}
+
+export enum Permission {
+    READ = "read",
+    WRITE = "write",
+    ADMIN = "admin"
+}
+
+export enum Cause {
+    MANUAL = "manual",
+    AI = "ai",
+    COLLAB = "collab"
+}
+
+export enum Plan {
+    FREE = "free",
+    PRO = "pro",
+    ORG = "org"
+}
+
+export enum Status {
+    ACTIVE = "active",
+    CANCELED = "canceled",
+    TRIALING = "trialing"
 }
 
 export enum Type {
@@ -135,58 +155,6 @@ export enum WalletType {
     OTHER = "other"
 }
 
-export enum TokenStandard {
-    ERC721 = "ERC721",
-    ERC1155 = "ERC1155",
-    SPL = "SPL"
-}
-
-export enum Type {
-    SEND = "send",
-    RECEIVE = "receive",
-    SWAP = "swap",
-    NFT_TRANSFER = "nft_transfer",
-    GIFT = "gift",
-    TIP = "tip",
-    CONTRACT_INTERACTION = "contract_interaction"
-}
-
-export enum Status {
-    PENDING = "pending",
-    CONFIRMED = "confirmed",
-    FAILED = "failed"
-}
-
-export enum GiftType {
-    TOKEN = "token",
-    NFT = "nft",
-    WRAPPED = "wrapped"
-}
-
-export enum Animation {
-    CONFETTI = "confetti",
-    FIREWORKS = "fireworks",
-    HEARTS = "hearts",
-    MONEY_RAIN = "money_rain",
-    CUSTOM = "custom"
-}
-
-export enum Status {
-    PENDING = "pending",
-    CLAIMED = "claimed",
-    EXPIRED = "expired",
-    REFUNDED = "refunded"
-}
-
-export enum HookType {
-    ESCROW = "escrow",
-    DISPUTE_RESOLUTION = "dispute_resolution",
-    REPUTATION = "reputation",
-    GOVERNANCE = "governance",
-    PAYMENT = "payment",
-    NFT_MINT = "nft_mint"
-}
-
 export enum Category {
     FACE = "face",
     WORLD = "world",
@@ -195,82 +163,159 @@ export enum Category {
     BODY = "body"
 }
 
-export enum ActivityType {
-    MESSAGE_SENT = "message_sent",
-    MESSAGE_RECEIVED = "message_received",
-    STORY_POSTED = "story_posted",
-    STORY_VIEWED = "story_viewed",
-    POST_CREATED = "post_created",
-    POST_LIKED = "post_liked",
-    COMMENT_POSTED = "comment_posted",
-    GIFT_SENT = "gift_sent",
-    NFT_SHARED = "nft_shared",
-    LOGIN = "login",
-    LOGOUT = "logout",
-    PROFILE_UPDATE = "profile_update"
-}
-
-export enum Type {
-    MESSAGE = "message",
-    MENTION = "mention",
-    FOLLOW = "follow",
-    LIKE = "like",
-    COMMENT = "comment",
-    GIFT_RECEIVED = "gift_received",
-    STORY_REACTION = "story_reaction",
-    NFT_RECEIVED = "nft_received",
-    PAYMENT_RECEIVED = "payment_received",
-    SYSTEM = "system"
-}
-
-export enum Priority {
-    LOW = "low",
-    NORMAL = "normal",
-    HIGH = "high",
-    URGENT = "urgent"
-}
-
-export enum Severity {
-    DEBUG = "debug",
-    INFO = "info",
-    WARNING = "warning",
-    ERROR = "error",
-    CRITICAL = "critical"
-}
-
-export type Profiles = Models.Row & {
-    userId: string;
-    username: string | null;
-    displayName: string | null;
-    bio: string | null;
+export type Users = Models.Row & {
+    id: string | null;
     email: string | null;
-    phone: string | null;
-    avatarUrl: string | null;
-    avatarFileId: string | null;
-    coverImageUrl: string | null;
-    coverImageFileId: string | null;
-    tagline: string | null;
-    location: string | null;
-    timezone: string | null;
-    website: string | null;
-    socialLinks: string | null;
-    preferences: string | null;
-    privacySettings: string | null;
-    status: Status;
-    statusMessage: string | null;
-    lastSeen: string | null;
-    isOnline: boolean;
-    isVerified: boolean;
-    isPremium: boolean;
-    premiumExpiry: string | null;
-    reputationScore: number;
-    level: number;
-    xp: number;
-    streakDays: number;
-    badges: string[];
-    interests: string[];
-    languages: string[];
-    theme: Theme;
+    name: string | null;
+    walletAddress: string | null;
+    createdAt: string | null;
+    updatedAt: string | null;
+}
+
+export type Notes = Models.Row & {
+    id: string | null;
+    createdAt: string | null;
+    updatedAt: string | null;
+    userId: string | null;
+    isPublic: boolean | null;
+    status: Status | null;
+    parentNoteId: string | null;
+    title: string | null;
+    content: string | null;
+    tags: string[] | null;
+    attachments: string[] | null;
+    comments: string[] | null;
+    extensions: string[] | null;
+    collaborators: string[] | null;
+    metadata: string | null;
+}
+
+export type Tags = Models.Row & {
+    id: string | null;
+    name: string | null;
+    notes: string[] | null;
+    createdAt: string | null;
+    color: string | null;
+    description: string | null;
+    usageCount: number | null;
+    userId: string | null;
+    nameLower: string | null;
+}
+
+export type ApiKeys = Models.Row & {
+    id: string | null;
+    key: string | null;
+    name: string | null;
+    userId: string | null;
+    createdAt: string | null;
+    lastUsed: string | null;
+    expiresAt: string | null;
+    scopes: string[] | null;
+    lastUsedIp: string | null;
+    keyHash: string | null;
+}
+
+export type Comments = Models.Row & {
+    noteId: string;
+    userId: string;
+    content: string;
+    createdAt: string;
+    parentCommentId: string | null;
+}
+
+export type Extensions = Models.Row & {
+    name: string;
+    description: string | null;
+    version: string | null;
+    authorId: string | null;
+    enabled: boolean | null;
+    settings: string | null;
+    createdAt: string | null;
+    updatedAt: string | null;
+    isPublic: boolean | null;
+}
+
+export type Reactions = Models.Row & {
+    targetType: TargetType;
+    emoji: string;
+    createdAt: string;
+    targetId: string;
+    userId: string;
+}
+
+export type Collaborators = Models.Row & {
+    noteId: string;
+    userId: string;
+    permission: Permission;
+    invitedAt: string | null;
+    accepted: boolean | null;
+}
+
+export type ActivityLog = Models.Row & {
+    userId: string;
+    action: string;
+    targetType: string;
+    targetId: string;
+    timestamp: string;
+    details: string | null;
+}
+
+export type Settings = Models.Row & {
+    userId: string;
+    settings: string;
+    createdAt: string | null;
+    updatedAt: string | null;
+    mode: string | null;
+}
+
+export type WalletMap = Models.Row & {
+    walletAddressLower: string;
+    userId: string;
+    updatedAt: string | null;
+}
+
+export type NoteTags = Models.Row & {
+    noteId: string;
+    tagId: string;
+    userId: string;
+    createdAt: string | null;
+    tag: string | null;
+}
+
+export type NoteRevisions = Models.Row & {
+    noteId: string;
+    revision: number;
+    userId: string | null;
+    title: string | null;
+    content: string | null;
+    createdAt: string | null;
+    diff: string | null;
+    diffFormat: string | null;
+    fullSnapshot: boolean | null;
+    cause: Cause | null;
+}
+
+export type AiGenerations = Models.Row & {
+    userId: string;
+    promptHash: string | null;
+    prompt: string | null;
+    mode: string | null;
+    providerId: string | null;
+    model: string | null;
+    durationMs: number | null;
+    tokensUsed: number | null;
+    success: boolean | null;
+    error: string | null;
+    createdAt: string | null;
+}
+
+export type Subscriptions = Models.Row & {
+    userId: string;
+    plan: Plan;
+    status: Status | null;
+    currentPeriodStart: string | null;
+    currentPeriodEnd: string | null;
+    seats: number | null;
     createdAt: string | null;
     updatedAt: string | null;
 }
@@ -438,25 +483,6 @@ export type Posts = Models.Row & {
     updatedAt: string | null;
 }
 
-export type PostReactions = Models.Row & {
-    postId: string;
-    userId: string;
-    reaction: string;
-    createdAt: string | null;
-}
-
-export type Comments = Models.Row & {
-    postId: string;
-    userId: string;
-    content: string;
-    parentCommentId: string | null;
-    mentions: string[];
-    likeCount: number;
-    replyCount: number;
-    createdAt: string | null;
-    updatedAt: string | null;
-}
-
 export type Follows = Models.Row & {
     followerId: string;
     followingId: string;
@@ -479,84 +505,6 @@ export type Wallets = Models.Row & {
     isVerified: boolean;
     verifiedAt: string | null;
     addedAt: string | null;
-}
-
-export type NfTs = Models.Row & {
-    userId: string;
-    walletAddress: string;
-    chain: string;
-    contractAddress: string;
-    tokenId: string;
-    tokenStandard: TokenStandard;
-    name: string | null;
-    description: string | null;
-    imageUrl: string | null;
-    animationUrl: string | null;
-    columns: string | null;
-    metadata: string | null;
-    isHidden: boolean;
-    isProfilePicture: boolean;
-    lastSynced: string | null;
-    acquiredAt: string | null;
-}
-
-export type CryptoTransactions = Models.Row & {
-    userId: string;
-    txHash: string;
-    chain: string;
-    type: Type;
-    fromAddress: string;
-    toAddress: string;
-    amount: string | null;
-    token: string | null;
-    tokenAddress: string | null;
-    usdValue: number | null;
-    gasUsed: string | null;
-    gasPriceGwei: string | null;
-    status: Status;
-    blockNumber: number | null;
-    timestamp: string | null;
-    relatedMessageId: string | null;
-    metadata: string | null;
-    createdAt: string | null;
-}
-
-export type TokenGifts = Models.Row & {
-    senderId: string;
-    recipientId: string;
-    conversationId: string | null;
-    messageId: string | null;
-    giftType: GiftType;
-    chain: string;
-    tokenAddress: string | null;
-    tokenAmount: string | null;
-    nftContractAddress: string | null;
-    nftTokenId: string | null;
-    usdValue: number | null;
-    message: string | null;
-    animation: Animation;
-    status: Status;
-    txHash: string | null;
-    claimTxHash: string | null;
-    expiresAt: string | null;
-    claimedAt: string | null;
-    createdAt: string | null;
-}
-
-export type ContractHooks = Models.Row & {
-    name: string;
-    chain: string;
-    contractAddress: string;
-    abi: string;
-    hookType: HookType;
-    isActive: boolean;
-    fallbackEnabled: boolean;
-    config: string | null;
-    lastExecuted: string | null;
-    executionCount: number;
-    errorCount: number;
-    createdAt: string | null;
-    updatedAt: string | null;
 }
 
 export type TokenHoldings = Models.Row & {
@@ -678,46 +626,4 @@ export type MediaLibrary = Models.Row & {
     album: string | null;
     isPublic: boolean;
     uploadedAt: string | null;
-}
-
-export type UserActivity = Models.Row & {
-    userId: string;
-    activityType: ActivityType;
-    metadata: string | null;
-    ipAddress: string | null;
-    userAgent: string | null;
-    timestamp: string;
-}
-
-export type Notifications = Models.Row & {
-    userId: string;
-    type: Type;
-    title: string;
-    body: string | null;
-    actionUrl: string | null;
-    imageUrl: string | null;
-    metadata: string | null;
-    isRead: boolean;
-    readAt: string | null;
-    priority: Priority;
-    expiresAt: string | null;
-    createdAt: string | null;
-}
-
-export type AppAnalytics = Models.Row & {
-    metricName: string;
-    metricValue: number;
-    dimensions: string | null;
-    timestamp: string;
-}
-
-export type ErrorLogs = Models.Row & {
-    userId: string | null;
-    errorType: string;
-    errorMessage: string;
-    stackTrace: string | null;
-    context: string | null;
-    severity: Severity;
-    resolved: boolean;
-    timestamp: string;
 }
