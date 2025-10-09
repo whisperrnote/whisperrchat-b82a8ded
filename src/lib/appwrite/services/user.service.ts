@@ -3,9 +3,10 @@
  * Handles user data from the whisperrnote database
  */
 
-import { Query } from 'appwrite';
-import { databases } from '../config/client';
+import { Query, ID } from 'appwrite';
+import { databases, account } from '../config/client';
 import { DATABASE_IDS, WHISPERRNOTE_COLLECTIONS } from '../config/constants';
+import type { Users } from '@/types/appwrite.d';
 import type { Models } from 'appwrite';
 
 export interface User extends Models.Document {
@@ -21,6 +22,9 @@ export class UserService {
   private readonly databaseId = DATABASE_IDS.WHISPERRNOTE;
   private readonly usersCollection = WHISPERRNOTE_COLLECTIONS.USERS;
 
+  /**
+   * Get user by ID from database
+   */
   async getUser(userId: string): Promise<User | null> {
     try {
       const user = await databases.getDocument(
@@ -35,6 +39,9 @@ export class UserService {
     }
   }
 
+  /**
+   * Get user by email from database
+   */
   async getUserByEmail(email: string): Promise<User | null> {
     try {
       const response = await databases.listDocuments(
@@ -49,6 +56,44 @@ export class UserService {
     }
   }
 
+  /**
+   * Get user by username (name field in Appwrite account)
+   */
+  async getUserByUsername(username: string): Promise<User | null> {
+    try {
+      // Search for exact username match (case-insensitive)
+      const response = await databases.listDocuments(
+        this.databaseId,
+        this.usersCollection,
+        [Query.equal('name', username), Query.limit(1)]
+      );
+      return (response.documents[0] as User) || null;
+    } catch (error) {
+      console.error('Error getting user by username:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get user by wallet address
+   */
+  async getUserByWallet(walletAddress: string): Promise<User | null> {
+    try {
+      const response = await databases.listDocuments(
+        this.databaseId,
+        this.usersCollection,
+        [Query.equal('walletAddress', walletAddress.toLowerCase()), Query.limit(1)]
+      );
+      return (response.documents[0] as User) || null;
+    } catch (error) {
+      console.error('Error getting user by wallet:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Search users by username (partial match)
+   */
   async searchUsers(searchTerm: string, limit = 20): Promise<User[]> {
     try {
       const response = await databases.listDocuments(
@@ -63,6 +108,140 @@ export class UserService {
     } catch (error) {
       console.error('Error searching users:', error);
       return [];
+    }
+  }
+
+  /**
+   * Check if username is available
+   */
+  async isUsernameAvailable(username: string): Promise<boolean> {
+    try {
+      const user = await this.getUserByUsername(username);
+      return !user;
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Update username for current user (updates both account and database)
+   */
+  async updateUsername(userId: string, newUsername: string): Promise<boolean> {
+    try {
+      // Check if username is available
+      const isAvailable = await this.isUsernameAvailable(newUsername);
+      if (!isAvailable) {
+        throw new Error('Username already taken');
+      }
+
+      // Update Appwrite account name
+      await account.updateName(newUsername);
+
+      // Update database record
+      await databases.updateDocument(
+        this.databaseId,
+        this.usersCollection,
+        userId,
+        {
+          name: newUsername,
+          updatedAt: new Date().toISOString(),
+        }
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error updating username:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create or update user record in database
+   */
+  async upsertUser(userId: string, data: Partial<Users>): Promise<User> {
+    try {
+      // Try to get existing user
+      const existingUser = await this.getUser(userId);
+      
+      if (existingUser) {
+        // Update existing user
+        const updated = await databases.updateDocument(
+          this.databaseId,
+          this.usersCollection,
+          userId,
+          {
+            ...data,
+            updatedAt: new Date().toISOString(),
+          }
+        );
+        return updated as User;
+      } else {
+        // Create new user
+        const created = await databases.createDocument(
+          this.databaseId,
+          this.usersCollection,
+          userId,
+          {
+            ...data,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+        );
+        return created as User;
+      }
+    } catch (error) {
+      console.error('Error upserting user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate shareable profile link
+   */
+  generateProfileLink(username: string): string {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/chat?username=${encodeURIComponent(username)}`;
+  }
+
+  /**
+   * Generate QR code data for user profile
+   */
+  generateQRCodeData(username: string, walletAddress?: string): string {
+    const data = {
+      type: 'profile',
+      username,
+      walletAddress,
+      timestamp: Date.now(),
+    };
+    return JSON.stringify(data);
+  }
+
+  /**
+   * Generate QR code data for crypto payment request
+   */
+  generatePaymentQRCode(walletAddress: string, amount?: string, token?: string, chain?: string): string {
+    const data = {
+      type: 'payment',
+      walletAddress,
+      amount,
+      token: token || 'ETH',
+      chain: chain || 'ethereum',
+      timestamp: Date.now(),
+    };
+    return JSON.stringify(data);
+  }
+
+  /**
+   * Parse QR code data
+   */
+  parseQRCodeData(qrData: string): { type: string; [key: string]: any } | null {
+    try {
+      const data = JSON.parse(qrData);
+      return data;
+    } catch (error) {
+      console.error('Error parsing QR code:', error);
+      return null;
     }
   }
 }
