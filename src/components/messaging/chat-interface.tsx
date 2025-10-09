@@ -92,17 +92,19 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
       // Check if this is a self-chat or demo chat
       if (conversation.metadata?.isSelfChat || conversation.metadata?.isDemo) {
         // Load demo messages for instant presentation
-        const demoMsgs: DecryptedMessage[] = (conversation.metadata?.demoMessages || [
+        const demoMessages = conversation.metadata?.demoMessages || [
           { text: '👋 Welcome! This is a demo chat to showcase features', type: 'system' },
           { text: '💎 Click the gift icon to send impressive gifts', type: 'system' },
           { text: '💰 Try crypto transfers - supports 8 chains!', type: 'system' },
           { text: '🎨 Everything works like the real app!', type: 'system' },
-        ]).map((msg: any, i: number) => ({
+        ];
+        
+        const demoMsgs: DecryptedMessage[] = demoMessages.map((msg: any, i: number) => ({
           id: `demo-${i}`,
           senderId: 'system',
           recipientId: currentUser.id,
           content: msg.text,
-          timestamp: new Date(Date.now() - (demoMsgs.length - i) * 60000),
+          timestamp: new Date(Date.now() - (demoMessages.length - i) * 60000),
           type: 'text' as const,
         }));
         
