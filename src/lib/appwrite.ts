@@ -4,42 +4,41 @@
  */
 
 // Export client and core services
-export { client, account, tablesDB, storage, functions } from './appwrite/config/client';
+export { client, account, databases, storage, functions, isConfigured, getConfig } from './appwrite/config/client';
 
 // Export constants
 export * from './appwrite/config/constants';
 
 // Export service instances
 export {
-  profileService,
+  authService,
+  userService,
   messagingService,
-  socialService,
-  web3Service,
+  contactsService,
   storageService,
+  web3Service,
+  socialService,
   realtimeService,
 } from './appwrite/services';
 
 // Export service classes
 export {
-  ProfileService,
+  AuthService,
+  UserService,
   MessagingService,
-  SocialService,
-  Web3Service,
+  ContactsService,
   StorageService,
+  Web3Service,
+  SocialService,
   RealtimeService,
 } from './appwrite/services';
 
 // Export types
 export type {
-  Profiles,
-  Conversations,
-  Messages,
-  Stories,
-  Posts,
-  Wallets,
-  NfTs,
-  TokenGifts,
-} from '@/types/appwrite.d';
+  User,
+  Conversation,
+  Message,
+  Contact,
+} from './appwrite/services';
 
-// Legacy alias
-export { tablesDB as databases } from './appwrite/config/client';
+export type { DatabaseId, CollectionId, BucketId } from './appwrite/config/constants';
