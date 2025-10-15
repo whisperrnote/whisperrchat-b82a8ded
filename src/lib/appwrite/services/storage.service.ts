@@ -69,6 +69,13 @@ export class StorageService {
     }
   }
 
+  /**
+   * Convenience: return a direct file URL (alias of getFileView)
+   */
+  getFileUrl(bucketId: string, fileId: string): URL {
+    return storage.getFileView(bucketId, fileId);
+  }
+
   // Bucket-specific helpers
   async uploadMessageAttachment(file: File): Promise<Models.File> {
     return this.uploadFile(BUCKET_IDS.MESSAGES, file);
