@@ -86,7 +86,7 @@
           "array": false,
           "size": 500,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "contentType",
@@ -124,7 +124,7 @@
           "array": false,
           "size": 300,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "mediaUrls",
@@ -133,7 +133,7 @@
           "array": true,
           "size": 1000,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "mediaFileIds",
@@ -142,7 +142,7 @@
           "array": true,
           "size": 256,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "thumbnailUrl",
@@ -150,7 +150,8 @@
           "required": false,
           "array": false,
           "format": "url",
-          "default": null
+          "default": null,
+          "encrypt": true
         },
         {
           "key": "thumbnailFileId",
@@ -159,7 +160,7 @@
           "array": false,
           "size": 256,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "metadata",
@@ -168,7 +169,7 @@
           "array": false,
           "size": 500,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "replyToMessageId",
@@ -177,7 +178,7 @@
           "array": false,
           "size": 256,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "forwardedFromMessageId",
@@ -186,7 +187,7 @@
           "array": false,
           "size": 256,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "forwardedFromConversationId",
@@ -195,7 +196,7 @@
           "array": false,
           "size": 256,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "editedAt",
@@ -251,7 +252,7 @@
           "array": false,
           "size": 500,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "mentions",
@@ -260,7 +261,7 @@
           "array": true,
           "size": 256,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "links",
@@ -269,7 +270,7 @@
           "array": true,
           "size": 1000,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "readBy",
@@ -278,7 +279,7 @@
           "array": true,
           "size": 500,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "deliveredTo",
@@ -287,7 +288,7 @@
           "array": true,
           "size": 500,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "status",
@@ -411,7 +412,7 @@
           "array": false,
           "size": 50,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "lastSeen",
@@ -632,7 +633,7 @@
           "array": false,
           "size": 300,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "lastMessageAt",
@@ -667,7 +668,7 @@
           "array": false,
           "size": 1000,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "isPublic",
@@ -803,7 +804,7 @@
           "array": false,
           "size": 100,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "relationship",
@@ -842,7 +843,7 @@
           "array": false,
           "size": 500,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "tags",
@@ -1080,7 +1081,7 @@
           "array": false,
           "size": 1000,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "scheduledFor",
@@ -1511,7 +1512,7 @@
           "array": false,
           "size": 500,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "backgroundColor",
@@ -1556,7 +1557,7 @@
           "array": false,
           "size": 500,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "location",
@@ -1565,7 +1566,7 @@
           "array": false,
           "size": 200,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "mentions",
@@ -2813,7 +2814,7 @@
           "array": false,
           "size": 1000,
           "default": null,
-          "encrypt": false
+          "encrypt": true
         },
         {
           "key": "totalVotes",
