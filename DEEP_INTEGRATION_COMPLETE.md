@@ -1,4 +1,4 @@
-# WhisperChat Deep Backend Integration - Feature Summary
+# Tenchat Deep Backend Integration - Feature Summary
 
 ## Overview
 This document outlines the comprehensive backend integration focusing on username discovery, QR code functionality, crypto gifting, and seamless messaging features.

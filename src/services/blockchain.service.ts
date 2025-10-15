@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: blockchain-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated tenchat-tool: blockchain-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Blockchain anchoring service with provider abstraction
 
 import { createWalletClient, custom, http } from 'viem'

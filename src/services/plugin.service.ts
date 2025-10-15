@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: plugin-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated tenchat-tool: plugin-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Plugin framework with policy enforcement and extension capabilities
 
 import type { 
@@ -37,7 +37,7 @@ export interface PluginAPI {
  * Plugin security policy enforcer
  */
 class PluginPolicy {
-  private readonly allowedDomains = ['localhost', 'whisperrchat.com'];
+  private readonly allowedDomains = ['localhost', 'tenchat.space'];
   private readonly maxPluginSize = 5 * 1024 * 1024; // 5MB
   private readonly maxExecutionTime = 5000; // 5 seconds
 

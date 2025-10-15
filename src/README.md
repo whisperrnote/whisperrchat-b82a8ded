@@ -39,7 +39,7 @@ TenChat is an extensible, privacy-first end-to-end encrypted messaging platform 
 1. **Clone and Install**
    ```bash
    git clone <repository-url>
-   cd whisperrchat
+   cd tenchat
    npm install
    ```
 

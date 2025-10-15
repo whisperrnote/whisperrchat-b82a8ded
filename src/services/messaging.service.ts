@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: messaging-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated tenchat-tool: messaging-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Messaging service with E2EE and real-time capabilities
 
 import type {

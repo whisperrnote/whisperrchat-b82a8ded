@@ -209,7 +209,7 @@ export function MainLayout({ currentUser, onLogin, onLogout }: MainLayoutProps) 
                   <MessageSquare className="w-12 h-12 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-white">
-                  {isAuthenticated ? 'Select a chat to start messaging' : 'Welcome to WhisperChat'}
+                  {isAuthenticated ? 'Select a chat to start messaging' : 'Welcome to Tenchat'}
                 </h2>
                 <p className="text-gray-400">
                   {isAuthenticated 

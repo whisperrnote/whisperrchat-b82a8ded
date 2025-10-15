@@ -342,7 +342,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 <p className="text-sm text-blue-300 flex items-start gap-2">
                   <ExternalLink className="w-4 h-4 mt-0.5" />
                   <span>
-                    Your wallet is your primary identity on WhisperChat. 
+                    Your wallet is your primary identity on Tenchat. 
                     Keep your private keys secure and never share them with anyone.
                   </span>
                 </p>

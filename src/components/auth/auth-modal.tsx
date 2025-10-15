@@ -117,7 +117,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <Wallet className="w-5 h-5 text-purple-400" />
-            Welcome to WhisperChat
+            Welcome to Tenchat
           </DialogTitle>
           <DialogDescription className="text-gray-400">
             Connect your wallet to get started. This is a Web3-first messaging platform.

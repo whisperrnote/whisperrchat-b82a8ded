@@ -1,8 +1,8 @@
-# WhisperChat vs Competitors - Feature Comparison
+# Tenchat vs Competitors - Feature Comparison
 
 ## 🏆 Feature Matrix
 
-| Feature | WhatsApp | Telegram | Discord | **WhisperChat** |
+| Feature | WhatsApp | Telegram | Discord | **Tenchat** |
 |---------|----------|----------|---------|-----------------|
 | **Messaging** |
 | End-to-End Encryption | ✅ | ⚠️ (Secret Chats) | ❌ | ✅ |
@@ -53,10 +53,10 @@
 
 ---
 
-## 🎯 WhisperChat's Unique Selling Points
+## 🎯 Tenchat's Unique Selling Points
 
 ### 1. **Web3-Native Messaging** 🚀
-Unlike competitors, WhisperChat is built from the ground up with blockchain integration:
+Unlike competitors, Tenchat is built from the ground up with blockchain integration:
 - **Multi-chain support** (Ethereum, Polygon, Solana, BSC, Avalanche, Arbitrum, Optimism, Base)
 - **NFT-as-profile-picture** with on-chain verification
 - **Crypto gifting** with animated reveals
@@ -107,7 +107,7 @@ Built to scale from day one:
            Privacy ←→ Openness
               ↑
     WhatsApp  |              Telegram
-              |        • WhisperChat
+              |        • Tenchat
    Signal •   |                    
               |           Discord •
               |                    
@@ -115,7 +115,7 @@ Built to scale from day one:
            Basic ←→ Rich Features
 ```
 
-**WhisperChat Position:** High privacy with rich social features + unique Web3 integration
+**Tenchat Position:** High privacy with rich social features + unique Web3 integration
 
 ---
 
@@ -204,7 +204,7 @@ Built to scale from day one:
 
 ### 3. **Creator Partnerships**
 - Onboard influencers with crypto audiences
-- Exclusive content on WhisperChat
+- Exclusive content on Tenchat
 - Creator fund (in crypto)
 - Revenue sharing model
 
@@ -281,7 +281,7 @@ Imagine:
 - **Creator-owned** platform (DAO governance)
 - **Interoperable** with the entire Web3 ecosystem
 
-WhisperChat isn't just a messaging app—it's the **social layer for Web3**.
+Tenchat isn't just a messaging app—it's the **social layer for Web3**.
 
 ---
 
@@ -317,7 +317,7 @@ WhisperChat isn't just a messaging app—it's the **social layer for Web3**.
 
 ---
 
-## 🏁 Why WhisperChat Will Win
+## 🏁 Why Tenchat Will Win
 
 1. **First-mover in Web3 social** - No true competitor yet
 2. **Gen Z alignment** - Features they actually want
@@ -330,4 +330,4 @@ WhisperChat isn't just a messaging app—it's the **social layer for Web3**.
 
 ---
 
-**The future of messaging is decentralized, social, and privacy-focused. WhisperChat is that future.** 🚀
+**The future of messaging is decentralized, social, and privacy-focused. Tenchat is that future.** 🚀

@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: core-types@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated tenchat-tool: core-types@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Core type definitions for TenChat platform
 
 export interface ApiVersion {

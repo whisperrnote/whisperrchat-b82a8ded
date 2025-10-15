@@ -36,7 +36,7 @@ Navigate to `http://localhost:5173`
 │  [BLURRED BACKGROUND]                │
 │                                       │
 │  ╔════════════════════════════════╗  │
-│  ║  🔐 Welcome to WhisperChat    ║  │
+│  ║  🔐 Welcome to Tenchat    ║  │
 │  ║                                ║  │
 │  ║  📧 Enter your email           ║  │
 │  ║  ┌────────────────────────┐   ║  │
@@ -68,7 +68,7 @@ Navigate to `http://localhost:5173`
 
 ┌──────────────────────────────────────┐
 │  ✅ Success!                          │
-│  Welcome to WhisperChat               │
+│  Welcome to Tenchat               │
 └──────────────────────────────────────┘
 ```
 
@@ -102,7 +102,7 @@ Once authenticated, you'll see:
 ### Top Bar
 ```
 ┌────────────────────────────────────────┐
-│ WhisperChat    🔍    [Settings] [⚙️]   │
+│ Tenchat    🔍    [Settings] [⚙️]   │
 └────────────────────────────────────────┘
 ```
 
@@ -256,14 +256,14 @@ Solution:
 ### Android
 ```
 1. Install MetaMask mobile app
-2. Open WhisperChat in MetaMask browser
+2. Open Tenchat in MetaMask browser
 3. Follow normal auth flow
 ```
 
 ### iOS
 ```
 1. Install MetaMask mobile app
-2. Open WhisperChat in MetaMask browser
+2. Open Tenchat in MetaMask browser
 3. Follow normal auth flow
 ```
 

@@ -327,7 +327,7 @@ export function SettingsOverlay({ open, onOpenChange }: SettingsOverlayProps) {
                 <div className="space-y-2 text-sm text-gray-400">
                   <div className="flex items-start gap-2">
                     <div className="w-1 h-1 bg-purple-400 rounded-full mt-2" />
-                    <p>Your wallet address is your primary identity on WhisperChat</p>
+                    <p>Your wallet address is your primary identity on Tenchat</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="w-1 h-1 bg-purple-400 rounded-full mt-2" />
@@ -468,7 +468,7 @@ export function SettingsOverlay({ open, onOpenChange }: SettingsOverlayProps) {
 
         <div className="pt-4 border-t border-gray-800">
           <p className="text-xs text-center text-gray-500">
-            WhisperChat v1.0.0 • Web3-First Messaging Platform
+            Tenchat v1.0.0 • Web3-First Messaging Platform
           </p>
         </div>
       </DialogContent>

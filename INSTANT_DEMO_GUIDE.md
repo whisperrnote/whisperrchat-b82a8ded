@@ -99,7 +99,7 @@ No matter what username/wallet you enter, it now:
    - "Copy link, download QR, or share"
    - "Perfect for conferences!"
 
-**CLOSING**: "Username discovery, QR codes, 35+ gifts, 8 chains, self-chat - WhisperChat makes Web3 social!"
+**CLOSING**: "Username discovery, QR codes, 35+ gifts, 8 chains, self-chat - Tenchat makes Web3 social!"
 
 ---
 

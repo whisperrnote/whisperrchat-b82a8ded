@@ -1,4 +1,4 @@
-# WhisperChat - Complete Appwrite Services API Reference
+# Tenchat - Complete Appwrite Services API Reference
 
 ## 🔧 Authentication Context Fixed
 

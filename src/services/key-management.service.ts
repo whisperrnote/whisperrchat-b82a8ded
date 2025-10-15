@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: key-management-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated tenchat-tool: key-management-service@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Key management service implementing secure key lifecycle
 
 import type { IKeyManagementService, Identity, SessionState } from '../types';

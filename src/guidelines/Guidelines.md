@@ -83,7 +83,7 @@ Examples:
 
 Automation MUST annotate generated files with a header:
 ```
-// @generated whisperrchat-tool:<name>@<version> hash:<content-hash> DO NOT EDIT DIRECTLY
+// @generated tenchat-tool:<name>@<version> hash:<content-hash> DO NOT EDIT DIRECTLY
 ```
 
 ---

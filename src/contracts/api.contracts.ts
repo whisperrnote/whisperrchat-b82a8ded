@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: api-contracts@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated tenchat-tool: api-contracts@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // API contract definitions for forward-compatible versioning
 
 export const API_VERSION = {

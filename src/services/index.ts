@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: service-exports@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated tenchat-tool: service-exports@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Service layer exports
 
 // Service contracts and interfaces

@@ -1,4 +1,4 @@
-# Demo Scenarios for WhisperChat
+# Demo Scenarios for Tenchat
 
 ## 🎯 Quick Demo Script (2 minutes)
 
@@ -37,14 +37,14 @@
 8. **Say**: "Recipients scan to receive funds on their wallet"
 
 ### Closing (10 seconds)
-**Say**: "With username discovery, QR codes, crypto support, and rich gifting, WhisperChat makes Web3 communication effortless and fun!"
+**Say**: "With username discovery, QR codes, crypto support, and rich gifting, Tenchat makes Web3 communication effortless and fun!"
 
 ---
 
 ## 🎬 Extended Demo Script (5 minutes)
 
 ### Introduction (30 seconds)
-**Say**: "Welcome to WhisperChat - a Web3-first messaging app that combines the best of traditional chat with blockchain innovation. Let me show you what makes it special."
+**Say**: "Welcome to Tenchat - a Web3-first messaging app that combines the best of traditional chat with blockchain innovation. Let me show you what makes it special."
 
 ### Part 1: User Discovery (1 minute)
 
@@ -113,7 +113,7 @@
 4. **Say**: "QR codes encode these URLs for easy scanning"
 
 ### Closing (30 seconds)
-**Say**: "WhisperChat brings together:
+**Say**: "Tenchat brings together:
 - Effortless user discovery via username or wallet
 - QR codes for instant sharing
 - A rich gift economy with 35+ items
@@ -239,13 +239,13 @@ All designed to make Web3 communication as easy as Web2, but with the power of b
 ## 🌟 Closing Statements
 
 ### Short Version
-"WhisperChat: Web3 messaging that's as easy as Web2, but with crypto superpowers."
+"Tenchat: Web3 messaging that's as easy as Web2, but with crypto superpowers."
 
 ### Medium Version
 "We've solved Web3's UX problem. Find users by username, share profiles via QR, gift with emojis or crypto, and experiment risk-free in self-chat."
 
 ### Long Version
-"WhisperChat reimagines messaging for Web3. We combine familiar chat UX with blockchain innovation: username discovery like Twitter, QR sharing like Instagram, gifting like Snapchat, but all powered by real crypto across 8 chains. Our self-chat feature eliminates onboarding friction, while deep linking enables viral growth. It's the messaging app crypto deserves."
+"Tenchat reimagines messaging for Web3. We combine familiar chat UX with blockchain innovation: username discovery like Twitter, QR sharing like Instagram, gifting like Snapchat, but all powered by real crypto across 8 chains. Our self-chat feature eliminates onboarding friction, while deep linking enables viral growth. It's the messaging app crypto deserves."
 
 ---
 

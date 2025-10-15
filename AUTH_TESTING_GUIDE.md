@@ -1,7 +1,7 @@
 # Authentication Testing Guide
 
 ## Overview
-This guide explains how to test the improved authentication system in WhisperChat.
+This guide explains how to test the improved authentication system in Tenchat.
 
 ## Prerequisites
 

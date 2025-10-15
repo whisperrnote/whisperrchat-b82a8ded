@@ -3,7 +3,7 @@
 # Authentication System Verification Script
 # Tests that all required files and configurations are in place
 
-echo "🔐 WhisperChat Authentication System Verification"
+echo "🔐 Tenchat Authentication System Verification"
 echo "=================================================="
 echo ""
 

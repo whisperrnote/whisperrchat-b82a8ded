@@ -412,7 +412,7 @@ All acceptance criteria met:
 
 ---
 
-**Project**: WhisperChat  
+**Project**: Tenchat  
 **Feature**: Web3 Authentication & Settings  
 **Status**: ✅ **COMPLETE**  
 **Date**: 2024  

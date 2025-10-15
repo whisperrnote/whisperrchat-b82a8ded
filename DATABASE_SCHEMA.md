@@ -1,8 +1,8 @@
-# WhisperChat/TenChat - Comprehensive Database Schema
+# Tenchat/TenChat - Comprehensive Database Schema
 
 ## 🎯 Overview
 
-This document describes the complete database architecture for WhisperChat, designed to scale to Telegram/WhatsApp levels while incorporating cutting-edge Web3/crypto features and Gen Z-focused functionality.
+This document describes the complete database architecture for Tenchat, designed to scale to Telegram/WhatsApp levels while incorporating cutting-edge Web3/crypto features and Gen Z-focused functionality.
 
 ### Architecture Philosophy
 

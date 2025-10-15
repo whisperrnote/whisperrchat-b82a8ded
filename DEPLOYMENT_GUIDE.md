@@ -1,4 +1,4 @@
-# WhisperChat Schema Deployment Guide
+# Tenchat Schema Deployment Guide
 
 ## 🚨 IMPORTANT: Read Before Deploying
 

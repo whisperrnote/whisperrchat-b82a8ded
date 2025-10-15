@@ -1,4 +1,4 @@
-# WhisperChat - Quick Reference Guide
+# Tenchat - Quick Reference Guide
 
 ## 🚀 Quick Start
 

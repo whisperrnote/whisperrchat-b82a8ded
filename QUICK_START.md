@@ -1,4 +1,4 @@
-# WhisperChat - Quick Start Guide
+# Tenchat - Quick Start Guide
 
 ## ✅ Environment Setup Complete
 

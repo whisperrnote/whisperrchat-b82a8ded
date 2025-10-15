@@ -1,8 +1,8 @@
-# 🎉 WhisperChat Web3 Authentication - COMPLETE
+# 🎉 Tenchat Web3 Authentication - COMPLETE
 
 ## Executive Summary
 
-Successfully transformed WhisperChat into a **Web3-first messaging application** with proper wallet-based authentication, replacing the temporary email/password system with cryptographic signature authentication as originally designed.
+Successfully transformed Tenchat into a **Web3-first messaging application** with proper wallet-based authentication, replacing the temporary email/password system with cryptographic signature authentication as originally designed.
 
 ---
 
@@ -88,7 +88,7 @@ Authentication:       Cryptographic signature (no password)
 ## 🎯 User Journey
 
 ### First Time User
-1. Opens WhisperChat
+1. Opens Tenchat
 2. Sees blurred UI with auth modal (cannot dismiss)
 3. Enters email address
 4. Clicks "Connect Wallet"
@@ -98,7 +98,7 @@ Authentication:       Cryptographic signature (no password)
 8. Can now chat, send gifts, view wallet info
 
 ### Returning User
-1. Opens WhisperChat
+1. Opens Tenchat
 2. If session exists: Goes directly to chat
 3. If session expired: Auth modal appears
 4. Reconnect wallet → Sign → Back in
@@ -377,7 +377,7 @@ For issues or questions:
 
 ---
 
-**Project:** WhisperChat  
+**Project:** Tenchat  
 **Feature:** Web3 Authentication & Settings  
 **Status:** ✅ COMPLETE  
 **Date:** 2024  

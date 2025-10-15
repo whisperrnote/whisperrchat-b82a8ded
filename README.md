@@ -1,4 +1,4 @@
-# WhisperChat - Next-Gen Messaging Platform
+# Tenchat - Next-Gen Messaging Platform
 
 A feature-rich messaging application with Web3 integration, social features, and real-time communication.
 

@@ -1,8 +1,8 @@
-# 🚀 WhisperChat Database Schema - Quick Start
+# 🚀 Tenchat Database Schema - Quick Start
 
 ## What Just Happened?
 
-You now have a **production-ready, scalable database schema** for WhisperChat that includes:
+You now have a **production-ready, scalable database schema** for Tenchat that includes:
 
 ✅ **30 Collections** across 5 specialized databases
 ✅ **12 Storage Buckets** for all media types  
@@ -21,7 +21,7 @@ You now have a **production-ready, scalable database schema** for WhisperChat th
 |----------|-------------|
 | **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** | Complete technical documentation of all collections, relationships, and design decisions |
 | **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** | Step-by-step guide to deploy the schema to Appwrite |
-| **[FEATURE_COMPARISON.md](./FEATURE_COMPARISON.md)** | How WhisperChat compares to WhatsApp, Telegram, Discord |
+| **[FEATURE_COMPARISON.md](./FEATURE_COMPARISON.md)** | How Tenchat compares to WhatsApp, Telegram, Discord |
 
 ---
 

@@ -1,7 +1,7 @@
 # Web3 Authentication Integration - Completion Report
 
 ## Overview
-Successfully restored and implemented the **Web3-first authentication** system for WhisperChat, replacing the temporary email/password authentication with the proper **email + wallet signature** flow as documented in `ignore1/function_web3/USAGE_REACT.md`.
+Successfully restored and implemented the **Web3-first authentication** system for Tenchat, replacing the temporary email/password authentication with the proper **email + wallet signature** flow as documented in `ignore1/function_web3/USAGE_REACT.md`.
 
 ## Key Changes Made
 

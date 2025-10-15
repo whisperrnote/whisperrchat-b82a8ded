@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains the complete Appwrite integration for WhisperChat, implementing all features specified in `appwrite.config.json`.
+This directory contains the complete Appwrite integration for Tenchat, implementing all features specified in `appwrite.config.json`.
 
 ## Directory Structure
 

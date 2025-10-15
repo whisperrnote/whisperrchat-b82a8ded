@@ -1,8 +1,8 @@
-# 🎉 WhisperChat Database Schema - Complete!
+# 🎉 Tenchat Database Schema - Complete!
 
 ## What Was Built
 
-You now have a **comprehensive, production-ready database schema** for WhisperChat that can scale to become the next Telegram/WhatsApp with Web3 superpowers!
+You now have a **comprehensive, production-ready database schema** for Tenchat that can scale to become the next Telegram/WhatsApp with Web3 superpowers!
 
 ---
 
@@ -109,7 +109,7 @@ analyticsDB   - Metrics & logs (4 collections)
 
 ## 🎯 Comparison with Competitors
 
-| Feature | WhatsApp | Telegram | Discord | **WhisperChat** |
+| Feature | WhatsApp | Telegram | Discord | **Tenchat** |
 |---------|----------|----------|---------|-----------------|
 | E2E Encryption | ✅ | ⚠️ | ❌ | **✅ Default** |
 | Group Size | 1K | 200K | ∞ | **200K** |
@@ -120,7 +120,7 @@ analyticsDB   - Metrics & logs (4 collections)
 | AR Filters | ❌ | ❌ | ❌ | **✅** |
 | Smart Contracts | ❌ | ⚠️ | ❌ | **✅ Multi-chain** |
 
-**WhisperChat = WhatsApp Privacy + Telegram Scale + Instagram Social + Web3 Native**
+**Tenchat = WhatsApp Privacy + Telegram Scale + Instagram Social + Web3 Native**
 
 ---
 
@@ -457,7 +457,7 @@ You've built:
 
 ## 🌟 The Vision
 
-**WhisperChat isn't just another messaging app.**
+**Tenchat isn't just another messaging app.**
 
 It's:
 - The **social layer for Web3**

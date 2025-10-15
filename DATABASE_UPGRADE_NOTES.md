@@ -2,7 +2,7 @@
 
 ## What Just Happened
 
-Your WhisperChat/TenChat application just received a **MAJOR UPGRADE** to its database architecture! 
+Your Tenchat/TenChat application just received a **MAJOR UPGRADE** to its database architecture! 
 
 ### Before
 - Basic config with minimal structure

@@ -1,4 +1,4 @@
-// @generated whisperrchat-tool: migration-framework@1.0.0 hash: initial DO NOT EDIT DIRECTLY
+// @generated tenchat-tool: migration-framework@1.0.0 hash: initial DO NOT EDIT DIRECTLY
 // Database and schema migration framework
 
 import type { Migration, MigrationState } from '../types';
