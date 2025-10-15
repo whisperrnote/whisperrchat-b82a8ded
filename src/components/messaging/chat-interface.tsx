@@ -29,7 +29,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
 import type { DecryptedMessage, EncryptedMessage, Conversation, User } from '../../types';
 import { messagingService, giftingService, keyManagementService } from '../../services';
-import { messagingService as appwriteMessagingService } from '@/lib/appwrite/services';
+import { messagingService as appwriteMessagingService, realtimeService } from '@/lib/appwrite/services';
 import { GiftDialog } from '../gifting/gift-dialog';
 
 interface ChatInterfaceProps {
@@ -65,20 +65,25 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
     loadMessages();
     loadSessionFingerprint();
     
-    // Listen for new messages
-    const handleNewMessage = (encryptedMsg: EncryptedMessage) => {
-      if (encryptedMsg.recipientId === currentUser.id || 
-          encryptedMsg.senderId === currentUser.id) {
-        decryptAndAddMessage(encryptedMsg);
+    // Listen for new messages (backend realtime)
+    const unsubscribe = realtimeService.subscribeToConversation(conversation.id, async (doc) => {
+      try {
+        const incoming: DecryptedMessage = {
+          id: doc.$id,
+          senderId: doc.senderId,
+          recipientId: conversation.participants.find(p => p !== currentUser.id) || currentUser.id,
+          content: doc.content,
+          timestamp: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+          type: (doc.contentType as any) || 'text'
+        };
+        setMessages(prev => [...prev, incoming]);
+      } catch (e) {
+        console.warn('Failed to handle realtime message:', e);
       }
-    };
-
-    messagingService.on('message:sent', handleNewMessage);
-    messagingService.on('message:received', handleNewMessage);
+    });
 
     return () => {
-      messagingService.off('message:sent', handleNewMessage);
-      messagingService.off('message:received', handleNewMessage);
+      unsubscribe?.();
     };
   }, [conversation.id, currentUser.id]);
 
