@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
 import type { DecryptedMessage, EncryptedMessage, Conversation, User } from '../../types';
 import { messagingService, giftingService, keyManagementService } from '../../services';
+import { messagingService as appwriteMessagingService } from '@/lib/appwrite/services';
 import { GiftDialog } from '../gifting/gift-dialog';
 
 interface ChatInterfaceProps {
@@ -113,10 +114,28 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
         return;
       }
       
+      // Try loading from backend (TablesDB)
+      try {
+        const backendMessages = await appwriteMessagingService.getConversationMessages(conversation.id, 50, 0);
+        if (backendMessages && backendMessages.length > 0) {
+          const mapped: DecryptedMessage[] = backendMessages.map((m) => ({
+            id: m.$id,
+            senderId: m.senderId,
+            recipientId: conversation.participants.find(p => p !== currentUser.id) || currentUser.id,
+            content: m.content,
+            timestamp: m.createdAt ? new Date(m.createdAt) : new Date(),
+            type: (m.contentType as any) || 'text'
+          }));
+          setMessages(mapped.reverse());
+          return;
+        }
+      } catch (e) {
+        console.warn('Falling back to local message store:', e);
+      }
+
+      // Fallback: use local encrypted store via stub service
       const encryptedMsgs = await messagingService.getMessages(conversation.id);
       setEncryptedMessages(encryptedMsgs);
-      
-      // Decrypt messages for display
       const decryptedMsgs: DecryptedMessage[] = [];
       for (const encMsg of encryptedMsgs) {
         try {
@@ -124,7 +143,6 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
           decryptedMsgs.push(decrypted);
         } catch (error) {
           console.error('Failed to decrypt message:', error);
-          // Add placeholder for failed decryption
           decryptedMsgs.push({
             id: encMsg.id,
             senderId: encMsg.senderId,
@@ -135,7 +153,6 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
           });
         }
       }
-      
       setMessages(decryptedMsgs);
     } catch (error) {
       console.error('Failed to load messages:', error);
@@ -194,8 +211,21 @@ export function ChatInterface({ conversation, currentUser, onClose }: ChatInterf
       }
       setMessages(prev => [...prev, message]);
       
-      // Only try to send through service if it's not a demo/self chat
+      // Only persist to backend if it's not a demo/self chat
       if (!conversation.metadata?.isSelfChat && !conversation.metadata?.isDemo) {
+        try {
+          await appwriteMessagingService.sendMessage({
+            conversationId: conversation.id,
+            senderId: currentUser.id,
+            content: messageContent,
+            contentType: 'text'
+          });
+        } catch (err) {
+          console.error('Failed to persist message to backend:', err);
+          throw err;
+        }
+      } else {
+        // Fallback local store for demo/self
         await messagingService.sendMessage(message);
       }
       // For demo/self chats, message is just added to local state

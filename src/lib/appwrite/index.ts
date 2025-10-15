@@ -9,11 +9,12 @@ export { client, account, databases, storage, functions, isConfigured, getConfig
 // Export constants
 export {
   DATABASE_IDS,
-  WHISPERRNOTE_COLLECTIONS,
-  CHAT_COLLECTIONS,
+  // New terminology
+  WHISPERRNOTE_TABLES,
+  CHAT_TABLES,
   BUCKET_IDS,
-  COLLECTIONS,
-  getDatabaseForCollection,
+  TABLES,
+  getDatabaseForTable,
   isConfigurationValid,
   getMissingEnvVars,
 } from './config/constants';
@@ -22,7 +23,15 @@ export {
 export * from './services';
 
 // Export types
-export type { DatabaseId, CollectionId, BucketId } from './config/constants';
+export type { DatabaseId, TableId as CollectionId, TableId, BucketId } from './config/constants';
+
+// Backward-compatible re-exports
+export {
+  WHISPERRNOTE_COLLECTIONS,
+  CHAT_COLLECTIONS,
+  COLLECTIONS,
+  getDatabaseForCollection
+} from './config/constants';
 export type { User } from './services/user.service';
 export type { Conversation, Message } from './services/messaging.service';
 export type { Contact } from './services/contacts.service';
