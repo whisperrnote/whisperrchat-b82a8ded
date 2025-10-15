@@ -151,7 +151,7 @@
           "array": false,
           "format": "url",
           "default": null,
-          "encrypt": true
+          "encrypt": false
         },
         {
           "key": "thumbnailFileId",
@@ -410,7 +410,7 @@
           "type": "string",
           "required": false,
           "array": false,
-          "size": 50,
+          "size": 256,
           "default": null,
           "encrypt": true
         },
@@ -802,7 +802,7 @@
           "type": "string",
           "required": false,
           "array": false,
-          "size": 100,
+          "size": 256,
           "default": null,
           "encrypt": true
         },
