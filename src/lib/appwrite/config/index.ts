@@ -8,4 +8,17 @@ export * from './constants';
 
 // Re-export for convenience
 export { client, account, databases, storage, functions } from './client';
-export { DATABASE_IDS, CHAT_COLLECTIONS, WHISPERRNOTE_COLLECTIONS, BUCKET_IDS } from './constants';
+export {
+  DATABASE_IDS,
+  // New terminology
+  CHAT_TABLES,
+  WHISPERRNOTE_TABLES,
+  TABLES,
+  BUCKET_IDS,
+  getDatabaseForTable,
+  // Backward-compatible aliases
+  CHAT_COLLECTIONS,
+  WHISPERRNOTE_COLLECTIONS,
+  COLLECTIONS,
+  getDatabaseForCollection
+} from './constants';

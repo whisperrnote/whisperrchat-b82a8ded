@@ -5,7 +5,7 @@
 
 import { ID, Query } from 'appwrite';
 import { tablesDB } from '../config/client';
-import { DATABASE_IDS, CHAT_COLLECTIONS } from '../config/constants';
+import { DATABASE_IDS, CHAT_TABLES } from '../config/constants';
 import type { Conversations, Messages, ContentType } from '@/types/appwrite.d';
 import type { Models } from 'appwrite';
 
@@ -37,8 +37,8 @@ export interface Message extends Models.Document {
 
 export class MessagingService {
   private readonly databaseId = DATABASE_IDS.CHAT;
-  private readonly conversationsCollection = CHAT_COLLECTIONS.CONVERSATIONS;
-  private readonly messagesCollection = CHAT_COLLECTIONS.MESSAGES;
+  private readonly conversationsCollection = CHAT_TABLES.CONVERSATIONS;
+  private readonly messagesCollection = CHAT_TABLES.MESSAGES;
 
   /**
    * Create a new conversation
@@ -62,19 +62,21 @@ export class MessagingService {
    */
   async getOrCreateDirectConversation(userId1: string, userId2: string): Promise<Conversation> {
     try {
-      // Search for existing direct conversation
-      const response = await databases.listDocuments(
-        this.databaseId,
-        this.conversationsCollection,
-        [
+      // Search for existing direct conversation using TablesDB
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.conversationsCollection,
+        queries: [
           Query.equal('type', 'direct'),
           Query.search('participantIds', userId1),
           Query.limit(100),
-        ]
-      );
+        ],
+      });
+
+      const rows = (response as any).rows || [];
 
       // Find conversation with both users
-      const existing = response.documents.find((conv: any) => {
+      const existing = rows.find((conv: any) => {
         const participants = conv.participantIds || [];
         return participants.includes(userId1) && participants.includes(userId2) && participants.length === 2;
       });

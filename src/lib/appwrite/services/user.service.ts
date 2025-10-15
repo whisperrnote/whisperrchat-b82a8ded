@@ -5,7 +5,7 @@
 
 import { Query, ID } from 'appwrite';
 import { tablesDB, account } from '../config/client';
-import { DATABASE_IDS, WHISPERRNOTE_COLLECTIONS } from '../config/constants';
+import { DATABASE_IDS, WHISPERRNOTE_TABLES } from '../config/constants';
 import type { Users } from '@/types/appwrite.d';
 import type { Models } from 'appwrite';
 
@@ -20,7 +20,7 @@ export interface User extends Models.Document {
 
 export class UserService {
   private readonly databaseId = DATABASE_IDS.WHISPERRNOTE;
-  private readonly usersCollection = WHISPERRNOTE_COLLECTIONS.USERS;
+  private readonly usersCollection = WHISPERRNOTE_TABLES.USERS;
 
   /**
    * Get user by ID from database

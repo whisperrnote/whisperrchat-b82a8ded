@@ -5,7 +5,7 @@
 
 import { ID, Query } from 'appwrite';
 import { databases } from '../config/client';
-import { DATABASE_IDS, CHAT_COLLECTIONS } from '../config/constants';
+import { DATABASE_IDS, CHAT_TABLES } from '../config/constants';
 import type { Models } from 'appwrite';
 
 export interface Contact extends Models.Document {
@@ -20,7 +20,7 @@ export interface Contact extends Models.Document {
 
 export class ContactsService {
   private readonly databaseId = DATABASE_IDS.CHAT;
-  private readonly contactsCollection = CHAT_COLLECTIONS.CONTACTS;
+  private readonly contactsCollection = CHAT_TABLES.CONTACTS;
 
   async addContact(userId: string, contactUserId: string, data?: Partial<Contact>): Promise<Contact> {
     const contact = await databases.createDocument(

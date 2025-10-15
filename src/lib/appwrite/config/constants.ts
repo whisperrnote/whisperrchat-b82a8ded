@@ -24,49 +24,50 @@ requiredEnvVars.forEach((envVar) => {
 // ============================================
 // DATABASE IDS
 // ============================================
-// Prefer env overrides, but fall back to IDs in appwrite.config.json
+// Read strictly from env (no hardcoded defaults)
 export const DATABASE_IDS = {
-  WHISPERRNOTE: (import.meta.env.VITE_DATABASE_WHISPERRNOTE as string) || 'whisperrnote',
-  CHAT: (import.meta.env.VITE_DATABASE_CHAT as string) || 'chat',
+  WHISPERRNOTE: import.meta.env.VITE_DATABASE_WHISPERRNOTE as string,
+  CHAT: import.meta.env.VITE_DATABASE_CHAT as string,
 } as const;
 
 // ============================================
-// COLLECTION IDS - WHISPERRNOTE DATABASE
+// TABLE IDS - WHISPERRNOTE DATABASE
 // ============================================
-export const WHISPERRNOTE_COLLECTIONS = {
-  USERS: import.meta.env.VITE_COLLECTION_USERS as string,
+export const WHISPERRNOTE_TABLES = {
+  // Prefer VITE_TABLE_* but support legacy VITE_COLLECTION_* for compatibility
+  USERS: (import.meta.env as any).VITE_TABLE_USERS || (import.meta.env as any).VITE_COLLECTION_USERS,
 } as const;
 
 // ============================================
-// COLLECTION IDS - CHAT DATABASE
+// TABLE IDS - CHAT DATABASE
 // ============================================
-export const CHAT_COLLECTIONS = {
+export const CHAT_TABLES = {
   // Core Chat
-  CONVERSATIONS: (import.meta.env.VITE_COLLECTION_CONVERSATIONS as string) || 'conversations',
-  MESSAGES: (import.meta.env.VITE_COLLECTION_MESSAGES as string) || 'messages',
-  MESSAGE_QUEUE: (import.meta.env.VITE_COLLECTION_MESSAGE_QUEUE as string) || 'messageQueue',
-  CONTACTS: (import.meta.env.VITE_COLLECTION_CONTACTS as string) || 'contacts',
-  TYPING_INDICATORS: (import.meta.env.VITE_COLLECTION_TYPING_INDICATORS as string) || 'typingIndicators',
-  PRESENCE: (import.meta.env.VITE_COLLECTION_PRESENCE as string) || 'presence',
-  
+  CONVERSATIONS: (import.meta.env as any).VITE_TABLE_CONVERSATIONS || (import.meta.env as any).VITE_COLLECTION_CONVERSATIONS,
+  MESSAGES: (import.meta.env as any).VITE_TABLE_MESSAGES || (import.meta.env as any).VITE_COLLECTION_MESSAGES,
+  MESSAGE_QUEUE: (import.meta.env as any).VITE_TABLE_MESSAGE_QUEUE || (import.meta.env as any).VITE_COLLECTION_MESSAGE_QUEUE,
+  CONTACTS: (import.meta.env as any).VITE_TABLE_CONTACTS || (import.meta.env as any).VITE_COLLECTION_CONTACTS,
+  TYPING_INDICATORS: (import.meta.env as any).VITE_TABLE_TYPING_INDICATORS || (import.meta.env as any).VITE_COLLECTION_TYPING_INDICATORS,
+  PRESENCE: (import.meta.env as any).VITE_TABLE_PRESENCE || (import.meta.env as any).VITE_COLLECTION_PRESENCE,
+
   // Social Features
-  STORIES: (import.meta.env.VITE_COLLECTION_STORIES as string) || 'stories',
-  STORY_VIEWS: (import.meta.env.VITE_COLLECTION_STORY_VIEWS as string) || 'storyViews',
-  POSTS: (import.meta.env.VITE_COLLECTION_POSTS as string) || 'posts',
-  FOLLOWS: (import.meta.env.VITE_COLLECTION_FOLLOWS as string) || 'follows',
-  
+  STORIES: (import.meta.env as any).VITE_TABLE_STORIES || (import.meta.env as any).VITE_COLLECTION_STORIES,
+  STORY_VIEWS: (import.meta.env as any).VITE_TABLE_STORY_VIEWS || (import.meta.env as any).VITE_COLLECTION_STORY_VIEWS,
+  POSTS: (import.meta.env as any).VITE_TABLE_POSTS || (import.meta.env as any).VITE_COLLECTION_POSTS,
+  FOLLOWS: (import.meta.env as any).VITE_TABLE_FOLLOWS || (import.meta.env as any).VITE_COLLECTION_FOLLOWS,
+
   // Web3 Features
-  WALLETS: (import.meta.env.VITE_COLLECTION_WALLETS as string) || 'wallets',
-  TOKEN_HOLDINGS: (import.meta.env.VITE_COLLECTION_TOKEN_HOLDINGS as string) || 'tokenHoldings',
-  
+  WALLETS: (import.meta.env as any).VITE_TABLE_WALLETS || (import.meta.env as any).VITE_COLLECTION_WALLETS,
+  TOKEN_HOLDINGS: (import.meta.env as any).VITE_TABLE_TOKEN_HOLDINGS || (import.meta.env as any).VITE_COLLECTION_TOKEN_HOLDINGS,
+
   // Content Features
-  STICKERS: (import.meta.env.VITE_COLLECTION_STICKERS as string) || 'stickers',
-  STICKER_PACKS: (import.meta.env.VITE_COLLECTION_STICKER_PACKS as string) || 'stickerPacks',
-  USER_STICKERS: (import.meta.env.VITE_COLLECTION_USER_STICKERS as string) || 'userStickers',
-  GIFS: (import.meta.env.VITE_COLLECTION_GIFS as string) || 'gifs',
-  POLLS: (import.meta.env.VITE_COLLECTION_POLLS as string) || 'polls',
-  AR_FILTERS: (import.meta.env.VITE_COLLECTION_AR_FILTERS as string) || 'arFilters',
-  MEDIA_LIBRARY: (import.meta.env.VITE_COLLECTION_MEDIA_LIBRARY as string) || 'mediaLibrary',
+  STICKERS: (import.meta.env as any).VITE_TABLE_STICKERS || (import.meta.env as any).VITE_COLLECTION_STICKERS,
+  STICKER_PACKS: (import.meta.env as any).VITE_TABLE_STICKER_PACKS || (import.meta.env as any).VITE_COLLECTION_STICKER_PACKS,
+  USER_STICKERS: (import.meta.env as any).VITE_TABLE_USER_STICKERS || (import.meta.env as any).VITE_COLLECTION_USER_STICKERS,
+  GIFS: (import.meta.env as any).VITE_TABLE_GIFS || (import.meta.env as any).VITE_COLLECTION_GIFS,
+  POLLS: (import.meta.env as any).VITE_TABLE_POLLS || (import.meta.env as any).VITE_COLLECTION_POLLS,
+  AR_FILTERS: (import.meta.env as any).VITE_TABLE_AR_FILTERS || (import.meta.env as any).VITE_COLLECTION_AR_FILTERS,
+  MEDIA_LIBRARY: (import.meta.env as any).VITE_TABLE_MEDIA_LIBRARY || (import.meta.env as any).VITE_COLLECTION_MEDIA_LIBRARY,
 } as const;
 
 // ============================================
@@ -87,18 +88,18 @@ export const BUCKET_IDS = {
 } as const;
 
 // ============================================
-// UNIFIED COLLECTIONS (for convenience)
+// UNIFIED TABLES (for convenience)
 // ============================================
-export const COLLECTIONS = {
-  ...WHISPERRNOTE_COLLECTIONS,
-  ...CHAT_COLLECTIONS,
+export const TABLES = {
+  ...WHISPERRNOTE_TABLES,
+  ...CHAT_TABLES,
 } as const;
 
 // ============================================
 // TYPE EXPORTS
 // ============================================
 export type DatabaseId = typeof DATABASE_IDS[keyof typeof DATABASE_IDS];
-export type CollectionId = typeof COLLECTIONS[keyof typeof COLLECTIONS];
+export type TableId = typeof TABLES[keyof typeof TABLES];
 export type BucketId = typeof BUCKET_IDS[keyof typeof BUCKET_IDS];
 
 // ============================================
@@ -106,14 +107,23 @@ export type BucketId = typeof BUCKET_IDS[keyof typeof BUCKET_IDS];
 // ============================================
 
 /**
- * Get database ID for a collection
+ * Get database ID for a table
  */
-export const getDatabaseForCollection = (collectionId: string): DatabaseId => {
-  if (Object.values(WHISPERRNOTE_COLLECTIONS).includes(collectionId as any)) {
+export const getDatabaseForTable = (tableId: string): DatabaseId => {
+  if (Object.values(WHISPERRNOTE_TABLES).includes(tableId as any)) {
     return DATABASE_IDS.WHISPERRNOTE;
   }
   return DATABASE_IDS.CHAT;
 };
+
+// ---------------------------------------------------------------------------
+// Backward-compatibility exports (Collections terminology)
+// ---------------------------------------------------------------------------
+export const WHISPERRNOTE_COLLECTIONS = WHISPERRNOTE_TABLES;
+export const CHAT_COLLECTIONS = CHAT_TABLES;
+export const COLLECTIONS = TABLES;
+export type CollectionId = TableId;
+export const getDatabaseForCollection = getDatabaseForTable;
 
 /**
  * Check if configuration is valid
