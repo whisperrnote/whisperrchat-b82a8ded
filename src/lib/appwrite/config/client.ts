@@ -3,7 +3,7 @@
  * Initialized with environment variables
  */
 
-import { Client, Account, Databases, Storage, Functions } from 'appwrite';
+import { Client, Account, Databases, Storage, Functions, TablesDB } from 'appwrite';
 
 // Get environment variables
 const ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT as string;
@@ -32,6 +32,8 @@ export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
 export const functions = new Functions(client);
+// New: TablesDB client for Appwrite Tables service
+export const tablesDB = new TablesDB(client);
 
 /**
  * Export client for advanced usage

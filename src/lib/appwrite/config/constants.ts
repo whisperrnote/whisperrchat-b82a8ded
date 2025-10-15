@@ -24,9 +24,10 @@ requiredEnvVars.forEach((envVar) => {
 // ============================================
 // DATABASE IDS
 // ============================================
+// Prefer env overrides, but fall back to IDs in appwrite.config.json
 export const DATABASE_IDS = {
-  WHISPERRNOTE: import.meta.env.VITE_DATABASE_WHISPERRNOTE as string,
-  CHAT: import.meta.env.VITE_DATABASE_CHAT as string,
+  WHISPERRNOTE: (import.meta.env.VITE_DATABASE_WHISPERRNOTE as string) || 'whisperrnote',
+  CHAT: (import.meta.env.VITE_DATABASE_CHAT as string) || 'chat',
 } as const;
 
 // ============================================
@@ -41,31 +42,31 @@ export const WHISPERRNOTE_COLLECTIONS = {
 // ============================================
 export const CHAT_COLLECTIONS = {
   // Core Chat
-  CONVERSATIONS: import.meta.env.VITE_COLLECTION_CONVERSATIONS as string,
-  MESSAGES: import.meta.env.VITE_COLLECTION_MESSAGES as string,
-  MESSAGE_QUEUE: import.meta.env.VITE_COLLECTION_MESSAGE_QUEUE as string,
-  CONTACTS: import.meta.env.VITE_COLLECTION_CONTACTS as string,
-  TYPING_INDICATORS: import.meta.env.VITE_COLLECTION_TYPING_INDICATORS as string,
-  PRESENCE: import.meta.env.VITE_COLLECTION_PRESENCE as string,
+  CONVERSATIONS: (import.meta.env.VITE_COLLECTION_CONVERSATIONS as string) || 'conversations',
+  MESSAGES: (import.meta.env.VITE_COLLECTION_MESSAGES as string) || 'messages',
+  MESSAGE_QUEUE: (import.meta.env.VITE_COLLECTION_MESSAGE_QUEUE as string) || 'messageQueue',
+  CONTACTS: (import.meta.env.VITE_COLLECTION_CONTACTS as string) || 'contacts',
+  TYPING_INDICATORS: (import.meta.env.VITE_COLLECTION_TYPING_INDICATORS as string) || 'typingIndicators',
+  PRESENCE: (import.meta.env.VITE_COLLECTION_PRESENCE as string) || 'presence',
   
   // Social Features
-  STORIES: import.meta.env.VITE_COLLECTION_STORIES as string,
-  STORY_VIEWS: import.meta.env.VITE_COLLECTION_STORY_VIEWS as string,
-  POSTS: import.meta.env.VITE_COLLECTION_POSTS as string,
-  FOLLOWS: import.meta.env.VITE_COLLECTION_FOLLOWS as string,
+  STORIES: (import.meta.env.VITE_COLLECTION_STORIES as string) || 'stories',
+  STORY_VIEWS: (import.meta.env.VITE_COLLECTION_STORY_VIEWS as string) || 'storyViews',
+  POSTS: (import.meta.env.VITE_COLLECTION_POSTS as string) || 'posts',
+  FOLLOWS: (import.meta.env.VITE_COLLECTION_FOLLOWS as string) || 'follows',
   
   // Web3 Features
-  WALLETS: import.meta.env.VITE_COLLECTION_WALLETS as string,
-  TOKEN_HOLDINGS: import.meta.env.VITE_COLLECTION_TOKEN_HOLDINGS as string,
+  WALLETS: (import.meta.env.VITE_COLLECTION_WALLETS as string) || 'wallets',
+  TOKEN_HOLDINGS: (import.meta.env.VITE_COLLECTION_TOKEN_HOLDINGS as string) || 'tokenHoldings',
   
   // Content Features
-  STICKERS: import.meta.env.VITE_COLLECTION_STICKERS as string,
-  STICKER_PACKS: import.meta.env.VITE_COLLECTION_STICKER_PACKS as string,
-  USER_STICKERS: import.meta.env.VITE_COLLECTION_USER_STICKERS as string,
-  GIFS: import.meta.env.VITE_COLLECTION_GIFS as string,
-  POLLS: import.meta.env.VITE_COLLECTION_POLLS as string,
-  AR_FILTERS: import.meta.env.VITE_COLLECTION_AR_FILTERS as string,
-  MEDIA_LIBRARY: import.meta.env.VITE_COLLECTION_MEDIA_LIBRARY as string,
+  STICKERS: (import.meta.env.VITE_COLLECTION_STICKERS as string) || 'stickers',
+  STICKER_PACKS: (import.meta.env.VITE_COLLECTION_STICKER_PACKS as string) || 'stickerPacks',
+  USER_STICKERS: (import.meta.env.VITE_COLLECTION_USER_STICKERS as string) || 'userStickers',
+  GIFS: (import.meta.env.VITE_COLLECTION_GIFS as string) || 'gifs',
+  POLLS: (import.meta.env.VITE_COLLECTION_POLLS as string) || 'polls',
+  AR_FILTERS: (import.meta.env.VITE_COLLECTION_AR_FILTERS as string) || 'arFilters',
+  MEDIA_LIBRARY: (import.meta.env.VITE_COLLECTION_MEDIA_LIBRARY as string) || 'mediaLibrary',
 } as const;
 
 // ============================================

@@ -4,7 +4,7 @@
  */
 
 import { Query, ID } from 'appwrite';
-import { databases, account } from '../config/client';
+import { tablesDB, account } from '../config/client';
 import { DATABASE_IDS, WHISPERRNOTE_COLLECTIONS } from '../config/constants';
 import type { Users } from '@/types/appwrite.d';
 import type { Models } from 'appwrite';
@@ -27,12 +27,12 @@ export class UserService {
    */
   async getUser(userId: string): Promise<User | null> {
     try {
-      const user = await databases.getDocument(
-        this.databaseId,
-        this.usersCollection,
-        userId
-      );
-      return user as User;
+      const user = await tablesDB.getRow({
+        databaseId: this.databaseId,
+        tableId: this.usersCollection,
+        rowId: userId,
+      });
+      return user as unknown as User;
     } catch (error) {
       console.error('Error getting user:', error);
       return null;
@@ -44,12 +44,13 @@ export class UserService {
    */
   async getUserByEmail(email: string): Promise<User | null> {
     try {
-      const response = await databases.listDocuments(
-        this.databaseId,
-        this.usersCollection,
-        [Query.equal('email', email), Query.limit(1)]
-      );
-      return (response.documents[0] as User) || null;
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.usersCollection,
+        queries: [Query.equal('email', email), Query.limit(1)],
+      });
+      const rows = (response as any).rows || [];
+      return (rows[0] as User) || null;
     } catch (error) {
       console.error('Error getting user by email:', error);
       return null;
@@ -62,38 +63,38 @@ export class UserService {
   async getUserByUsername(username: string): Promise<User | null> {
     try {
       // Try exact match first
-      let response = await databases.listDocuments(
-        this.databaseId,
-        this.usersCollection,
-        [Query.equal('name', username), Query.limit(1)]
-      );
-      
-      if (response.documents.length > 0) {
-        return response.documents[0] as User;
+      let response: any = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.usersCollection,
+        queries: [Query.equal('name', username), Query.limit(1)],
+      });
+
+      if (response.rows?.length > 0) {
+        return response.rows[0] as User;
       }
-      
+
       // Try case-insensitive search
-      response = await databases.listDocuments(
-        this.databaseId,
-        this.usersCollection,
-        [Query.search('name', username), Query.limit(1)]
-      );
-      
-      if (response.documents.length > 0) {
-        return response.documents[0] as User;
+      response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.usersCollection,
+        queries: [Query.search('name', username), Query.limit(1)],
+      });
+
+      if (response.rows?.length > 0) {
+        return response.rows[0] as User;
       }
-      
+
       // Last resort: get all and filter
-      response = await databases.listDocuments(
-        this.databaseId,
-        this.usersCollection,
-        [Query.limit(100)]
-      );
-      
-      const found = response.documents.find((doc: any) => 
+      response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.usersCollection,
+        queries: [Query.limit(100)],
+      });
+
+      const found = (response.rows || []).find((doc: any) =>
         doc.name?.toLowerCase() === username.toLowerCase()
       );
-      
+
       return (found as User) || null;
     } catch (error) {
       console.error('Error getting user by username:', error);
@@ -106,12 +107,13 @@ export class UserService {
    */
   async getUserByWallet(walletAddress: string): Promise<User | null> {
     try {
-      const response = await databases.listDocuments(
-        this.databaseId,
-        this.usersCollection,
-        [Query.equal('walletAddress', walletAddress.toLowerCase()), Query.limit(1)]
-      );
-      return (response.documents[0] as User) || null;
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.usersCollection,
+        queries: [Query.equal('walletAddress', walletAddress.toLowerCase()), Query.limit(1)],
+      });
+      const rows = (response as any).rows || [];
+      return (rows[0] as User) || null;
     } catch (error) {
       console.error('Error getting user by wallet:', error);
       return null;
@@ -124,46 +126,46 @@ export class UserService {
   async searchUsers(searchTerm: string, limit = 20): Promise<User[]> {
     try {
       // Try search first
-      let response = await databases.listDocuments(
-        this.databaseId,
-        this.usersCollection,
-        [
+      let response: any = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.usersCollection,
+        queries: [
           Query.search('name', searchTerm),
           Query.limit(limit),
-        ]
-      );
+        ],
+      });
       
       // If search returns nothing, try startsWith
-      if (response.documents.length === 0) {
-        response = await databases.listDocuments(
-          this.databaseId,
-          this.usersCollection,
-          [
+      if (!response.rows || response.rows.length === 0) {
+        response = await tablesDB.listRows({
+          databaseId: this.databaseId,
+          tableId: this.usersCollection,
+          queries: [
             Query.startsWith('name', searchTerm),
             Query.limit(limit),
-          ]
-        );
+          ],
+        });
       }
       
       // If still nothing, try contains (case-insensitive)
-      if (response.documents.length === 0) {
-        response = await databases.listDocuments(
-          this.databaseId,
-          this.usersCollection,
-          [
+      if (!response.rows || response.rows.length === 0) {
+        response = await tablesDB.listRows({
+          databaseId: this.databaseId,
+          tableId: this.usersCollection,
+          queries: [
             Query.limit(100), // Get more to filter manually
-          ]
-        );
-        
+          ],
+        });
+
         // Filter manually for case-insensitive contains
-        const filtered = response.documents.filter((doc: any) => 
+        const filtered = (response.rows || []).filter((doc: any) =>
           doc.name?.toLowerCase().includes(searchTerm.toLowerCase())
         );
-        
+
         return filtered.slice(0, limit) as User[];
       }
       
-      return response.documents as User[];
+      return (response.rows || []) as User[];
     } catch (error) {
       console.error('Error searching users:', error);
       return [];
@@ -198,15 +200,15 @@ export class UserService {
       await account.updateName(newUsername);
 
       // Update database record
-      await databases.updateDocument(
-        this.databaseId,
-        this.usersCollection,
-        userId,
-        {
+      await tablesDB.updateRow({
+        databaseId: this.databaseId,
+        tableId: this.usersCollection,
+        rowId: userId,
+        data: {
           name: newUsername,
           updatedAt: new Date().toISOString(),
-        }
-      );
+        },
+      });
 
       return true;
     } catch (error) {
@@ -225,29 +227,29 @@ export class UserService {
       
       if (existingUser) {
         // Update existing user
-        const updated = await databases.updateDocument(
-          this.databaseId,
-          this.usersCollection,
-          userId,
-          {
+        const updated = await tablesDB.updateRow({
+          databaseId: this.databaseId,
+          tableId: this.usersCollection,
+          rowId: userId,
+          data: {
             ...data,
             updatedAt: new Date().toISOString(),
-          }
-        );
-        return updated as User;
+          },
+        });
+        return updated as unknown as User;
       } else {
         // Create new user
-        const created = await databases.createDocument(
-          this.databaseId,
-          this.usersCollection,
-          userId,
-          {
+        const created = await tablesDB.createRow({
+          databaseId: this.databaseId,
+          tableId: this.usersCollection,
+          rowId: userId,
+          data: {
             ...data,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-          }
-        );
-        return created as User;
+          },
+        });
+        return created as unknown as User;
       }
     } catch (error) {
       console.error('Error upserting user:', error);

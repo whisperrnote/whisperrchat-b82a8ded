@@ -4,7 +4,7 @@
  */
 
 import { ID, Query } from 'appwrite';
-import { databases } from '../config/client';
+import { tablesDB } from '../config/client';
 import { DATABASE_IDS, CHAT_COLLECTIONS } from '../config/constants';
 import type { Conversations, Messages, ContentType } from '@/types/appwrite.d';
 import type { Models } from 'appwrite';
@@ -44,17 +44,17 @@ export class MessagingService {
    * Create a new conversation
    */
   async createConversation(data: Partial<Conversation>): Promise<Conversation> {
-    const conversation = await databases.createDocument(
-      this.databaseId,
-      this.conversationsCollection,
-      ID.unique(),
-      {
+    const result = await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: this.conversationsCollection,
+      rowId: ID.unique(),
+      data: {
         ...data,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }
-    );
-    return conversation as Conversation;
+      },
+    });
+    return result as unknown as Conversation;
   }
 
   /**
@@ -101,12 +101,12 @@ export class MessagingService {
    */
   async getConversation(conversationId: string): Promise<Conversation | null> {
     try {
-      const conversation = await databases.getDocument(
-        this.databaseId,
-        this.conversationsCollection,
-        conversationId
-      );
-      return conversation as Conversation;
+      const conversation = await tablesDB.getRow({
+        databaseId: this.databaseId,
+        tableId: this.conversationsCollection,
+        rowId: conversationId,
+      });
+      return conversation as unknown as Conversation;
     } catch (error) {
       console.error('Error getting conversation:', error);
       return null;
@@ -118,16 +118,16 @@ export class MessagingService {
    */
   async getUserConversations(userId: string, limit = 50): Promise<Conversation[]> {
     try {
-      const response = await databases.listDocuments(
-        this.databaseId,
-        this.conversationsCollection,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.conversationsCollection,
+        queries: [
           Query.search('participantIds', userId),
           Query.orderDesc('lastMessageAt'),
           Query.limit(limit),
-        ]
-      );
-      return response.documents as Conversation[];
+        ],
+      });
+      return (response as any).rows as Conversation[];
     } catch (error) {
       console.error('Error getting user conversations:', error);
       return [];
@@ -138,31 +138,31 @@ export class MessagingService {
    * Send a message in a conversation
    */
   async sendMessage(data: Partial<Message>): Promise<Message> {
-    const message = await databases.createDocument(
-      this.databaseId,
-      this.messagesCollection,
-      ID.unique(),
-      {
+    const message = await tablesDB.createRow({
+      databaseId: this.databaseId,
+      tableId: this.messagesCollection,
+      rowId: ID.unique(),
+      data: {
         ...data,
         status: 'sent',
         createdAt: new Date().toISOString(),
-      }
-    );
+        updatedAt: new Date().toISOString(),
+      },
+    });
 
-    // Update conversation last message
     if (data.conversationId) {
-      await databases.updateDocument(
-        this.databaseId,
-        this.conversationsCollection,
-        data.conversationId,
-        {
+      await tablesDB.updateRow({
+        databaseId: this.databaseId,
+        tableId: this.conversationsCollection,
+        rowId: data.conversationId,
+        data: {
           lastMessageText: data.content,
           lastMessageAt: new Date().toISOString(),
-        }
-      );
+        },
+      });
     }
 
-    return message as Message;
+    return message as unknown as Message;
   }
 
   /**
@@ -221,17 +221,17 @@ export class MessagingService {
    */
   async getConversationMessages(conversationId: string, limit = 50, offset = 0): Promise<Message[]> {
     try {
-      const response = await databases.listDocuments(
-        this.databaseId,
-        this.messagesCollection,
-        [
+      const response = await tablesDB.listRows({
+        databaseId: this.databaseId,
+        tableId: this.messagesCollection,
+        queries: [
           Query.equal('conversationId', conversationId),
           Query.orderDesc('createdAt'),
           Query.limit(limit),
           Query.offset(offset),
-        ]
-      );
-      return response.documents as Message[];
+        ],
+      });
+      return (response as any).rows as Message[];
     } catch (error) {
       console.error('Error getting messages:', error);
       return [];
@@ -243,11 +243,11 @@ export class MessagingService {
    */
   async deleteConversation(conversationId: string): Promise<boolean> {
     try {
-      await databases.deleteDocument(
-        this.databaseId,
-        this.conversationsCollection,
-        conversationId
-      );
+      await tablesDB.deleteRow({
+        databaseId: this.databaseId,
+        tableId: this.conversationsCollection,
+        rowId: conversationId,
+      });
       return true;
     } catch (error) {
       console.error('Error deleting conversation:', error);
